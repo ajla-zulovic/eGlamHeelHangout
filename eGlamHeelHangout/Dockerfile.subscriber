@@ -1,0 +1,20 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
+
+# Copy only the project file and restore dependencies
+COPY ["eGlamHeelHangout.Subscriber/eGlamHeelHangout.Subscriber.csproj", "eGlamHeelHangout.Subscriber/"]
+COPY ["eGlamHeelHangout.Model/eGlamHeelHangout.Model.csproj", "eGlamHeelHangout.Model/"]
+RUN dotnet restore "eGlamHeelHangout.Subscriber/eGlamHeelHangout.Subscriber.csproj"
+
+# Copy the rest of the source code
+COPY . .
+
+WORKDIR "/src/eGlamHeelHangout.Subscriber"
+RUN dotnet build "eGlamHeelHangout.Subscriber.csproj" -c Release -o /app/build
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/runtime:6.0
+WORKDIR /app
+COPY --from=build /app/build .
+ENTRYPOINT ["dotnet", "eGlamHeelHangout.Subscriber.dll"]

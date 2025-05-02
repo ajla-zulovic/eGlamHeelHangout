@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eGlamHeelHangout", "eGlamHeelHangout\eGlamHeelHangout.csproj", "{C36C0DEC-CE0A-4604-8B64-DEFB474C3EB4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eGlamHeelHangout.Model", "eGlamHeelHangout.Model\eGlamHeelHangout.Model.csproj", "{7F7BDF3A-0801-41D3-A779-0AA1D60ADB0D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eGlamHeelHangout.Service", "eGlamHeelHangout.Service\eGlamHeelHangout.Service.csproj", "{0C268E38-1FB3-40DF-9D09-3CD646E19910}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eGlamHeelHangout.Subscriber", "eGlamHeelHangout.Subscriber\eGlamHeelHangout.Subscriber.csproj", "{2E8A9B97-7040-49DC-AAA0-7C1099D7C012}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{71DFCFAE-BB3F-4C99-B83C-3F6491685C25}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C36C0DEC-CE0A-4604-8B64-DEFB474C3EB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C36C0DEC-CE0A-4604-8B64-DEFB474C3EB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C36C0DEC-CE0A-4604-8B64-DEFB474C3EB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C36C0DEC-CE0A-4604-8B64-DEFB474C3EB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F7BDF3A-0801-41D3-A779-0AA1D60ADB0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F7BDF3A-0801-41D3-A779-0AA1D60ADB0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F7BDF3A-0801-41D3-A779-0AA1D60ADB0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F7BDF3A-0801-41D3-A779-0AA1D60ADB0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C268E38-1FB3-40DF-9D09-3CD646E19910}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C268E38-1FB3-40DF-9D09-3CD646E19910}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C268E38-1FB3-40DF-9D09-3CD646E19910}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C268E38-1FB3-40DF-9D09-3CD646E19910}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E8A9B97-7040-49DC-AAA0-7C1099D7C012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E8A9B97-7040-49DC-AAA0-7C1099D7C012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E8A9B97-7040-49DC-AAA0-7C1099D7C012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E8A9B97-7040-49DC-AAA0-7C1099D7C012}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4E310C81-F89B-48BC-ACA9-0DFA1B568619}
+	EndGlobalSection
+EndGlobal

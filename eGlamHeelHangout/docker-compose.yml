@@ -1,0 +1,71 @@
+version: '3'
+services:
+  eglamheelhangout-sql:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=QWElkj123!
+      - MSSQL_PID=Developer
+    ports:
+      - 1401:1433
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -U sa -P $${SA_PASSWORD} -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - eglamheelhangoutnet2025
+
+  eglamheelhangout-api:
+    restart: unless-stopped
+    build:
+      context: .
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=eglamheelhangout-sql,1433;Database=200199;User=sa;Password=QWElkj123!;ConnectRetryCount=0;TrustServerCertificate=True
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - 7277:7277
+    depends_on:
+      eglamheelhangout-sql:
+        condition: service_healthy
+    networks:
+      - eglamheelhangoutnet2025
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - eglamheelhangoutnet2025
+
+  subscriber:
+    build:
+      context: .
+      dockerfile: Dockerfile.subscriber 
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - eglamheelhangoutnet2025
+
+networks:
+  eglamheelhangoutnet2025:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
