@@ -1,7 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:eglamheelhangout_admin/providers/product_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_admin/main.dart';
+import 'package:eglamheelhangout_admin/models/search_result.dart';
+import 'package:eglamheelhangout_admin/models/product.dart';
+import 'package:eglamheelhangout_admin/utils/utils.dart';
+import 'package:intl/intl.dart';
+import 'package:eglamheelhangout_admin/screens/product_details_screen.dart'; 
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -98,12 +104,176 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late ProductProvider _productProvider;
+  SearchResult<Product>? result;
+  final TextEditingController _ftsController = TextEditingController();
+  Timer? _debounceTimer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _productProvider = Provider.of<ProductProvider>(context, listen: false);
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    var data = await _productProvider.get();
+    setState(() {
+      result = data;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Home Screen'));
+    if (result == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Center(
+            child: Image.asset(
+              "assets/images/logologo.png",
+              height: 150,
+              width: 150,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: 700,
+            child: TextField(
+              controller: _ftsController,
+              decoration: InputDecoration(
+                hintText: 'Search products...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+              ),
+              onChanged: (value) {
+                if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+                _debounceTimer =
+                    Timer(const Duration(milliseconds: 500), () async {
+                  if (_ftsController.text.isEmpty) {
+                    await _fetchData();
+                    return;
+                  }
+                  try {
+                    var data = await _productProvider.get(filter: {
+                      'fts': _ftsController.text,
+                    });
+                    if (mounted) {
+                      setState(() {
+                        result = data;
+                      });
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Search error: ${e.toString()}'),
+                        ),
+                      );
+                    }
+                  }
+                });
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: GridView.builder(
+              itemCount: result!.result.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 3 / 2,
+              ),
+              itemBuilder: (context, index) {
+                final product = result!.result[index];
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductDetailScreen(product: product),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                                ? Image.network(
+                                    '${_productProvider.baseUrl}/${product.imageUrl!}',
+                                    fit: BoxFit.contain,
+                                    headers: const {
+                                      "Accept": "image/*",
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      print('Image load error: $error');
+                                      return const Icon(Icons.broken_image, size: 80);
+                                    },
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded / 
+                                                loadingProgress.expectedTotalBytes!
+                                              : null,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : const Icon(Icons.image_not_supported, size: 50),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            product.name ?? "",
+                            style: const TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formatNumber(product.price),
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

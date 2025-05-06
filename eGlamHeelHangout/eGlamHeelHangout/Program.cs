@@ -69,7 +69,9 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
+app.UseStaticFiles(); //za slike
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -86,4 +88,5 @@ using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Co
 }
 
 
-  app.Run();
+app.MapControllers();
+app.Run();

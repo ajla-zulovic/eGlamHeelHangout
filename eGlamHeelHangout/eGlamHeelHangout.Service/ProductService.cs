@@ -60,7 +60,19 @@ namespace eGlamHeelHangout.Service
       var state = _baseState.CreateState(entity?.StateMachine??"initial");
       return await state.AllowedActions();
     }
-  }
+    public override IQueryable<Database.Product> AddFilter(IQueryable<Database.Product> query, ProductsSearchObjects? search = null)
+        {
+            var filteredQuery = base.AddFilter(query, search);
+
+            if (!string.IsNullOrWhiteSpace(search?.FTS))
+            {
+                filteredQuery = filteredQuery.Where(x => x.Name.Contains(search.FTS));
+            }
+
+      
+            return filteredQuery;
+        }
+   }
 }
 
 //AsQueryAble -> znaci da ce moci dodavati filtere
