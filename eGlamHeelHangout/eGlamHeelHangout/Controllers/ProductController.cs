@@ -1,6 +1,7 @@
 using eGlamHeelHangout.Model;
 using eGlamHeelHangout.Model.SearchObjects;
 using eGlamHeelHangout.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography.X509Certificates;
 
@@ -31,6 +32,18 @@ namespace eGlamHeelHangout.Controllers
     {
       return await (_service as IProductService).AllowedActions(id);
     }
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success = await (_service as IProductService).Delete(id);
 
-  }
+            if (success)
+                return Ok(new { message = "Product deleted successfully." });
+
+            return BadRequest("Something went wrong while deleting product.");
+        }
+
+
+    }
 }

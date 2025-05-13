@@ -46,6 +46,7 @@ builder.Services.AddSwaggerGen(c =>
  
 builder.Services.AddTransient<IProductService, ProductService>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<ICategoryService, CategoryService>();
 builder.Services.AddTransient<IService<eGlamHeelHangout.Model.Categories,BaseSearchObject>,BaseService<eGlamHeelHangout.Model.Categories,eGlamHeelHangout.Service.Database.Category,BaseSearchObject>>();
 builder.Services.AddTransient<BaseState>();
 builder.Services.AddTransient<DraftProductState>();

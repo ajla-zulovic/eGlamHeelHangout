@@ -22,7 +22,7 @@ namespace eGlamHeelHangout.Service.Database
         public string Material { get; set; } = null!;
         public decimal HeelHeight { get; set; }
         public decimal Price { get; set; }
-        public string? ImageUrl { get; set; }
+        public byte[]? Image { get; set; }
         public string? Description { get; set; }
         public DateTime? DateAdded { get; set; }
         public string? StateMachine { get; set; }

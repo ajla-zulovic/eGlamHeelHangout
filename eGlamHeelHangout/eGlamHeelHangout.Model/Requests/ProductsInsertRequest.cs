@@ -18,8 +18,8 @@ namespace eGlamHeelHangout.Model.Requests
     [Required(ErrorMessage ="Price is required !")]
     [Range(1,10000)]
     public decimal Price { get; set; }
-    [Required(ErrorMessage = "ImageUrl is required !")]
-    public string ImageUrl { get; set; }
+    [Required(ErrorMessage = "Image is required !")]
+    public byte[] Image { get; set; }
     [Required(ErrorMessage = "Category is required !")]
     public int CategoryID { get; set; }
     [Required(AllowEmptyStrings = false,ErrorMessage ="Material is required !")]

@@ -13,5 +13,7 @@ namespace eGlamHeelHangout.Service
     Task<Model.Products> Activate(int id);
     Task<Model.Products> Hide(int id);
     Task<List<string>> AllowedActions(int id);
-  }
+    Task<bool> Delete(int id);
+
+    }
 }

@@ -8,6 +8,7 @@ import 'package:eglamheelhangout_admin/models/product.dart';
 import 'package:eglamheelhangout_admin/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:eglamheelhangout_admin/screens/product_details_screen.dart'; 
+import 'package:eglamheelhangout_admin/screens/add_product_screen.dart';
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -21,10 +22,9 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   late ProductProvider _productProvider;
 
   final List<Map<String, dynamic>> _pages = [
-    {'page': const HomeScreen(), 'title': 'Home Page'},
+    {'page':  HomeScreen(), 'title': 'Home Page'},
     {'page': const ProfileScreen(), 'title': 'Profile Page'},
     {'page': const ReportScreen(), 'title': 'Report Page'},
-    {'page': const AddProductScreen(), 'title': 'Add Product'},
     {'page': const AddGiveawayScreen(), 'title': 'Add Giveaway'},
   ];
 
@@ -66,39 +66,74 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey[800]),
-              child: const Text(
-                'Menu',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            ...List.generate(_pages.length, (index) {
-              return ListTile(
-                title: Text(_pages[index]['title']),
-                onTap: () => _selectPage(index),
-              );
-            }),
-            const Divider(),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          ],
+  child: ListView(
+    padding: EdgeInsets.zero,
+    children: [
+      DrawerHeader(
+        decoration: BoxDecoration(color: Colors.grey[800]),
+        child: const Text(
+          'Menu',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
+    
+      ListTile(
+        leading: const Icon(Icons.home),
+        title: const Text('Home Page'),
+        onTap: () => _selectPage(0),
+      ),
+      ListTile(
+        leading: const Icon(Icons.person),
+        title: const Text('Profile Page'),
+        onTap: () => _selectPage(1),
+      ),
+      ListTile(
+        leading: const Icon(Icons.bar_chart),
+        title: const Text('Report Page'),
+        onTap: () => _selectPage(2),
+      ),
+      ListTile(
+        leading: const Icon(Icons.card_giftcard),
+        title: const Text('Add Giveaway'),
+        onTap: () => _selectPage(3),
+      ),
+     
+      ListTile(
+       leading: const Icon(Icons.add_circle_outline),
+        title: const Text('Add New Product'),
+        onTap: () async {
+           Navigator.of(context).pop(); 
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddProductScreen()),
+          );
+
+          if (result == true && mounted) {
+            setState(() {
+              selectedIndex = 0;
+              _pages[0]['page'] = HomeScreen();
+            });
+          }
+          },
+      ),
+      const Divider(),
+      ListTile(
+        leading: const Icon(Icons.logout),
+        title: const Text('Logout'),
+        onTap: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+            (Route<dynamic> route) => false,
+          );
+        },
+      ),
+    ],
+  ),
+),
       body: _pages[selectedIndex]['page'],
     );
   }
@@ -116,7 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
   SearchResult<Product>? result;
   final TextEditingController _ftsController = TextEditingController();
   Timer? _debounceTimer;
-
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _fetchData(); // automatski povlači podatke kada se HomeScreen obnovi
+  }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -204,14 +243,18 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index) {
                 final product = result!.result[index];
                 return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(product: product),
-                      ),
-                    );
-                  },
+                  onTap: () async {
+                  final updated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetailScreen(product: product),
+                    ),
+                  );
+
+                  if (updated == true) {
+                    await _fetchData(); // ponovo povuci podatke
+                  }
+                },
                   child: Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -223,29 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                                ? Image.network(
-                                    '${_productProvider.baseUrl}/${product.imageUrl!}',
-                                    fit: BoxFit.contain,
-                                    headers: const {
-                                      "Accept": "image/*",
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      print('Image load error: $error');
-                                      return const Icon(Icons.broken_image, size: 80);
-                                    },
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          value: loadingProgress.expectedTotalBytes != null
-                                              ? loadingProgress.cumulativeBytesLoaded / 
-                                                loadingProgress.expectedTotalBytes!
-                                              : null,
-                                        ),
-                                      );
-                                    },
-                                  )
+                            child: product.image != null && product.image!.isNotEmpty
+                                ? imageFromBase64String(product.image!)
                                 : const Icon(Icons.image_not_supported, size: 50),
                           ),
                           const SizedBox(height: 4),
@@ -292,15 +314,6 @@ class ReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(child: Text('Report Screen'));
-  }
-}
-
-class AddProductScreen extends StatelessWidget {
-  const AddProductScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Add Product Screen'));
   }
 }
 

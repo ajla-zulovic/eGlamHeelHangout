@@ -3,11 +3,15 @@ import 'package:eglamheelhangout_admin/providers/product_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_admin/screens/products_list_screen.dart';
 import 'package:eglamheelhangout_admin/utils/utils.dart';
+import 'package:eglamheelhangout_admin/providers/category_providers.dart';
 
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ProductProvider())],
+      providers: [ChangeNotifierProvider(create: (_) => ProductProvider()),
+      ChangeNotifierProvider(create: (_) => CategoryProvider()),
+      ],
+      
       child: const MyApp(),
     ),
   );

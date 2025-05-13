@@ -17,8 +17,10 @@ namespace eGlamHeelHangout.Filters
       }
       else
       {
-        context.ModelState.AddModelError("ERROR", "Server side error"); // u suprotnom je side server exception
-        context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                var ex = context.Exception;
+                context.ModelState.AddModelError("ERROR", ex.Message);
+                //context.ModelState.AddModelError("ERROR", "Server side error"); // u suprotnom je side server exception
+                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
       }
       var list = context.ModelState.Where(x => x.Value.Errors.Count() > 0).ToDictionary(x => x.Key, y => y.Value.Errors.Select(z => z.ErrorMessage));
       context.Result = new JsonResult(new { errors=list});

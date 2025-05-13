@@ -71,8 +71,23 @@ namespace eGlamHeelHangout.Service
 
       
             return filteredQuery;
+    }
+
+        public async Task<bool> Delete(int id)
+        {
+            var entity = await _context.Products.FindAsync(id);
+            if (entity == null)
+                throw new UserException("Product not found.");
+
+            _context.Products.Remove(entity);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
-   }
+
+
+
+  }
 }
 
 //AsQueryAble -> znaci da ce moci dodavati filtere
