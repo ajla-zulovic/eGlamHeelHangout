@@ -272,6 +272,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             name: "material",
             enabled: false,
             decoration: const InputDecoration(labelText: "Material"),
+            
           ),
           FormBuilderTextField(
             name: "color",

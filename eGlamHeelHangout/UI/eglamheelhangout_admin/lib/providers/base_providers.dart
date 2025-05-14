@@ -154,6 +154,18 @@ Future<T> update(int id, [dynamic request]) async {
   throw Exception("Request failed with status ${response.statusCode}");
 }
 
+Future<void> delete(int id) async {
+  var url = "$baseUrl$endpoint/$id";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http.delete(uri, headers: headers);
+
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    throw Exception("Failed to delete: ${response.body}");
+  }
+}
+
 
 }
 
