@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:eglamheelhangout_admin/models/product.dart';
 import 'package:eglamheelhangout_admin/models/category.dart';
+import 'package:eglamheelhangout_admin/models/productsize.dart';
 import 'package:eglamheelhangout_admin/models/search_result.dart';
 import 'package:eglamheelhangout_admin/providers/product_providers.dart';
 import 'package:eglamheelhangout_admin/providers/category_providers.dart';
@@ -9,6 +10,9 @@ import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_admin/utils/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
+import 'package:eglamheelhangout_admin/models/productsize.dart';
+import 'package:flutter/services.dart';
+
 
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
@@ -29,11 +33,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     "price": false,
     "description": false,
   };
+
   late ProductProvider _productProvider;
-  bool isLoading = true;
   late CategoryProvider _categoryProvider;
+
+  bool isLoading = true;
   SearchResult<Category>? categoryResult;
   String? _categoryName;
+  Map<int, TextEditingController> _stockControllers = {};
+  List<ProductSize>? _sizes;
 
   @override
   void initState() {
@@ -45,6 +53,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future initForm() async {
     categoryResult = await _categoryProvider.get();
+    _sizes = await _productProvider.getProductSizes(widget.product!.productID!);
+
     _categoryName = categoryResult?.result.firstWhere(
       (c) => c.categoryID == widget.product?.categoryID,
       orElse: () => Category(0, 'Unknown'),
@@ -59,6 +69,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       'color': widget.product?.color,
       'heelHeight': widget.product?.heelHeight?.toString(),
     };
+    
+    for (int i = 36; i <= 46; i++) {
+    final existing = _sizes?.firstWhere(
+      (s) => s.size == i,
+      orElse: () => ProductSize(size: i, stockQuantity: 0),
+    );
+
+    _stockControllers[i] = TextEditingController(
+      text: existing?.stockQuantity.toString() ?? '0',
+    );
+  }
 
     setState(() {
       isLoading = false;
@@ -84,7 +105,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _base64Image = base64Encode(_selectedImage!.bytes!);
       });
     }
+  } 
+
+
+  void _resetEntireForm() { //ova metoda mi sluzi da vrati formu u obliku u kojem je admin zatekao jer je odustao od edita
+  _formKey.currentState?.reset();
+  for (int size = 36; size <= 46; size++) {
+    final originalQty = _sizes?.firstWhere(
+      (s) => s.size == size,
+      orElse: () => ProductSize(size: size, stockQuantity: 0),
+    ).stockQuantity ?? 0;
+
+    _stockControllers[size]?.text = originalQty.toString();
   }
+
+  _selectedImage = null;
+  _base64Image   = null;
+
+  _isEditing.updateAll((key, _) => false);
+
+  setState(() {});   
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +142,76 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Column(
                 children: [
                   _buildForm(),
+                  if (_sizes != null) ...[
+                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Adjust Stock by Size",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: 11,
+                      itemBuilder: (context, index) {
+                        int shoeSize = 36 + index;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              Text("Size $shoeSize: "),
+                              const SizedBox(width: 10),
+                             SizedBox(
+                              width: 80,
+                              child: TextField(
+                                controller: _stockControllers[shoeSize],
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(2), // max 2 cifre
+                                ],
+                                decoration: const InputDecoration(
+                                  labelText: "Qty",
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (value) {
+                                  final parsed = int.tryParse(value);
+                                  if (parsed != null && (parsed < 0 || parsed > 20)) {
+                                    // Ako nije validno, resetuj na prijašnju dozvoljenu vrijednost
+                                    _stockControllers[shoeSize]!.text = '0';
+                                    _stockControllers[shoeSize]!.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: _stockControllers[shoeSize]!.text.length),
+                                    );
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Qty must be between 0 and 20'),
+                                        backgroundColor: Colors.orange,
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+
+                            ],
+                          ),
+
+
+                        );
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   if ((_base64Image != null && _base64Image!.isNotEmpty) ||
                       (widget.product?.image?.isNotEmpty ?? false))
                     Container(
-                      height: 300,
+                      height: 500,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
@@ -124,11 +231,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          _formKey.currentState?.reset();
-                          _resetEditStates();
-                        },
+                     TextButton(
+                        onPressed: _resetEntireForm,
                         style: TextButton.styleFrom(
                           backgroundColor: Colors.grey,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -138,6 +242,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       ),
+
                       const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () async {
@@ -145,40 +250,51 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           if (!isValid) return;
 
                           try {
-                              final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
+                            final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
 
-                              formData['image'] = _base64Image ?? widget.product?.image;
+                         
+                            formData['image'] = _base64Image ?? widget.product?.image;
 
-                              formData.removeWhere((key, _) =>
-                                  !["name", "description", "price", "image"].contains(key));
+                            formData['sizes'] = _stockControllers.entries.map((entry) {
+                              return {
+                                "size": entry.key,
+                                "stockQuantity": int.tryParse(entry.value.text) ?? 0,
+                              };
+                            }).toList();
 
-                              await _productProvider.update(widget.product!.productID!, formData);
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Successfully saved changes'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
+                            
+                            formData.removeWhere((key, _) =>
+                                !["name", "description", "price", "image", "sizes"].contains(key));
+                            
+                            // debugPrint("Sending update payload:");
+                            // debugPrint(jsonEncode(formData));
+                            await _productProvider.update(widget.product!.productID!, formData);
 
-                              Navigator.pop(context, true);
-                              return;
-                            } catch (e) {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) => AlertDialog(
-                                  title: const Text("Error"),
-                                  content: Text(e.toString()),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text("OK"),
-                                    )
-                                  ],
-                                ),
-                              );
-                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Successfully saved changes'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
 
+                            Navigator.pop(context, true);
+                          } catch (e) {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) => AlertDialog(
+                                title: const Text("Error"),
+                                content: Text(e.toString()),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text("OK"),
+                                  )
+                                ],
+                              ),
+                            );
+                          }
                         },
+
                         child: const Text("Save"),
                       ),
                     ],
@@ -272,7 +388,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             name: "material",
             enabled: false,
             decoration: const InputDecoration(labelText: "Material"),
-            
           ),
           FormBuilderTextField(
             name: "color",

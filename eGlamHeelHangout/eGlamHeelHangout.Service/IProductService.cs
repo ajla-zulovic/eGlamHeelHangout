@@ -14,6 +14,7 @@ namespace eGlamHeelHangout.Service
     Task<Model.Products> Hide(int id);
     Task<List<string>> AllowedActions(int id);
     Task<bool> Delete(int id);
+    Task<List<Model.ProductSizes>> GetSizesForProductAsync(int productId);
 
     }
 }

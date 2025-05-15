@@ -13,6 +13,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Collections;
 using System.Threading.Channels;
 using EasyNetQ;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace eGlamHeelHangout.Service.ProductStateMachine
@@ -25,50 +26,92 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
       _logger = logger;
     }
 
-    public override async Task<Products> Update(int id, ProductsUpdateRequest update)
-    {
-      var set = _context.Set<Database.Product>();
-      var entity = await set.FindAsync(id);
-      _mapper.Map(update, entity);
-      if (entity.Price < 0)
-      {
-        throw new Exception("Price cannot be negative value"); //system exception 
-      }
+        public override async Task<Products> Update(int id, ProductsUpdateRequest update)
+        {
+            var set = _context.Set<Database.Product>();
+            var entity = await set.FindAsync(id);
 
-      if (entity.Price < 1)
-      {
-        throw new UserException("Not valid price"); //user exception, ono sto user moze vidjeti 
-      }
+            if (update.Name != null)
+                entity.Name = update.Name;
 
-      await _context.SaveChangesAsync();
-      return _mapper.Map<Model.Products>(entity);
-    }
+            if (update.Description != null)
+                entity.Description = update.Description;
 
-    public override async Task<Model.Products> Activate(int id)
+            if (update.Price.HasValue)
+                entity.Price = update.Price.Value;
+
+            if (update.Image != null)
+                entity.Image = update.Image;
+
+            if (update.Price.HasValue)
+            {
+                if (update.Price.Value < 0)
+                    throw new Exception("Price cannot be negative value");
+
+                if (update.Price.Value < 1)
+                    throw new UserException("Not valid price");
+            }
+
+            if (update.Sizes != null)
+            {
+                foreach (var s in update.Sizes)
+                {
+                    if (s.Size < 36 || s.Size > 46)
+                        continue;
+
+                    var existing = await _context.ProductSizes
+                        .FirstOrDefaultAsync(x => x.ProductId == id && x.Size == s.Size);
+
+                    if (existing != null)
+                    {
+                        existing.StockQuantity = s.StockQuantity;
+                    }
+                    else
+                    {
+                        var newSize = new ProductSize
+                        {
+                            ProductId = id,
+                            Size = s.Size,
+                            StockQuantity = s.StockQuantity
+                        };
+
+                        await _context.ProductSizes.AddAsync(newSize);
+                    }
+                }
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
+            }
+
+            var sizes = await _context.ProductSizes
+                .Where(x => x.ProductId == id)
+                .Select(x => new ProductSizes
+                {
+                    Size = x.Size,
+                    StockQuantity = x.StockQuantity
+                })
+                .ToListAsync();
+
+            var result = _mapper.Map<Model.Products>(entity);
+            result.Sizes = sizes;
+
+            return result;
+        }
+
+
+        public override async Task<Model.Products> Activate(int id)
     {
       _logger.LogInformation($"Product activation:{id}");
       var set = _context.Set<Database.Product>();
       var entity = await set.FindAsync(id);
       entity.StateMachine = "active";
       await _context.SaveChangesAsync();
-
-      // RabbitMQ communication
-    //  var factory = new ConnectionFactory { HostName = "localhost" };
-    //  using var connection = await factory.CreateConnectionAsync();
-    //  using var channel = await connection.CreateChannelAsync();
-
-    //  await channel.QueueDeclareAsync(queue: "product_added", durable: false, exclusive: false, autoDelete: false,
-    //arguments: null);
-
-    //  const string message = "Hello World!";
-    //  var body = Encoding.UTF8.GetBytes(message);
-
-
-    //  await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "product_added", body: body);
-     
-
-
-
       var mappedEntity= _mapper.Map<Model.Products>(entity);
 
       using var bus = RabbitHutch.CreateBus("host=localhost");

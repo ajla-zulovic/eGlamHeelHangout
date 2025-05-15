@@ -85,9 +85,20 @@ namespace eGlamHeelHangout.Service
             return true;
         }
 
+        public async Task<List<Model.ProductSizes>> GetSizesForProductAsync(int productId)
+        {
+            return await _context.ProductSizes
+                .Where(ps => ps.ProductId == productId)
+                .Select(ps => new Model.ProductSizes
+                {
+                    Size = ps.Size,
+                    StockQuantity = ps.StockQuantity
+                })
+                .ToListAsync();
+        }
 
 
-  }
+    }
 }
 
 //AsQueryAble -> znaci da ce moci dodavati filtere

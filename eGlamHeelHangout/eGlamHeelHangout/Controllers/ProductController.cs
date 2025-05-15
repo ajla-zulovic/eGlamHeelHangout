@@ -44,6 +44,12 @@ namespace eGlamHeelHangout.Controllers
             return BadRequest("Something went wrong while deleting product.");
         }
 
+        [HttpGet("{productId}/sizes")]
+        public async Task<IActionResult> GetSizes(int productId)
+        {
+            var sizes = await (_service as IProductService).GetSizesForProductAsync(productId);
+            return Ok(sizes);
+        }
 
     }
 }

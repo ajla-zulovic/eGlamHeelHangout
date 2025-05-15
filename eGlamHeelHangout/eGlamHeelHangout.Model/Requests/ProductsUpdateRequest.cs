@@ -12,5 +12,12 @@ namespace eGlamHeelHangout.Model.Requests
     public string? Description { get; set; }
     public decimal? Price { get; set; }
     public byte[]? Image { get; set; }
-  }
+    public List<ProductSizeUpdateModel>? Sizes { get; set; }
+
+        public class ProductSizeUpdateModel
+        {
+            public int Size { get; set; }
+            public int StockQuantity { get; set; }
+        }
+    }
 }

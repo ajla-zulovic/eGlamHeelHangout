@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/utils.dart';
 import '../models/search_result.dart';
+import 'package:eglamheelhangout_admin/models/productsize.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
@@ -163,6 +164,22 @@ Future<void> delete(int id) async {
 
   if (response.statusCode != 200 && response.statusCode != 204) {
     throw Exception("Failed to delete: ${response.body}");
+  }
+}
+
+
+Future<List<ProductSize>> getProductSizes(int id) async {
+  var url = "$baseUrl$endpoint/$id/sizes";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http.get(uri, headers: headers);
+
+   if (response.statusCode == 200) {
+    final List data = jsonDecode(response.body);
+    return data.map((item) => ProductSize.fromJson(item)).toList();
+  } else {
+    throw Exception('Failed to load sizes');
   }
 }
 
