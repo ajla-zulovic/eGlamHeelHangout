@@ -68,8 +68,11 @@ namespace eGlamHeelHangout.Service
             {
                 filteredQuery = filteredQuery.Where(x => x.Name.Contains(search.FTS));
             }
+            if (search?.CategoryId.HasValue == true)
+            {
+                filteredQuery = filteredQuery.Where(x => x.CategoryId == search.CategoryId);
+            }
 
-      
             return filteredQuery;
     }
 

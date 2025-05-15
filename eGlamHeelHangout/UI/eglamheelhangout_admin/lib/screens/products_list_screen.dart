@@ -9,6 +9,8 @@ import 'package:eglamheelhangout_admin/utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:eglamheelhangout_admin/screens/product_details_screen.dart'; 
 import 'package:eglamheelhangout_admin/screens/add_product_screen.dart';
+import 'package:eglamheelhangout_admin/providers/category_providers.dart';
+import 'package:eglamheelhangout_admin/models/category.dart';
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -132,6 +134,12 @@ class _HomeScreenState extends State<HomeScreen> {
   SearchResult<Product>? result;
   final TextEditingController _ftsController = TextEditingController();
   Timer? _debounceTimer;
+  CategoryProvider? _categoryProvider;
+  List<Category> _categories = [];
+  int? _selectedCategoryId;
+  bool _isLoading = false;
+
+
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
@@ -143,15 +151,40 @@ class _HomeScreenState extends State<HomeScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _productProvider = Provider.of<ProductProvider>(context, listen: false);
+    _categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
     _fetchData();
+     _fetchCategories();
   }
 
-  Future<void> _fetchData() async {
-    var data = await _productProvider.get();
+
+Future<void> _fetchCategories() async {
+  final categoryResult = await _categoryProvider!.get();
+  setState(() {
+    _categories = categoryResult.result;
+  });
+}
+Future<void> _fetchData() async {
+  setState(() {
+    _isLoading = true;
+  });
+  final filter = <String, dynamic>{};
+
+  if (_selectedCategoryId != null) {
+    filter['categoryId'] = _selectedCategoryId;
+  }
+
+  if (_ftsController.text.isNotEmpty) {
+    filter['fts'] = _ftsController.text;
+  }
+
+  final data = await _productProvider.get(filter: filter);
+  if (mounted) {
     setState(() {
       result = data;
+      _isLoading = false;
     });
   }
+}
 
   void _confirmDelete(BuildContext context, Product product) async {
     final confirm = await showDialog<bool>(
@@ -189,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (result == null) {
+    if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -205,6 +238,67 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 150,
             ),
           ),
+         if (_categories.isNotEmpty)
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              // ALL button
+              OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedCategoryId = null;
+                    _ftsController.clear();
+                  });
+                  _fetchData();
+                },
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: _selectedCategoryId == null ? Colors.black : Colors.white,
+                  side: const BorderSide(color: Colors.black),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                child: Text(
+                  'All',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: _selectedCategoryId == null ? Colors.white : Colors.black,
+                  ),
+                ),
+              ),
+              ..._categories.map((category) {
+                final isSelected = _selectedCategoryId == category.categoryID;
+                return OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedCategoryId = isSelected ? null : category.categoryID;
+                      _ftsController.clear();
+                    });
+                    _fetchData();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: isSelected ? Colors.black : Colors.white,
+                    side: const BorderSide(color: Colors.black),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                  child: Text(
+                    category.categoryName ?? '',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? Colors.white : Colors.black,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
           const SizedBox(height: 20),
           SizedBox(
             width: 700,
@@ -218,33 +312,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               onChanged: (value) {
-                if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
-                _debounceTimer =
-                    Timer(const Duration(milliseconds: 500), () async {
-                  if (_ftsController.text.isEmpty) {
-                    await _fetchData();
-                    return;
-                  }
-                  try {
-                    var data = await _productProvider.get(filter: {
-                      'fts': _ftsController.text,
-                    });
-                    if (mounted) {
-                      setState(() {
-                        result = data;
-                      });
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Search error: ${e.toString()}'),
-                        ),
-                      );
-                    }
-                  }
+              if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+              _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+                setState(() {
+                  _selectedCategoryId = null; 
                 });
-              },
+
+                if (_ftsController.text.isEmpty) {
+                  await _fetchData();
+                  return;
+                }
+
+                try {
+                  var data = await _productProvider.get(filter: {
+                    'fts': _ftsController.text,
+                  });
+                  if (mounted) {
+                    setState(() {
+                      result = data;
+                    });
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Search error: ${e.toString()}')),
+                    );
+                  }
+                }
+              });
+            }
             ),
           ),
           const SizedBox(height: 20),
