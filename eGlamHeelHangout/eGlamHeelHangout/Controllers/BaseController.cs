@@ -30,8 +30,20 @@ namespace eGlamHeelHangout.Controllers
     {
       return await _service.GetById(id);
     }
+      
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success = await _service.Delete(id);
+            if (success)
+                return Ok(new { message = $"{typeof(T).Name} deleted successfully." });
 
-  }
+            return BadRequest("Something went wrong while deleting.");
+        }
+
+
+    }
 }
 
 // where T : class -> gdje genericki parametar mora biti klasa :)

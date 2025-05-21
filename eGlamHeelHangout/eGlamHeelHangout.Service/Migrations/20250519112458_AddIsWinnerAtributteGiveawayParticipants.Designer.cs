@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eGlamHeelHangout.Service.Database;
 
@@ -11,9 +12,10 @@ using eGlamHeelHangout.Service.Database;
 namespace eGlamHeelHangout.Service.Migrations
 {
     [DbContext(typeof(_200199Context))]
-    partial class _200199ContextModelSnapshot : ModelSnapshot
+    [Migration("20250519112458_AddIsWinnerAtributteGiveawayParticipants")]
+    partial class AddIsWinnerAtributteGiveawayParticipants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,10 +127,6 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime");
 
-                    b.Property<byte[]>("GiveawayProductImage")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<string>("HeelHeight")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -137,12 +135,22 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.Property<bool>("IsClosed")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("GiveawayId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Giveaways");
                 });
@@ -542,6 +550,17 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("eGlamHeelHangout.Service.Database.Giveaway", b =>
+                {
+                    b.HasOne("eGlamHeelHangout.Service.Database.Product", null)
+                        .WithMany("Giveaways")
+                        .HasForeignKey("ProductId");
+
+                    b.HasOne("eGlamHeelHangout.Service.Database.User", null)
+                        .WithMany("Giveaways")
+                        .HasForeignKey("UserId");
+                });
+
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.GiveawayParticipant", b =>
                 {
                     b.HasOne("eGlamHeelHangout.Service.Database.Giveaway", "Giveaway")
@@ -692,6 +711,8 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.Navigation("Favorites");
 
+                    b.Navigation("Giveaways");
+
                     b.Navigation("OrderItems");
 
                     b.Navigation("ProductSizes");
@@ -709,6 +730,8 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("GiveawayParticipants");
+
+                    b.Navigation("Giveaways");
 
                     b.Navigation("Notifications");
 

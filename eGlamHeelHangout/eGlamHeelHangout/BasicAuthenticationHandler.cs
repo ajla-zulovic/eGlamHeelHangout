@@ -37,8 +37,9 @@ namespace eGlamHeelHangout
         //ako je korisnik uspjesno autentificiran nakon login metode, onda radimo sljedece:
         // claimovi -> tvrdnje / lista osobina o korisniku 
         var claims = new List<Claim>() {
-          new Claim(ClaimTypes.Name,user.FirstName),
-          new Claim(ClaimTypes.NameIdentifier, user.Username)
+          //new Claim(ClaimTypes.Name,user.FirstName),
+          new Claim(ClaimTypes.Name, user.Username), 
+          new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()) 
         };
 
         // ovo za ulogu koristimo da bismo mogli kasnije nad controllerima određivati koja uloga ima pristupe određenim metodama npr insert proizvoda ne moze raditi nikako krisnik nego admin 

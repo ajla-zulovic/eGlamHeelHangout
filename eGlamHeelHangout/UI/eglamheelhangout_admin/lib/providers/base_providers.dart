@@ -111,6 +111,9 @@ Future<T> insert (dynamic request) async
 
     var jsonRequest=jsonEncode(request); //moramo request koji saljemo enkodirati u json
     var response= await http.post(uri,headers:headers,body:jsonRequest);
+    print('INSERT status: ${response.statusCode}');
+    print('INSERT body: ${response.body}');
+
   try {
     final decoded = jsonDecode(response.body);
 
@@ -180,6 +183,22 @@ Future<List<ProductSize>> getProductSizes(int id) async {
     return data.map((item) => ProductSize.fromJson(item)).toList();
   } else {
     throw Exception('Failed to load sizes');
+  }
+}
+
+
+Future<T> getById(int id) async {
+  var url = "$baseUrl$endpoint/$id";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http.get(uri, headers: headers);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return fromJson(data);
+  } else {
+    throw Exception("Failed to fetch user by ID");
   }
 }
 

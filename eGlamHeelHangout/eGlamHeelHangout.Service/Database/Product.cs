@@ -9,7 +9,6 @@ namespace eGlamHeelHangout.Service.Database
         {
             Discounts = new HashSet<Discount>();
             Favorites = new HashSet<Favorite>();
-            Giveaways = new HashSet<Giveaway>();
             OrderItems = new HashSet<OrderItem>();
             Reviews = new HashSet<Review>();
             ProductSizes = new HashSet<ProductSize>();
@@ -31,7 +30,7 @@ namespace eGlamHeelHangout.Service.Database
         public virtual ICollection<Discount> Discounts { get; set; }
        public virtual ICollection<ProductSize> ProductSizes { get; set; }
          public virtual ICollection<Favorite> Favorites { get; set; }
-        public virtual ICollection<Giveaway> Giveaways { get; set; }
+      
         public virtual ICollection<OrderItem> OrderItems { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
     }

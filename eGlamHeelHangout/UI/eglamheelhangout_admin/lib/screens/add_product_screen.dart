@@ -324,55 +324,55 @@ class _AddProductScreenState extends State<AddProductScreen> {
       ),
     );
   }
+Future<void> _submitForm() async {
+  if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
 
-  Future<void> _submitForm() async {
-    if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
+  setState(() => _isSubmitting = true);
 
-    setState(() => _isSubmitting = true);
+  try {
+    final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
+    formData['price'] = double.tryParse(formData['price'].toString()) ?? 0;
+    formData['heelHeight'] = double.tryParse(formData['heelHeight'].toString()) ?? 0.0;
+    formData['categoryID'] = int.tryParse(formData['categoryID'].toString()) ?? 0;
 
-    try {
-      final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
-      formData['price'] = double.tryParse(formData['price'].toString()) ?? 0;
-      // formData['heelHeight'] = int.tryParse(formData['heelHeight'].toString()) ?? 0;
-      formData['heelHeight'] = double.tryParse(formData['heelHeight'].toString()) ?? 0.0;
-
-      formData['categoryID'] = int.tryParse(formData['categoryID'].toString()) ?? 0;
-
-      if (_base64Image != null) {
-        formData['image'] = _base64Image;
-      } else {
-        throw Exception('Product image is required');
-      }
-  
-      // debugPrint('Submitting data: ${jsonEncode(formData)}');
-  
-      final newProduct = await _productProvider.insert(formData);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product added successfully!'), backgroundColor: Colors.green),
-      );
-
-      Navigator.pop(context, true);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+    if (_base64Image != null) {
+      formData['image'] = _base64Image;
+    } else {
+      throw Exception('Product image is required');
     }
+
+    await _productProvider.insert(formData);
+
+    if (!mounted) return;
+
+    _formKey.currentState?.reset();
+    setState(() {
+      _base64Image = null;
+      _selectedImage = null;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Product added successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+    );
+  } finally {
+    if (mounted) setState(() => _isSubmitting = false);
   }
+}
+
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Product'),
-        backgroundColor: Colors.grey[800],
-        centerTitle: true,
-      ),
-      body: _isLoading ? const Center(child: CircularProgressIndicator()) : _buildForm(),
-    );
-  }
+Widget build(BuildContext context) {
+  return _isLoading
+      ? const Center(child: CircularProgressIndicator())
+      : _buildForm();
+}
+
 }

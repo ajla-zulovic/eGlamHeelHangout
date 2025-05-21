@@ -52,6 +52,8 @@ builder.Services.AddTransient<BaseState>();
 builder.Services.AddTransient<DraftProductState>();
 builder.Services.AddTransient<InitialProductStage>();
 builder.Services.AddTransient<ActiveProductState>();
+builder.Services.AddTransient<IGiveawayService, GiveawayService>();
+
 
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

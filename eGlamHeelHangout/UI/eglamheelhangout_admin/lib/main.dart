@@ -4,45 +4,26 @@ import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_admin/screens/products_list_screen.dart';
 import 'package:eglamheelhangout_admin/utils/utils.dart';
 import 'package:eglamheelhangout_admin/providers/category_providers.dart';
+import 'package:eglamheelhangout_admin/providers/user_providers.dart';
+import 'package:eglamheelhangout_admin/utils/current_user.dart';
+import 'package:eglamheelhangout_admin/providers/giveaway_providers.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => ProductProvider()),
       ChangeNotifierProvider(create: (_) => CategoryProvider()),
+       ChangeNotifierProvider(create: (_) => UserProvider()),
+       ChangeNotifierProvider(create: (_) => GiveawayProvider()),
       ],
       
-      child: const MyApp(),
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: LoginPage(),
+      ),
     ),
   );
 }
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Glam Heel Hangout Admin',
-      theme: ThemeData(
-        primaryColor: const Color(0xFF616161),
-        colorScheme: ColorScheme.light(primary: const Color(0xFF616161)),
-        appBarTheme: AppBarTheme(
-          backgroundColor: const Color(0xFF616161),
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const LoginPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -80,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.grey[700],
+        backgroundColor: Colors.grey[800],
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -88,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
             margin: const EdgeInsets.all(20),
             constraints: const BoxConstraints(maxWidth: 500),
             child: Card(
+              color: Colors.white,
               elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -169,13 +151,21 @@ class _LoginPageState extends State<LoginPage> {
                               Authorization.password = password;
 
                               try {
-                                // Ovdje eksplicitno tražimo da se baci greška za nevaljane vjerodajnice
-                                await _productProvider.get();
+                                await _productProvider.get(); // ovo validira lozinku
 
-                                // Ako dođemo do ovdje, vjerodajnice su valjane
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductsListScreen(),
+                                  final userProvider = context.read<UserProvider>();
+                                  final userResult = await userProvider.get(filter: {'username': username});
+
+                                  if (userResult.result.isEmpty) {
+                                    throw Exception("User not found");
+                                  }
+
+                                  final loggedInUser = await userProvider.getCurrentUser();
+                                  CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
+
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const ProductsListScreen(),
                                   ),
                                 );
                               } catch (e) {

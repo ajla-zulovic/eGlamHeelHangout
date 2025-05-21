@@ -9,9 +9,10 @@ namespace eGlamHeelHangout.Service.Database
         public int GiveawayId { get; set; }
         public int UserId { get; set; }
         public string Size { get; set; } = null!;
-        public DateTime? DateJoined { get; set; }
-
+      
         public virtual Giveaway Giveaway { get; set; } = null!;
         public virtual User User { get; set; } = null!;
+
+        public bool IsWinner { get; set; }
     }
 }

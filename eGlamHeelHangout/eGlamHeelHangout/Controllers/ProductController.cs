@@ -32,18 +32,7 @@ namespace eGlamHeelHangout.Controllers
     {
       return await (_service as IProductService).AllowedActions(id);
     }
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var success = await (_service as IProductService).Delete(id);
-
-            if (success)
-                return Ok(new { message = "Product deleted successfully." });
-
-            return BadRequest("Something went wrong while deleting product.");
-        }
-
+       
         [HttpGet("{productId}/sizes")]
         public async Task<IActionResult> GetSizes(int productId)
         {

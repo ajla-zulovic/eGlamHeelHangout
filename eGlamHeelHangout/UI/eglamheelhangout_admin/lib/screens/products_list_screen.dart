@@ -11,6 +11,10 @@ import 'package:eglamheelhangout_admin/screens/product_details_screen.dart';
 import 'package:eglamheelhangout_admin/screens/add_product_screen.dart';
 import 'package:eglamheelhangout_admin/providers/category_providers.dart';
 import 'package:eglamheelhangout_admin/models/category.dart';
+import 'package:eglamheelhangout_admin/screens/profile_screen.dart';
+import 'package:eglamheelhangout_admin/screens/add_giveaway_screen.dart';
+
+
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -28,6 +32,8 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     {'page': const ProfileScreen(), 'title': 'Profile Page'},
     {'page': const ReportScreen(), 'title': 'Report Page'},
     {'page': const AddGiveawayScreen(), 'title': 'Add Giveaway'},
+    {'page': const AddProductScreen(), 'title': 'Add Product'},
+
   ];
 
   void _selectPage(int index) {
@@ -47,7 +53,8 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_pages[selectedIndex]['title']),
+        title: Text(_pages[selectedIndex]['title'],
+        style: const TextStyle(color: Colors.white),),
         backgroundColor: Colors.grey[800],
         actions: [
           IconButton(
@@ -85,24 +92,17 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
             ListTile(leading: const Icon(Icons.home), title: const Text('Home Page'), onTap: () => _selectPage(0)),
             ListTile(leading: const Icon(Icons.person), title: const Text('Profile Page'), onTap: () => _selectPage(1)),
             ListTile(leading: const Icon(Icons.bar_chart), title: const Text('Report Page'), onTap: () => _selectPage(2)),
-            ListTile(leading: const Icon(Icons.card_giftcard), title: const Text('Add Giveaway'), onTap: () => _selectPage(3)),
-            ListTile(
-              leading: const Icon(Icons.add_circle_outline),
-              title: const Text('Add New Product'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddProductScreen()),
-                );
-                if (result == true && mounted) {
-                  setState(() {
-                    selectedIndex = 0;
-                    _pages[0]['page'] = HomeScreen();
-                  });
-                }
-              },
-            ),
+          ListTile(
+            leading: const Icon(Icons.card_giftcard),
+            title: const Text('Add Giveaway'),
+            onTap: () => _selectPage(3),
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_circle_outline),
+            title: const Text('Add New Product'),
+            onTap: () => _selectPage(4), 
+          ),
+
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -208,7 +208,8 @@ Future<void> _fetchData() async {
         await _productProvider.delete(product.productID!);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product deleted successfully')),
+            const SnackBar(content: Text('Product deleted successfully'),
+            backgroundColor: Colors.green,),
           );
           await _fetchData();
         }
@@ -343,7 +344,7 @@ Future<void> _fetchData() async {
             }
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 120),
           Expanded(
             child: GridView.builder(
               itemCount: result!.result.length,
@@ -368,7 +369,11 @@ Future<void> _fetchData() async {
                       await _fetchData();
                     }
                   },
+                  splashColor: Colors.transparent, 
+                  highlightColor: Colors.transparent, 
+                  hoverColor: Colors.transparent,
                   child: Card(
+                    color: Colors.white,
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -427,14 +432,6 @@ Future<void> _fetchData() async {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Profile Screen'));
-  }
-}
 
 class ReportScreen extends StatelessWidget {
   const ReportScreen({super.key});
@@ -442,14 +439,5 @@ class ReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(child: Text('Report Screen'));
-  }
-}
-
-class AddGiveawayScreen extends StatelessWidget {
-  const AddGiveawayScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Add Giveaway Screen'));
   }
 }

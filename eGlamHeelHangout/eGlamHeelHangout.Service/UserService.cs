@@ -77,12 +77,22 @@ namespace eGlamHeelHangout.Service
 
       var hash = GenerateHash(entity.PasswordSalt, password);
 
-      if (hash != entity.PasswordHash) //ako hash s kojim se prikavljujemo ne odgovara onom u nasoj bazi, onda : 
+      if (hash != entity.PasswordHash) //ako hash s kojim se prijavljujemo ne odgovara onom u nasoj bazi, onda : 
       {
         return null; //korisnik ne postoji, vracamo null
       }
 
       return _mapper.Map<Model.Users>(entity); // u suprotno vracamo korisnika kojeg mapiramo u nas model Users
+    }
+
+    public async Task<Model.Users> GetCurrentUser(string username)
+    {
+            var user = await _context.Users
+                .Include(u => u.UsersRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Username == username);
+
+            return _mapper.Map<Model.Users>(user);
     }
 
   }

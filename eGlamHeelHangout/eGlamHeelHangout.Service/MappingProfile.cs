@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using eGlamHeelHangout.Model.Requests;
+using eGlamHeelHangout.Model;
 namespace eGlamHeelHangout.Service
 {
   public class MappingProfile:Profile
@@ -23,6 +24,9 @@ namespace eGlamHeelHangout.Service
       CreateMap<Database.User, Model.Users>();
       CreateMap<Database.UsersRole, Model.UsersRoles>();
       CreateMap<Database.Role, Model.Roles>();
+      CreateMap<Giveaway, Giveaways>();
+      CreateMap<GiveawayParticipant, GiveawayParticipants>();
+      CreateMap<GiveawayInsertRequest, Giveaway>();
     }
   }
  

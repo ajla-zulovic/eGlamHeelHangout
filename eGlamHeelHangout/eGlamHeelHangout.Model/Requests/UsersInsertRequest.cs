@@ -15,9 +15,11 @@ namespace eGlamHeelHangout.Model.Requests
     public string Email { get; set; } = null!;
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
-    public string? ProfilePicture { get; set; }
+    public byte[]? ProfileImage { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
-    public string Password { get; set; }
+
+        public string Password { get; set; }
     //cisto potvrda da li je korisnik unio isti password i drugi put
     [Compare("Password", ErrorMessage = "Passwords do not match")]
     public string PasswordPotvrda { get; set; }

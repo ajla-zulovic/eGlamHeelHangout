@@ -12,7 +12,9 @@ namespace eGlamHeelHangout.Service
   {
     Task<PagedResult<T>> Get(TSearch search=null); 
     Task<T> GetById(int id);
-  }
+   Task<bool> Delete(int id);
+
+    }
 }
 
 //TSearch search=null -> to ce biti filteri nad get metodom (naziv ili neki sl parametri)

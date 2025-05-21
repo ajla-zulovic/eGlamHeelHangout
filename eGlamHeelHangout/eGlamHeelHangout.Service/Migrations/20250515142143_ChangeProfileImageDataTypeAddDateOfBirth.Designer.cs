@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eGlamHeelHangout.Service.Database;
 
@@ -11,9 +12,10 @@ using eGlamHeelHangout.Service.Database;
 namespace eGlamHeelHangout.Service.Migrations
 {
     [DbContext(typeof(_200199Context))]
-    partial class _200199ContextModelSnapshot : ModelSnapshot
+    [Migration("20250515142143_ChangeProfileImageDataTypeAddDateOfBirth")]
+    partial class ChangeProfileImageDataTypeAddDateOfBirth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -113,36 +115,25 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GiveawayId"), 1L, 1);
 
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime");
 
-                    b.Property<byte[]>("GiveawayProductImage")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductID");
 
-                    b.Property<string>("HeelHeight")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime");
 
-                    b.Property<bool>("IsClosed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("WinnerUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("WinnerUserID");
 
                     b.HasKey("GiveawayId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("WinnerUserId");
 
                     b.ToTable("Giveaways");
                 });
@@ -156,12 +147,14 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ParticipantId"), 1L, 1);
 
+                    b.Property<DateTime?>("DateJoined")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
                     b.Property<int>("GiveawayId")
                         .HasColumnType("int")
                         .HasColumnName("GiveawayID");
-
-                    b.Property<bool>("IsWinner")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Size")
                         .IsRequired()
@@ -542,6 +535,26 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("eGlamHeelHangout.Service.Database.Giveaway", b =>
+                {
+                    b.HasOne("eGlamHeelHangout.Service.Database.Product", "Product")
+                        .WithMany("Giveaways")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Giveaways_Products");
+
+                    b.HasOne("eGlamHeelHangout.Service.Database.User", "WinnerUser")
+                        .WithMany("Giveaways")
+                        .HasForeignKey("WinnerUserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Giveaways_Users");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("WinnerUser");
+                });
+
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.GiveawayParticipant", b =>
                 {
                     b.HasOne("eGlamHeelHangout.Service.Database.Giveaway", "Giveaway")
@@ -692,6 +705,8 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.Navigation("Favorites");
 
+                    b.Navigation("Giveaways");
+
                     b.Navigation("OrderItems");
 
                     b.Navigation("ProductSizes");
@@ -709,6 +724,8 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("GiveawayParticipants");
+
+                    b.Navigation("Giveaways");
 
                     b.Navigation("Notifications");
 

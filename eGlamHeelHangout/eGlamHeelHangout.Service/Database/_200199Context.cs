@@ -56,7 +56,7 @@ namespace eGlamHeelHangout.Service.Database
         entity.Property(e => e.PasswordSalt).HasMaxLength(255);
         entity.Property(e => e.PhoneNumber).HasMaxLength(20).IsRequired(false);
         entity.Property(e => e.Address).HasMaxLength(255).IsRequired(false);
-        entity.Property(e => e.ProfilePicture).HasMaxLength(255).IsRequired(false);
+        entity.Property(e => e.ProfileImage).HasMaxLength(255).IsRequired(false);
         entity.Property(e => e.DateCreated).HasColumnType("datetime").IsRequired(false);
       });
 
@@ -112,45 +112,33 @@ namespace eGlamHeelHangout.Service.Database
 
       modelBuilder.Entity<Giveaway>(entity =>
       {
-        entity.Property(e => e.GiveawayId).HasColumnName("GiveawayID");
-        entity.Property(e => e.EndDate).HasColumnType("datetime");
-        entity.Property(e => e.ProductId).HasColumnName("ProductID");
-        entity.Property(e => e.StartDate).HasColumnType("datetime");
-        entity.Property(e => e.WinnerUserId).HasColumnName("WinnerUserID");
+          entity.Property(e => e.GiveawayId).HasColumnName("GiveawayID");
+          entity.Property(e => e.EndDate).HasColumnType("datetime");
 
-        entity.HasOne(d => d.Product)
-            .WithMany(p => p.Giveaways)
-            .HasForeignKey(d => d.ProductId)
-            .HasConstraintName("FK_Giveaways_Products");
+          entity.Property(e => e.Title).HasMaxLength(100);
+          entity.Property(e => e.Color).HasMaxLength(50);
+          entity.Property(e => e.HeelHeight).HasMaxLength(50);
 
-        entity.HasOne(d => d.WinnerUser)
-            .WithMany(p => p.Giveaways)
-            .HasForeignKey(d => d.WinnerUserId)
-            .OnDelete(DeleteBehavior.SetNull)
-            .HasConstraintName("FK_Giveaways_Users");
       });
 
       modelBuilder.Entity<GiveawayParticipant>(entity =>
       {
-        entity.HasKey(e => e.ParticipantId);
+          entity.HasKey(e => e.ParticipantId);
 
-        entity.Property(e => e.ParticipantId).HasColumnName("ParticipantID");
-        entity.Property(e => e.DateJoined)
-            .HasColumnType("datetime")
-            .HasDefaultValueSql("(getdate())");
-        entity.Property(e => e.GiveawayId).HasColumnName("GiveawayID");
-        entity.Property(e => e.Size).HasMaxLength(10);
-        entity.Property(e => e.UserId).HasColumnName("UserID");
+          entity.Property(e => e.ParticipantId).HasColumnName("ParticipantID");
+          entity.Property(e => e.GiveawayId).HasColumnName("GiveawayID");
+          entity.Property(e => e.Size).HasMaxLength(10);
+          entity.Property(e => e.UserId).HasColumnName("UserID");
 
-        entity.HasOne(d => d.Giveaway)
-            .WithMany(p => p.GiveawayParticipants)
-            .HasForeignKey(d => d.GiveawayId)
-            .HasConstraintName("FK_GiveawayParticipants_Giveaways");
+          entity.HasOne(d => d.Giveaway)
+              .WithMany(p => p.GiveawayParticipants)
+              .HasForeignKey(d => d.GiveawayId)
+              .HasConstraintName("FK_GiveawayParticipants_Giveaways");
 
-        entity.HasOne(d => d.User)
-            .WithMany(p => p.GiveawayParticipants)
-            .HasForeignKey(d => d.UserId)
-            .HasConstraintName("FK_GiveawayParticipants_Users");
+          entity.HasOne(d => d.User)
+              .WithMany(p => p.GiveawayParticipants)
+              .HasForeignKey(d => d.UserId)
+              .HasConstraintName("FK_GiveawayParticipants_Users");
       });
 
       modelBuilder.Entity<Notification>(entity =>
