@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EasyNetQ;
 
 namespace eGlamHeelHangout.Service
 {
@@ -63,6 +64,26 @@ namespace eGlamHeelHangout.Service
 
             return _mapper.Map<GiveawayParticipants>(winner);
         }
+
+
+        //overridana metoda inserta zbog slanja notif :
+        public override async Task<Model.Giveaways> Insert(GiveawayInsertRequest insert)
+        {
+            var entity = _mapper.Map<Database.Giveaway>(insert);
+            _context.Giveaways.Add(entity);
+            await _context.SaveChangesAsync();
+            using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+            {
+                await bus.PubSub.PublishAsync(new GiveawayNotificationDTO
+                {
+                    GiveawayID = entity.GiveawayId,
+                    Title = entity.Title
+                });
+
+                return _mapper.Map<Model.Giveaways>(entity);
+            }
+        }
+
 
     }
 }

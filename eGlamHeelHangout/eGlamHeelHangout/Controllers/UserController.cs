@@ -38,14 +38,16 @@ namespace eGlamHeelHangout.Controllers
 
             return Ok(user);
         }
+        //overridam metodu jer mi treba pristup svima : 
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public override async Task<eGlamHeelHangout.Model.Users> Insert([FromBody] Model.Requests.UsersInsertRequest insert)
+        {
+            return await _userService.Insert(insert);
+        }
     }
 
 
-    //[Authorize(Roles="Admin")]  //sad ne znam koliko ovo ima smisla za moju app ://
-    //public override Task<Users> Insert([FromBody] UsersInsertRequest insert)
-    //{
-    //  return base.Insert(insert);
-    //}
 
 
 

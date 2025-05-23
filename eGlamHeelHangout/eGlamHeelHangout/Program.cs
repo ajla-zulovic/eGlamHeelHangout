@@ -85,9 +85,17 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Context ima scoped lifetime, sto znaci da postoji samo u okviru jednog scope-a ili request-a
 {
   var dataContext = scope.ServiceProvider.GetRequiredService<_200199Context>();
-  //dataContext.Database.EnsureCreated(); // provjerava da li baza postoji, ako ne postoji - kreira je
-  var conn = dataContext.Database.GetConnectionString();
-  //dataContext.Database.Migrate(); // primijenjuje sve migracije na bazu 
+    //dataContext.Database.EnsureCreated(); // provjerava da li baza postoji, ako ne postoji - kreira je
+    //var conn = dataContext.Database.GetConnectionString();
+    //dataContext.Database.Migrate(); // primijenjuje sve migracije na bazu 
+    try
+    {
+        dataContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Migration failed: {ex.Message}");
+    }
 }
 
 

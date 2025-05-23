@@ -10,13 +10,13 @@ namespace eGlamHeelHangout.Service.Migrations
         {
             
 
-            migrationBuilder.DropColumn(
-                name: "ProductID",
-                table: "Giveaways");
+            //migrationBuilder.DropColumn(
+            //    name: "ProductID",
+            //    table: "Giveaways");
 
-            migrationBuilder.DropColumn(
-                name: "UserID",
-                table: "Giveaways");
+            //migrationBuilder.DropColumn(
+            //    name: "UserID",
+            //    table: "Giveaways");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
