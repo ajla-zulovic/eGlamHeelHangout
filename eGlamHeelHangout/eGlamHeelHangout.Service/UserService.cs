@@ -94,6 +94,21 @@ namespace eGlamHeelHangout.Service
 
             return _mapper.Map<Model.Users>(user);
     }
+        public override async Task<Users> Insert(UsersInsertRequest insert)
+        {
+            if (_context.Users.Any(u => u.Username == insert.Username))
+                throw new Exception("Username already exists.");
 
-  }
+            return await base.Insert(insert);
+        }
+
+        public int GetCurrentUserId(string username)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            return user?.UserId ?? 0;
+        }
+      
+
+
+    }
 }

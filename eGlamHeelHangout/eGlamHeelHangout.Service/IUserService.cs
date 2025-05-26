@@ -11,6 +11,8 @@ namespace eGlamHeelHangout.Service
   {
     public Task<Model.Users> Login(string username, string password); //ovo ce biti metoda za login korisnik gdje prosljeđujemo dva parametra, username i password 
     public Task<Model.Users> GetCurrentUser(string username);
+    public int GetCurrentUserId(string username);
+
 
 
     }

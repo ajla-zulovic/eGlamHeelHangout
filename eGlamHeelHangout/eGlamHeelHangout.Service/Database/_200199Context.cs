@@ -58,6 +58,7 @@ namespace eGlamHeelHangout.Service.Database
         entity.Property(e => e.Address).HasMaxLength(255).IsRequired(false);
         entity.Property(e => e.ProfileImage).HasMaxLength(255).IsRequired(false);
         entity.Property(e => e.DateCreated).HasColumnType("datetime").IsRequired(false);
+        entity.HasIndex(e => e.Username).IsUnique();
       });
 
       modelBuilder.Entity<Role>(entity =>
