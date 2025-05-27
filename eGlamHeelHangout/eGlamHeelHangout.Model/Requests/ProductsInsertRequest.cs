@@ -28,5 +28,8 @@ namespace eGlamHeelHangout.Model.Requests
     public string Color { get; set; }
    
     public decimal? HeelHeight { get; set; } // ne mora svaka obuca imati petu 
-  }
+    [Required]
+     public List<ProductSizes>Sizes { get; set; }
+
+    }
 }

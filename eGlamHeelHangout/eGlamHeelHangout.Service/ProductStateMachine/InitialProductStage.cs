@@ -23,9 +23,28 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
       var set = _context.Set<Database.Product>();
       var entity = _mapper.Map<Database.Product>(request);
       entity.StateMachine = "draft";
+      entity.DateAdded = DateTime.Now;
       set.Add(entity);
       await _context.SaveChangesAsync();
-      return _mapper.Map<Model.Products>(entity);
+
+            var validSizes = request.Sizes?.Where(s => s.StockQuantity > 0).ToList();
+
+            if (validSizes != null && validSizes.Any())
+            {
+                foreach (var size in validSizes)
+                {
+                    var productSize = new ProductSize
+                    {
+                        ProductId = entity.ProductId,
+                        Size = size.Size,
+                        StockQuantity = size.StockQuantity
+                    };
+                    _context.ProductSizes.Add(productSize);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            return _mapper.Map<Model.Products>(entity);
 
     }
 

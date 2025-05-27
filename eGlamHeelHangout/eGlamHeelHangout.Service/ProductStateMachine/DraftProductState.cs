@@ -31,17 +31,14 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
             var set = _context.Set<Database.Product>();
             var entity = await set.FindAsync(id);
 
+            if (entity == null)
+                throw new Exception("Product not found");
+
             if (update.Name != null)
                 entity.Name = update.Name;
 
             if (update.Description != null)
                 entity.Description = update.Description;
-
-            if (update.Price.HasValue)
-                entity.Price = update.Price.Value;
-
-            if (update.Image != null)
-                entity.Image = update.Image;
 
             if (update.Price.HasValue)
             {
@@ -50,13 +47,19 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
 
                 if (update.Price.Value < 1)
                     throw new UserException("Not valid price");
+
+                entity.Price = update.Price.Value;
             }
 
+            if (update.Image != null)
+                entity.Image = update.Image;
+
+   
             if (update.Sizes != null)
             {
                 foreach (var s in update.Sizes)
                 {
-                    if (s.Size < 36 || s.Size > 46)
+                    if (s.Size < 36 || s.Size > 46 || s.StockQuantity < 0)
                         continue;
 
                     var existing = await _context.ProductSizes
@@ -89,6 +92,7 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
                 throw new Exception(ex.InnerException?.Message ?? ex.Message);
             }
 
+        
             var sizes = await _context.ProductSizes
                 .Where(x => x.ProductId == id)
                 .Select(x => new ProductSizes

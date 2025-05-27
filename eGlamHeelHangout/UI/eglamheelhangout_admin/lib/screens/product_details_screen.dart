@@ -152,60 +152,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: 11,
-                      itemBuilder: (context, index) {
-                        int shoeSize = 36 + index;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
+                 Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: List.generate(11, (index) {
+                        final shoeSize = 36 + index;
+                        return SizedBox(
+                          width: 90,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Size $shoeSize: "),
-                              const SizedBox(width: 10),
-                             SizedBox(
-                              width: 80,
-                              child: TextField(
+                              Text("Size $shoeSize", style: TextStyle(fontSize: 12)),
+                              const SizedBox(height: 4),
+                              TextField(
                                 controller: _stockControllers[shoeSize],
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(2), // max 2 cifre
+                                  LengthLimitingTextInputFormatter(2),
                                 ],
                                 decoration: const InputDecoration(
                                   labelText: "Qty",
                                   isDense: true,
                                   border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                                 ),
-                                onChanged: (value) {
-                                  final parsed = int.tryParse(value);
-                                  if (parsed != null && (parsed < 0 || parsed > 20)) {
-                                    // Ako nije validno, resetuj na prijašnju dozvoljenu vrijednost
-                                    _stockControllers[shoeSize]!.text = '0';
-                                    _stockControllers[shoeSize]!.selection = TextSelection.fromPosition(
-                                      TextPosition(offset: _stockControllers[shoeSize]!.text.length),
-                                    );
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Qty must be between 0 and 20'),
-                                        backgroundColor: Colors.orange,
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                },
+                                style: const TextStyle(fontSize: 13),
                               ),
-                            ),
-
                             ],
                           ),
-
-
                         );
-                      },
+                      }),
                     ),
+                  )
+
                   ],
                   const SizedBox(height: 20),
                   if ((_base64Image != null && _base64Image!.isNotEmpty) ||
@@ -255,14 +237,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                          
                             formData['image'] = _base64Image ?? widget.product?.image;
 
-                            formData['sizes'] = _stockControllers.entries.map((entry) {
-                              return {
-                                "size": entry.key,
-                                "stockQuantity": int.tryParse(entry.value.text) ?? 0,
-                              };
-                            }).toList();
+                            formData['sizes'] = _stockControllers.entries
+                                .where((entry) {
+                                  final newQty = int.tryParse(entry.value.text);
+                                  final originalQty = _sizes?.firstWhere(
+                                    (s) => s.size == entry.key,
+                                    orElse: () => ProductSize(size: entry.key, stockQuantity: 0),
+                                  ).stockQuantity;
 
-                            
+                                  return newQty != null && newQty != originalQty;
+                                })
+                                .map((entry) => {
+                                      "size": entry.key,
+                                      "stockQuantity": int.parse(entry.value.text),
+                                    })
+                                .toList();
+                                                        
                             formData.removeWhere((key, _) =>
                                 !["name", "description", "price", "image", "sizes"].contains(key));
                             

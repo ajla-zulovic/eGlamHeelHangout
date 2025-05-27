@@ -28,14 +28,28 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool _isSubmitting = false;
   PlatformFile? _selectedImage;
   String? _base64Image;
+  final Map<int, TextEditingController> _stockControllers = {};
+  final List<int> _sizes = List.generate(11, (index) => 36 + index);
+
 
   @override
   void initState() {
     super.initState();
+      for (var size in _sizes) {
+    _stockControllers[size] = TextEditingController();
+  }
     _productProvider = context.read<ProductProvider>();
     _categoryProvider = context.read<CategoryProvider>();
     _initForm();
   }
+  @override
+void dispose() {
+  for (var controller in _stockControllers.values) {
+    controller.dispose();
+  }
+  super.dispose();
+}
+
 
   Future<void> _initForm() async {
     try {
@@ -56,6 +70,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       );
     }
   }
+  
 
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(
@@ -266,6 +281,40 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
             ),
             _buildFormSection(
+              'Sizes',
+              Align(
+                alignment: Alignment.centerLeft,
+              child:Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: _sizes.map((size) {
+                  return SizedBox(
+                    width: 90,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Size $size", style: const TextStyle(fontSize: 12)),
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: _stockControllers[size],
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: "Qty",
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              )
+            ),
+
+            _buildFormSection(
               'Product Image',
               Column(
                 children: [
@@ -294,6 +343,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     _formKey.currentState?.reset();
                     _selectedImage = null;
                     _base64Image = null;
+                    for (var controller in _stockControllers.values) {
+                        controller.text = '';
+                      }
+
                     setState(() {});
                   },
                   style: TextButton.styleFrom(
@@ -335,6 +388,25 @@ Future<void> _submitForm() async {
     formData['heelHeight'] = double.tryParse(formData['heelHeight'].toString()) ?? 0.0;
     formData['categoryID'] = int.tryParse(formData['categoryID'].toString()) ?? 0;
 
+
+    final sizes = _sizes
+        .map((size) {
+          final qtyText = _stockControllers[size]?.text ?? '';
+          final qty = int.tryParse(qtyText);
+          if (qty != null && qty > 0) {
+            return {'size': size, 'stockQuantity': qty};
+          }
+          return null;
+        })
+        .whereType<Map<String, dynamic>>()
+        .toList();
+
+    if (sizes.isEmpty) {
+      throw Exception('At least one size with quantity > 0 is required.');
+    }
+
+    formData['sizes'] = sizes;
+
     if (_base64Image != null) {
       formData['image'] = _base64Image;
     } else {
@@ -346,6 +418,10 @@ Future<void> _submitForm() async {
     if (!mounted) return;
 
     _formKey.currentState?.reset();
+   
+      for (var controller in _stockControllers.values) {
+        controller.text = '';
+      }
     setState(() {
       _base64Image = null;
       _selectedImage = null;
