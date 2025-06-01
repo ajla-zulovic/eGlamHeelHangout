@@ -54,6 +54,8 @@ builder.Services.AddTransient<InitialProductStage>();
 builder.Services.AddTransient<ActiveProductState>();
 builder.Services.AddTransient<IGiveawayService, GiveawayService>();
 builder.Services.AddTransient<IFavoriteService, FavoriteService>();
+builder.Services.AddTransient<IReviewService, ReviewService>();
+builder.Services.AddHttpContextAccessor();
 
 
 

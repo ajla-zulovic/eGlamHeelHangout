@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using eGlamHeelHangout.Model;
 using eGlamHeelHangout.Service.Database;
 using eGlamHeelHangout.Service.ProductStateMachine;
 using Microsoft.EntityFrameworkCore;
@@ -44,15 +45,30 @@ namespace eGlamHeelHangout.Service
         }
 
         //dohvati sve favorite proizvode: 
-        public async Task<List<Product>> GetFavorites(int userId)
+        public async Task<List<Products>> GetFavorites(int userId)
         {
-            var favorites = await _context.Favorites
-                .Include(f => f.Product)
-                .Where(f => f.UserId == userId)
-                .Select(f => f.Product)
-                .ToListAsync();
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID");
 
-            return favorites;
+            var favoriteProducts = await _context.Favorites
+                .Include(f => f.Product)
+                 .Where(f => f.UserId == userId && f.Product != null)
+                 .Select(f => f.Product)
+                .ToListAsync();
+           
+
+
+            if (favoriteProducts == null || favoriteProducts.Count == 0)
+                return new List<Model.Products>();
+
+            var result = _mapper.Map<List<Model.Products>>(favoriteProducts);
+
+            foreach (var item in result)
+            {
+                item.IsFavorite = true;
+            }
+
+            return result;
         }
 
 

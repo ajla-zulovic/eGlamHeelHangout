@@ -21,7 +21,7 @@ namespace eGlamHeelHangout.Controllers
 
      
         [HttpPost("toggle")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> ToggleFavorite([FromBody] FavoriteToggleRequest request)
         {
             var username = HttpContext.User.Identity?.Name;
@@ -36,7 +36,7 @@ namespace eGlamHeelHangout.Controllers
 
         
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetMyFavorites()
         {
             var username = HttpContext.User.Identity?.Name;

@@ -27,7 +27,8 @@ namespace eGlamHeelHangout.Service
       CreateMap<Giveaway, Giveaways>();
       CreateMap<GiveawayParticipant, GiveawayParticipants>();
       CreateMap<GiveawayInsertRequest, Giveaway>();
-    }
+      CreateMap<ReviewInsertRequest, Review>();
+        }
   }
  
 }

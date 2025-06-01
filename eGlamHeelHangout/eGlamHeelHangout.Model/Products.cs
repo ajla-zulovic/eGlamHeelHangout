@@ -22,6 +22,7 @@ namespace eGlamHeelHangout.Model
     public bool IsActive { get; set; } = true;
     public string StateMachine { get; set; }
     public List<ProductSizes>? Sizes { get; set; }
+    public bool IsFavorite { get; set; } = false;
 
     }
 }

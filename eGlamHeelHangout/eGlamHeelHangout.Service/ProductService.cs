@@ -10,16 +10,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+
 
 namespace eGlamHeelHangout.Service
 {
   public class ProductService:BaseCRUDService<Model.Products,Database.Product,Model.SearchObjects.ProductsSearchObjects,Model.Requests.ProductsInsertRequest,Model.Requests.ProductsUpdateRequest>, IProductService
   {
     public BaseState _baseState { get; set; }
-    public ProductService(_200199Context context, IMapper mapper, BaseState baseState) : base(context,mapper)
+     private readonly IHttpContextAccessor _httpContextAccessor;
+     private readonly IUserService _userService;
+
+        public ProductService(_200199Context context, IMapper mapper, BaseState baseState, IHttpContextAccessor httpContextAccessor, IUserService userService) : base(context,mapper)
     {
       _baseState = baseState;
-    }
+            _httpContextAccessor = httpContextAccessor;
+            _userService = userService;
+        }
 
 
     public override Task<Model.Products> Insert(ProductsInsertRequest insert)
@@ -88,6 +95,34 @@ namespace eGlamHeelHangout.Service
                 })
                 .ToListAsync();
         }
+        public override async Task<PagedResult<Model.Products>> Get(ProductsSearchObjects? search = null)
+        {
+            var query = AddFilter(_context.Products.Include(p => p.ProductSizes).AsQueryable(), search);
+
+            var toList = await query.ToListAsync();
+
+            var username = _httpContextAccessor.HttpContext?.User.Identity?.Name;
+            var userId = _userService.GetCurrentUserId(username);
+
+            var favoriteIds = _context.Favorites
+                .Where(f => f.UserId == userId)
+                .Select(f => f.ProductId)
+                .ToHashSet();
+
+            var mapped = toList.Select(p =>
+            {
+                var mappedProduct = _mapper.Map<Model.Products>(p);
+                mappedProduct.IsFavorite = favoriteIds.Contains(p.ProductId);
+                return mappedProduct;
+            }).ToList();
+
+            return new PagedResult<Model.Products>
+            {
+                Count = mapped.Count,
+                Result = mapped
+            };
+        }
+
 
 
     }

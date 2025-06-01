@@ -1,4 +1,5 @@
-﻿using eGlamHeelHangout.Service.Database;
+﻿using eGlamHeelHangout.Model;
+using eGlamHeelHangout.Service.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace eGlamHeelHangout.Service
     public interface IFavoriteService
     {
         public Task<bool> ToggleFavorite(int userId, int productId);
-        Task<List<Product>> GetFavorites(int userId);
+        Task<List<Model.Products>> GetFavorites(int userId); 
+
     }
 }

@@ -3,6 +3,7 @@ using eGlamHeelHangout.Model.SearchObjects;
 using eGlamHeelHangout.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
 
 namespace eGlamHeelHangout.Controllers
@@ -11,9 +12,12 @@ namespace eGlamHeelHangout.Controllers
   [Route("[controller]")] // ovo nam ne treba 
   public class ProductController : BaseCRUDController<Model.Products,Model.SearchObjects.ProductsSearchObjects,Model.Requests.ProductsInsertRequest,Model.Requests.ProductsUpdateRequest>
   {
-    public ProductController(ILogger<BaseController<Model.Products, Model.SearchObjects.ProductsSearchObjects>> logger, IProductService service)
+        private readonly IReviewService _reviewService;
+        public ProductController(ILogger<BaseController<Model.Products, Model.SearchObjects.ProductsSearchObjects>> logger, IProductService service, IReviewService reviewService)
       : base(logger, service)
-    { }
+    {
+            _reviewService = reviewService;
+        }
 
       [HttpPut("{id}/activate")]
       public virtual async Task<Model.Products> Activate(int id)
@@ -39,6 +43,15 @@ namespace eGlamHeelHangout.Controllers
             var sizes = await (_service as IProductService).GetSizesForProductAsync(productId);
             return Ok(sizes);
         }
+
+        [HttpGet("{productId}/average-rating")]
+        public async Task<IActionResult> GetAverageRating(int productId)
+        {
+            var average = await _reviewService.GetAverageRatingAsync(productId);
+            return Ok(average);
+        }
+
+
 
     }
 }
