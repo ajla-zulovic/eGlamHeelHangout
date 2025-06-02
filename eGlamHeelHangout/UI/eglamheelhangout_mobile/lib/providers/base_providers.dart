@@ -18,8 +18,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
     _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment(
       "baseUrl",
-     defaultValue: "https://10.0.2.2:7277/",
-       // defaultValue: "https://localhost:7277/",
+    defaultValue: "https://10.0.2.2:7277/",
+    //defaultValue: "https://localhost:7277/",
     );
     client.badCertificateCallback=(cert,host,port)=>true;
     http=IOClient(client);
@@ -114,17 +114,15 @@ abstract class BaseProvider<T> with ChangeNotifier {
     });
     return query;
   }
+Future<T?> insert(dynamic request) async {
+  var url = "$baseUrl$_endpoint";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
 
-Future<T> insert (dynamic request) async
-{
-    var url = "$baseUrl$_endpoint"; //treba nam putanja do naseg servera i endpoint
-    var uri = Uri.parse(url);
-    var headers = createHeaders(); //vazno jer ovo mogu samo uraditi korisnci/admini koji su prosli autentifikaciju
-
-    var jsonRequest=jsonEncode(request); //moramo request koji saljemo enkodirati u json
-    var response= await http!.post(uri,headers:headers,body:jsonRequest);
-    print('INSERT status: ${response.statusCode}');
-    print('INSERT body: ${response.body}');
+  var jsonRequest = jsonEncode(request);
+  var response = await http!.post(uri, headers: headers, body: jsonRequest);
+  print('INSERT status: ${response.statusCode}');
+  print('INSERT body: ${response.body}');
 
   try {
     final decoded = jsonDecode(response.body);
@@ -133,14 +131,21 @@ Future<T> insert (dynamic request) async
       return fromJson(decoded);
     } else {
       debugPrint("Response is not a JSON object: $decoded");
-      return fromJson({});
+      return null; // ili return fromJson({}) ako je potrebno
     }
   } catch (e) {
+    // Ako nije JSON, vjerovatno je plain tekst
     debugPrint("EXCEPTION while parsing insert response: $e");
     debugPrint("Raw response: ${response.body}");
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return null; // ok status, ali nije JSON – nemoj bacati grešku
+    }
+
     throw Exception("Invalid response format");
   }
 }
+
 
 Future<T> update(int id, [dynamic request]) async {
   var url = "$baseUrl$_endpoint/$id";

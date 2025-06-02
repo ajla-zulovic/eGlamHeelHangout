@@ -7,6 +7,7 @@ import 'package:eglamheelhangout_mobile/providers/category_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/user_providers.dart';
 import 'package:eglamheelhangout_mobile/utils/current_user.dart';
 import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/review_providers.dart';
 import 'dart:io';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -27,6 +28,7 @@ void main() {
       ChangeNotifierProvider(create: (_) => CategoryProvider()),
        ChangeNotifierProvider(create: (_) => UserProvider()),
        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+       ChangeNotifierProvider(create: (_) => ReviewProvider()),
 
       ],
       
