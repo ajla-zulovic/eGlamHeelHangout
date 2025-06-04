@@ -1,5 +1,8 @@
+using AutoMapper;
 using eGlamHeelHangout;
 using eGlamHeelHangout.Filters;
+using eGlamHeelHangout.Model.Requests;
+using eGlamHeelHangout.Model;
 using eGlamHeelHangout.Model.SearchObjects;
 using eGlamHeelHangout.Service;
 using eGlamHeelHangout.Service.Database;
@@ -9,6 +12,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.OpenApi.Models;
+using eGlamHeelHangout.Model.Utilities;
+using eGlamHeelHangout.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +23,11 @@ builder.Services.AddControllers(x => {
   x.Filters.Add<ErrorFilter>();
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
+
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
   c.AddSecurityDefinition("basicAuth", new Microsoft.OpenApi.Models.OpenApiSecurityScheme()
@@ -55,7 +63,13 @@ builder.Services.AddTransient<ActiveProductState>();
 builder.Services.AddTransient<IGiveawayService, GiveawayService>();
 builder.Services.AddTransient<IFavoriteService, FavoriteService>();
 builder.Services.AddTransient<IReviewService, ReviewService>();
+builder.Services.AddTransient<IOrderService, OrderService>();
+builder.Services.AddTransient<IStripeService, StripeService>();
+
+
+
 builder.Services.AddHttpContextAccessor();
+
 
 
 
@@ -67,7 +81,47 @@ options.UseSqlServer(connectionString));
 builder.Services.AddAutoMapper(typeof(IUserService));
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
+
+
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+        mapper.ConfigurationProvider.AssertConfigurationIsValid();
+    }
+    catch (AutoMapper.AutoMapperConfigurationException ex)
+    {
+        System.Diagnostics.Debug.WriteLine("AutoMapper greška u mapiranju:");
+        System.Diagnostics.Debug.WriteLine(ex.Message);
+
+        foreach (var error in ex.Errors)
+        {
+            var typeMap = error.TypeMap;
+            if (typeMap != null)
+            {
+                var source = typeMap.SourceType?.Name ?? "???";
+                var dest = typeMap.DestinationType?.Name ?? "???";
+
+                System.Diagnostics.Debug.WriteLine($" {source} : {dest}");
+
+                foreach (var unmapped in error.UnmappedPropertyNames)
+                {
+                    System.Diagnostics.Debug.WriteLine($"   - Unmapped: {unmapped}");
+                }
+            }
+        }
+
+
+        throw; // zadrži pad ako želiš da Swagger ne prikrije grešku
+    }
+}
+
+
+
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

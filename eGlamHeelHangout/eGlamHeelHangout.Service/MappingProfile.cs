@@ -14,21 +14,123 @@ namespace eGlamHeelHangout.Service
   {
 
     public MappingProfile()
-    {
-      CreateMap<Model.Requests.UsersInsertRequest, Database.User>();
-      CreateMap<Model.Requests.UserUpdateRequest, Database.User>();
-      CreateMap<Model.Requests.ProductsInsertRequest, Database.Product>();
-      CreateMap<Model.Requests.ProductsUpdateRequest, Database.Product>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-      CreateMap<Database.Category, Model.Categories>();
-      CreateMap<Database.Product, Model.Products>();
-      CreateMap<Database.User, Model.Users>();
-      CreateMap<Database.UsersRole, Model.UsersRoles>();
-      CreateMap<Database.Role, Model.Roles>();
-      CreateMap<Giveaway, Giveaways>();
-      CreateMap<GiveawayParticipant, GiveawayParticipants>();
-      CreateMap<GiveawayInsertRequest, Giveaway>();
-      CreateMap<ReviewInsertRequest, Review>();
+        {
+
+            // USERS
+            CreateMap<UsersInsertRequest, User>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore())
+                .ForMember(dest => dest.DateCreated, opt => opt.Ignore())
+                .ForMember(dest => dest.UsersRoles, opt => opt.Ignore())
+                .ForMember(dest => dest.Favorites, opt => opt.Ignore())
+                .ForMember(dest => dest.GiveawayParticipants, opt => opt.Ignore())
+                .ForMember(dest => dest.Notifications, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore());
+
+            CreateMap<UserUpdateRequest, User>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.Username, opt => opt.Ignore())
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore())
+                .ForMember(dest => dest.DateCreated, opt => opt.Ignore())
+                .ForMember(dest => dest.UsersRoles, opt => opt.Ignore())
+                .ForMember(dest => dest.Favorites, opt => opt.Ignore())
+                .ForMember(dest => dest.GiveawayParticipants, opt => opt.Ignore())
+                .ForMember(dest => dest.Notifications, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore());
+
+            CreateMap<User, Users>();
+
+            // PRODUCTS
+            CreateMap<ProductsInsertRequest, Product>()
+                .ForMember(dest => dest.ProductId, opt => opt.Ignore())
+                .ForMember(dest => dest.DateAdded, opt => opt.Ignore())
+                .ForMember(dest => dest.StateMachine, opt => opt.Ignore())
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.Discounts, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductSizes, opt => opt.Ignore())
+                .ForMember(dest => dest.Favorites, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderItems, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore());
+
+            CreateMap<ProductsUpdateRequest, Product>()
+                .ForMember(dest => dest.ProductId, opt => opt.Ignore())
+                .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
+                .ForMember(dest => dest.Color, opt => opt.Ignore())
+                .ForMember(dest => dest.Material, opt => opt.Ignore())
+                .ForMember(dest => dest.HeelHeight, opt => opt.Ignore())
+                .ForMember(dest => dest.DateAdded, opt => opt.Ignore())
+                .ForMember(dest => dest.StateMachine, opt => opt.Ignore())
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.Discounts, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductSizes, opt => opt.Ignore())
+                .ForMember(dest => dest.Favorites, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderItems, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<Product, Products>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.Sizes, opt => opt.Ignore())
+                .ForMember(dest => dest.IsFavorite, opt => opt.Ignore());
+
+            // CATEGORY
+            CreateMap<Category, Categories>();
+
+            // ROLES
+            CreateMap<Role, Roles>();
+            CreateMap<UsersRole, UsersRoles>();
+
+            // GIVEAWAYS
+            CreateMap<Giveaway, Giveaways>();
+            CreateMap<GiveawayParticipant, GiveawayParticipants>();
+            CreateMap<GiveawayInsertRequest, Giveaway>()
+                .ForMember(dest => dest.GiveawayId, opt => opt.Ignore())
+                .ForMember(dest => dest.IsClosed, opt => opt.Ignore())
+                .ForMember(dest => dest.GiveawayParticipants, opt => opt.Ignore());
+
+            // REVIEWS
+            CreateMap<ReviewInsertRequest, Review>()
+                .ForMember(dest => dest.ReviewId, opt => opt.Ignore())
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.Comment, opt => opt.Ignore())
+                .ForMember(dest => dest.ReviewDate, opt => opt.Ignore())
+                .ForMember(dest => dest.Product, opt => opt.Ignore())
+                .ForMember(dest => dest.User, opt => opt.Ignore());
+
+            // PRODUCT SIZES
+            CreateMap<ProductSize, ProductSizes>();
+
+            //ORDER I ORDERITEM
+            CreateMap<OrderInsertRequest, Order>()
+    .ForMember(dest => dest.OrderId, opt => opt.Ignore())
+    .ForMember(dest => dest.User, opt => opt.Ignore())
+    .ForMember(dest => dest.OrderItems, opt => opt.Ignore());
+
+            CreateMap<OrderItemInsertRequest, OrderItem>()
+    .ForMember(dest => dest.OrderItemId, opt => opt.Ignore())
+    .ForMember(dest => dest.OrderId, opt => opt.Ignore()) 
+    .ForMember(dest => dest.ProductSize, opt => opt.Ignore())
+    .ForMember(dest => dest.Order, opt => opt.Ignore())
+    .ForMember(dest => dest.Product, opt => opt.Ignore());
+
+            CreateMap<OrderItem, OrderItemDTO>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.ProductSize.Size));
+
+            CreateMap<Order, OrderDTO>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User != null ? src.User.Username : string.Empty))
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems));
+
+
+
+
         }
-  }
+    }
  
 }

@@ -21,6 +21,5 @@ class ProductProvider extends BaseProvider<Product> {
     image: json['image'],
   );
   }
-
  
 }

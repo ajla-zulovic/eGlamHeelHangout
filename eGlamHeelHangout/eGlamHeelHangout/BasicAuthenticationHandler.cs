@@ -39,7 +39,8 @@ namespace eGlamHeelHangout
         var claims = new List<Claim>() {
           //new Claim(ClaimTypes.Name,user.FirstName),
           new Claim(ClaimTypes.Name, user.Username), 
-          new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()) 
+          new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+         new Claim("id", user.UserId.ToString()) //privremeno
         };
 
         // ovo za ulogu koristimo da bismo mogli kasnije nad controllerima određivati koja uloga ima pristupe određenim metodama npr insert proizvoda ne moze raditi nikako krisnik nego admin 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as flutter;
 import 'package:eglamheelhangout_mobile/providers/product_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_mobile/screens/products_list_screen.dart';
@@ -8,6 +9,10 @@ import 'package:eglamheelhangout_mobile/providers/user_providers.dart';
 import 'package:eglamheelhangout_mobile/utils/current_user.dart';
 import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/review_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/order_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/stripe_providers.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'dart:io';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -19,43 +24,48 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
-
 void main() {
-   HttpOverrides.global = MyHttpOverrides(); //imam problem s certifikatom
+  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ProductProvider()),
-      ChangeNotifierProvider(create: (_) => CategoryProvider()),
-       ChangeNotifierProvider(create: (_) => UserProvider()),
-       ChangeNotifierProvider(create: (_) => FavoriteProvider()),
-       ChangeNotifierProvider(create: (_) => ReviewProvider()),
-
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => StripeProvider()),
       ],
-      
-      child: const MaterialApp(
+      child: const flutter.MaterialApp(
         debugShowCheckedModeBanner: false,
         home: LoginPage(),
       ),
     ),
   );
 }
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+
+class LoginPage extends flutter.StatefulWidget {
+  const LoginPage({flutter.Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class _LoginPageState extends flutter.State<LoginPage> {
+  final _usernameController = flutter.TextEditingController();
+  final _passwordController = flutter.TextEditingController();
   late final ProductProvider _productProvider;
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = flutter.GlobalKey<flutter.FormState>();
 
   @override
   void initState() {
     super.initState();
     _productProvider = context.read<ProductProvider>();
+    flutter.WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StripeProvider>().initializeStripe();
+    });
   }
 
   @override
@@ -66,57 +76,57 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
+  flutter.Widget build(flutter.BuildContext context) {
+    return flutter.Scaffold(
+      backgroundColor: flutter.Colors.white,
+      appBar: flutter.AppBar(
+        title: const flutter.Text(
           "Glam Heel Hangout User",
-          style: TextStyle(fontSize: 16, color: Colors.white),
+          style: flutter.TextStyle(fontSize: 16, color: flutter.Colors.white),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.grey[800],
+        backgroundColor: flutter.Colors.grey[800],
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.all(20),
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Card(
-              color: Colors.white,
+      body: flutter.Center(
+        child: flutter.SingleChildScrollView(
+          child: flutter.Container(
+            margin: const flutter.EdgeInsets.all(20),
+            constraints: const flutter.BoxConstraints(maxWidth: 500),
+            child: flutter.Card(
+              color: flutter.Colors.white,
               elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+              shape: flutter.RoundedRectangleBorder(
+                borderRadius: flutter.BorderRadius.circular(16),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
+              child: flutter.Padding(
+                padding: const flutter.EdgeInsets.all(24.0),
+                child: flutter.Form(
                   key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: flutter.Column(
+                    mainAxisSize: flutter.MainAxisSize.min,
                     children: [
-                      Image.asset(
+                      flutter.Image.asset(
                         "assets/images/logologo.png",
                         height: 130,
                         width: 130,
                       ),
-                      const SizedBox(height: 24),
-                      const Text(
+                      const flutter.SizedBox(height: 24),
+                      const flutter.Text(
                         "Login",
-                        style: TextStyle(
+                        style: flutter.TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
+                          fontWeight: flutter.FontWeight.bold,
+                          color: flutter.Colors.grey,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        decoration: InputDecoration(
+                      const flutter.SizedBox(height: 24),
+                      flutter.TextFormField(
+                        decoration: flutter.InputDecoration(
                           labelText: "Username",
-                          prefixIcon: const Icon(Icons.person),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          prefixIcon: const flutter.Icon(flutter.Icons.person),
+                          border: flutter.OutlineInputBorder(
+                            borderRadius: flutter.BorderRadius.circular(8),
                           ),
                         ),
                         controller: _usernameController,
@@ -127,14 +137,14 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
-                      TextFormField(
+                      const flutter.SizedBox(height: 16),
+                      flutter.TextFormField(
                         obscureText: true,
-                        decoration: InputDecoration(
+                        decoration: flutter.InputDecoration(
                           labelText: "Password",
-                          prefixIcon: const Icon(Icons.lock),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          prefixIcon: const flutter.Icon(flutter.Icons.lock),
+                          border: flutter.OutlineInputBorder(
+                            borderRadius: flutter.BorderRadius.circular(8),
                           ),
                         ),
                         controller: _passwordController,
@@ -145,15 +155,15 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 24),
-                      SizedBox(
+                      const flutter.SizedBox(height: 24),
+                      flutter.SizedBox(
                         width: double.infinity,
                         height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[500],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        child: flutter.ElevatedButton(
+                          style: flutter.ElevatedButton.styleFrom(
+                            backgroundColor: flutter.Colors.blue[500],
+                            shape: flutter.RoundedRectangleBorder(
+                              borderRadius: flutter.BorderRadius.circular(8),
                             ),
                             elevation: 5,
                           ),
@@ -166,59 +176,61 @@ class _LoginPageState extends State<LoginPage> {
                               Authorization.password = password;
 
                               try {
-                                await _productProvider.get(); // ovo validira lozinku
+                                await _productProvider.get();
 
-                                  final userProvider = context.read<UserProvider>();
-                                  final userResult = await userProvider.get(filter: {'username': username});
+                                final userProvider = context.read<UserProvider>();
+                                final userResult = await userProvider.get(filter: {'username': username});
 
-                                  if (userResult.result.isEmpty) {
-                                    throw Exception("User not found");
-                                  }
+                                if (userResult.result.isEmpty) {
+                                  throw Exception("User not found");
+                                }
 
-                                  final loggedInUser = await userProvider.getCurrentUser();
-                                  CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
+                                final loggedInUser = await userProvider.getCurrentUser();
+                                CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
 
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => const ProductsListScreen(),
-                                  ),
-                                );
+                                // flutter.Navigator.of(context).pushReplacement(
+                                //   flutter.MaterialPageRoute(
+                                //     builder: (context) => const ProductsListScreen(),
+                                //   ),
+                                // );
+                                Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const ProductsListScreen(),
+                                ),
+                              );
                               } catch (e) {
-                                showDialog(
+                                flutter.showDialog(
                                   context: context,
-                                  builder:
-                                      (_) => AlertDialog(
-                                        title: Text("Login failed"),
-                                        content: Text(e.toString()),
-                                        actions: [
-                                          ElevatedButton(
-                                            onPressed:
-                                                () =>
-                                                    Navigator.of(context).pop(),
-                                            child: Text("Close"),
-                                          ),
-                                        ],
+                                  builder: (_) => flutter.AlertDialog(
+                                    title: const flutter.Text("Login failed"),
+                                    content: flutter.Text(e.toString()),
+                                    actions: [
+                                      flutter.ElevatedButton(
+                                        onPressed: () => flutter.Navigator.of(context).pop(),
+                                        child: const flutter.Text("Close"),
                                       ),
+                                    ],
+                                  ),
                                 );
                               }
                             }
                           },
-                          child: const Text(
+                          child: const flutter.Text(
                             "Login",
-                            style: TextStyle(
+                            style: flutter.TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              fontWeight: flutter.FontWeight.bold,
+                              color: flutter.Colors.white,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      TextButton(
+                      const flutter.SizedBox(height: 16),
+                      flutter.TextButton(
                         onPressed: () {},
-                        child: const Text(
+                        child: const flutter.Text(
                           "Forget password?",
-                          style: TextStyle(color: Colors.black),
+                          style: flutter.TextStyle(color: flutter.Colors.black),
                         ),
                       ),
                     ],

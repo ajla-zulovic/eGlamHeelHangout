@@ -10,9 +10,12 @@ import 'package:intl/intl.dart';
 import 'package:eglamheelhangout_mobile/screens/product_details_screen.dart';
 import 'package:eglamheelhangout_mobile/providers/category_providers.dart';
 import 'package:eglamheelhangout_mobile/models/category.dart';
+import 'package:eglamheelhangout_mobile/models/cartitem.dart';
 import 'package:eglamheelhangout_mobile/screens/profile_screen.dart';
 import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
 import 'package:eglamheelhangout_mobile/screens/favorite_product_screen.dart';
+import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -51,18 +54,20 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
       appBar: AppBar(
         title: Text(_pages[selectedIndex]['title'], style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[800],
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              try {
-                await _productProvider.get();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Products refreshed')));
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-              }
-            },
-          ),
+        actions: 
+      [
+         Padding(
+           padding: const EdgeInsets.only(right: 18), 
+           child:IconButton(
+            icon: const Icon(Icons.shopping_cart, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CartScreen()),
+              );
+                },
+            ),
+         ),
         ],
       ),
       drawer: Drawer(
