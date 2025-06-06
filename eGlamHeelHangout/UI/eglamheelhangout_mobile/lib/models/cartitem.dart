@@ -12,6 +12,7 @@ class CartItem {
   final String? image;
   int quantity;
   final int stockQuantity;
+  final int productSizeId;
 
 
   CartItem({
@@ -22,6 +23,7 @@ class CartItem {
     required this.price,
     this.image,
     this.quantity = 1,
+    required this.productSizeId, 
     required this.stockQuantity,
   });
 

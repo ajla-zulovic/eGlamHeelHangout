@@ -13,6 +13,7 @@ import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/order_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/stripe_providers.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -24,8 +25,15 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
-void main() {
-  HttpOverrides.global = MyHttpOverrides();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); //-> osigurava da su flutter-ve osnovne stvari ready -> poput .env, Stripe,HttpOverrides
+
+ await dotenv.load(fileName: ".env");
+ Stripe.publishableKey = dotenv.env['Stripe__PublishableKey']!;
+ print("Stripe Key: ${dotenv.env['Stripe__PublishableKey']}");
+
+ HttpOverrides.global = MyHttpOverrides();
+ 
   runApp(
     MultiProvider(
       providers: [

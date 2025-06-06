@@ -11,6 +11,7 @@ import 'package:http/io_client.dart';
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
   String _endpoint = "";
+  
 
   HttpClient client=HttpClient();
   IOClient? http;
@@ -18,16 +19,16 @@ abstract class BaseProvider<T> with ChangeNotifier {
     _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment(
       "baseUrl",
-    defaultValue: "https://10.0.2.2:7277/",
-    //defaultValue: "https://localhost:7277/",
+    //defaultValue: "https://10.0.2.2:7277/",
+    defaultValue: "https://localhost:7277/",
     );
     client.badCertificateCallback=(cert,host,port)=>true;
     http=IOClient(client);
   
   }
 
-  String get baseUrl => _baseUrl ?? "https://10.0.2.2:7277/";
-  //String get baseUrl => _baseUrl ?? "http://localhost:7277/";
+  //String get baseUrl => _baseUrl ?? "https://10.0.2.2:7277/";
+  String get baseUrl => _baseUrl ?? "http://localhost:7277/";
   String get endpoint => _endpoint;
 
   Future<SearchResult<T>> get({dynamic filter}) async {

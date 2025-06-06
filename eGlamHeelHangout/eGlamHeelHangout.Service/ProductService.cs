@@ -90,6 +90,7 @@ namespace eGlamHeelHangout.Service
                 .Where(ps => ps.ProductId == productId)
                 .Select(ps => new Model.ProductSizes
                 {
+                    ProductSizeId = ps.ProductSizeId,
                     Size = ps.Size,
                     StockQuantity = ps.StockQuantity
                 })

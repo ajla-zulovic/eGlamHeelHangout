@@ -13,5 +13,6 @@ namespace eGlamHeelHangout.Model
         public int Size { get; set; }
         [Range(0, 20, ErrorMessage = "Stock quantity must be a positive number.")]
         public int StockQuantity { get; set; }
+        public int ProductSizeId { get; set; }
     }
 }

@@ -7,7 +7,7 @@ part of 'productsize.dart';
 // **************************************************************************
 
 ProductSize _$ProductSizeFromJson(Map<String, dynamic> json) => ProductSize(
-  productSizeId: (json['productSizeId'] as num?)?.toInt(),
+  productSizeId: (json['productSizeId'] as num).toInt(),
   size: (json['size'] as num).toInt(),
   stockQuantity: (json['stockQuantity'] as num).toInt(),
 );

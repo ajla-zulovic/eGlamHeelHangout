@@ -32,6 +32,7 @@ namespace eGlamHeelHangout.Controllers
             return Ok(result);
         }
         [HttpGet("my-orders")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult<List<OrderDTO>>> GetMyOrders()
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;

@@ -4,7 +4,7 @@ import 'orderitem.dart';
 part 'order.g.dart';
 @JsonSerializable()
 class Order {
-  final int orderId;
+  final int? orderId;
   final double totalPrice;
   final String orderStatus;
   final String paymentMethod;

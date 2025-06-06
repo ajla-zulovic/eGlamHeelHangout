@@ -4,12 +4,12 @@ part 'productsize.g.dart';
 
 @JsonSerializable()
 class ProductSize {
-  final int? productSizeId;
+  final int productSizeId;
   final int size;
   final int stockQuantity;
 
   ProductSize({
-   this.productSizeId,
+   required  this.productSizeId,
    required  this.size,
    required  this.stockQuantity,
   });

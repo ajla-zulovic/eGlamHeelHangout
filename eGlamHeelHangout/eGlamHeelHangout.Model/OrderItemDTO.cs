@@ -13,5 +13,6 @@ namespace eGlamHeelHangout.Model
         public int Quantity { get; set; }
         public decimal PricePerUnit { get; set; }
         public int Size { get; set; }
+        public int ProductSizeId { get; set; }
     }
 }

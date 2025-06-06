@@ -14,6 +14,7 @@ CartItem _$CartItemFromJson(Map<String, dynamic> json) => CartItem(
   price: (json['price'] as num).toDouble(),
   image: json['image'] as String?,
   quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+  productSizeId: (json['productSizeId'] as num).toInt(),
   stockQuantity: (json['stockQuantity'] as num).toInt(),
 );
 
@@ -26,4 +27,5 @@ Map<String, dynamic> _$CartItemToJson(CartItem instance) => <String, dynamic>{
   'image': instance.image,
   'quantity': instance.quantity,
   'stockQuantity': instance.stockQuantity,
+  'productSizeId': instance.productSizeId,
 };

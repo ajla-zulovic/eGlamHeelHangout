@@ -12,7 +12,9 @@ class StripeProvider with ChangeNotifier {
 
   Future<void> initializeStripe() async {
     try {
-      final response = await http.get(Uri.parse('https://localhost:7277/Stripe/config'));
+    //final response = await http.get(Uri.parse('https://10.0.2.2:7277/Stripe/config'));
+    final response = await http.get(Uri.parse('https://localhost:7277/Stripe/config'));
+
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
