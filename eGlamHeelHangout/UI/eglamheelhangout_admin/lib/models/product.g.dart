@@ -26,6 +26,11 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
           : DateTime.parse(json['updatedAt'] as String),
   isActive: json['isActive'] as bool?,
   stateMachine: json['stateMachine'] as String?,
+  isFavorite: json['isFavorite'] as bool?,
+  sizes:
+      (json['sizes'] as List<dynamic>?)
+          ?.map((e) => ProductSize.fromJson(e as Map<String, dynamic>))
+          .toList(),
 );
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
@@ -42,4 +47,6 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'isActive': instance.isActive,
   'stateMachine': instance.stateMachine,
+  'isFavorite': instance.isFavorite,
+  'sizes': instance.sizes,
 };

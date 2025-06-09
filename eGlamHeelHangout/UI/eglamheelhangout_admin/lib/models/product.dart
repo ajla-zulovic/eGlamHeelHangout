@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-
+import 'productsize.dart';
 part 'product.g.dart'; 
 
 @JsonSerializable()
@@ -18,6 +18,8 @@ class Product {
   DateTime? updatedAt;
   bool? isActive;
   String? stateMachine;
+  bool? isFavorite;
+  List<ProductSize>? sizes;
 
   Product({
     this.productID,
@@ -33,6 +35,8 @@ class Product {
     this.updatedAt,
     this.isActive,
     this.stateMachine,
+    this.isFavorite,
+    this.sizes
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);

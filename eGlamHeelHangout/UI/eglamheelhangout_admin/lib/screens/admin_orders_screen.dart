@@ -104,7 +104,7 @@ Future<void> _changeOrderStatus(int orderId, String newStatus) async {
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8), // blago rounded, kao Home Page
+                                  borderRadius: BorderRadius.circular(8), 
                                 ),
                               ),
                               onPressed: () => _changeOrderStatus(order.orderId!, "Delivered"),

@@ -34,6 +34,7 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
             if (entity == null)
                 throw new Exception("Product not found");
 
+            // Basic product fields
             if (update.Name != null)
                 entity.Name = update.Name;
 
@@ -54,7 +55,20 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
             if (update.Image != null)
                 entity.Image = update.Image;
 
-   
+            // New: Additional editable fields
+            if (update.CategoryID.HasValue)
+                entity.CategoryId = update.CategoryID.Value;
+
+            if (!string.IsNullOrEmpty(update.Material))
+                entity.Material = update.Material;
+
+            if (!string.IsNullOrEmpty(update.Color))
+                entity.Color = update.Color;
+
+            if (update.HeelHeight.HasValue)
+                entity.HeelHeight = (decimal)update.HeelHeight.Value;
+
+            // Sizes (ProductSize)
             if (update.Sizes != null)
             {
                 foreach (var s in update.Sizes)
@@ -63,11 +77,13 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
                         continue;
 
                     var existing = await _context.ProductSizes
-                        .FirstOrDefaultAsync(x => x.ProductId == id && x.Size == s.Size);
+                          .FirstOrDefaultAsync(x => x.ProductId == id && x.Size == s.Size);
+
 
                     if (existing != null)
                     {
                         existing.StockQuantity = s.StockQuantity;
+                        existing.Size = s.Size;
                     }
                     else
                     {
@@ -92,11 +108,12 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
                 throw new Exception(ex.InnerException?.Message ?? ex.Message);
             }
 
-        
+            // Map product + sizes
             var sizes = await _context.ProductSizes
                 .Where(x => x.ProductId == id)
                 .Select(x => new ProductSizes
                 {
+                    ProductSizeId = x.ProductSizeId,
                     Size = x.Size,
                     StockQuantity = x.StockQuantity
                 })

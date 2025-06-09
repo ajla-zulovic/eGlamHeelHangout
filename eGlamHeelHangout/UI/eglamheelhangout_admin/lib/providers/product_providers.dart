@@ -6,21 +6,11 @@ import 'base_providers.dart';
 
 class ProductProvider extends BaseProvider<Product> {
   ProductProvider() : super("Product");
+@override
+Product fromJson(Map<String, dynamic> json) {
+  return Product.fromJson(json); 
+}
 
-  @override
-  Product fromJson(Map<String, dynamic> json) {
-    return Product(
-    productID: json['productID'],
-    name: json['name'],
-    price: json['price'],
-    description: json['description'],
-    color: json['color'],
-    material: json['material'],
-    heelHeight: json['heelHeight'],
-    categoryID: json['categoryID'],
-    image: json['image'],
-  );
-  }
 
  
 }
