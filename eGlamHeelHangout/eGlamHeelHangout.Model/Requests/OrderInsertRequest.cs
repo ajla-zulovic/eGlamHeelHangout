@@ -10,7 +10,7 @@ namespace eGlamHeelHangout.Model.Requests
     {
         public int UserId { get; set; }
         public decimal TotalPrice { get; set; }
-        public string OrderStatus { get; set; } = "Pending";
+        public string OrderStatus { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public List<OrderItemInsertRequest> Items { get; set; } = new();
         public string PaymentMethod { get; set; } = "stripe";

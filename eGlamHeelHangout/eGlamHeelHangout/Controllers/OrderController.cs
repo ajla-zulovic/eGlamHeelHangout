@@ -13,11 +13,15 @@ namespace eGlamHeelHangout.Controllers
     [Route("[controller]")]
     public class OrderController : BaseCRUDController<Model.OrderDTO, OrderSearchObject, Model.Requests.OrderInsertRequest, object>
     {
+        private readonly IOrderService _orderService;
+
         public OrderController(
              ILogger<BaseController<OrderDTO, OrderSearchObject>> logger,
              IOrderService service)
          : base(logger, service)
-                { }
+                {
+            _orderService = service;
+        }
 
         [HttpPost("custom-create")]
         [Authorize(Roles = "User")]
@@ -44,5 +48,15 @@ namespace eGlamHeelHangout.Controllers
             var result = await _service.Get(search);
             return Ok(result.Result);
         }
+
+        [HttpPut("update-status")]
+        [Authorize(Roles = "User,Admin")]
+        public async Task<IActionResult> UpdateOrderStatus([FromBody] OrderUpdateRequest request)
+        {
+            await _orderService.UpdateOrderStatus(request.OrderId, request.OrderStatus);
+            return Ok("Order status updated successfully");
+        }
+
+
     }
 }

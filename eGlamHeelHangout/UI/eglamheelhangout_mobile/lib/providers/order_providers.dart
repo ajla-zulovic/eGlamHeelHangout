@@ -36,4 +36,20 @@ class OrderProvider extends BaseProvider<Order> {
   }
 }
 
+Future<List<Order>> getMyOrders() async {
+  var url = "$baseUrl$endpoint/my-orders";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http!.get(uri, headers: headers);
+
+  if (response.statusCode == 200) {
+    final List data = jsonDecode(response.body);
+    return data.map((item) => Order.fromJson(item)).toList();
+  } else {
+    throw Exception("Failed to load orders: ${response.statusCode}");
+  }
+}
+
+
 }

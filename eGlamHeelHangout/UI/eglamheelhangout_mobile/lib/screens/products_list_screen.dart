@@ -16,6 +16,7 @@ import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
 import 'package:eglamheelhangout_mobile/screens/favorite_product_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
+import 'package:eglamheelhangout_mobile/screens/user_orders_list_screen.dart';
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -32,6 +33,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     {'page': const HomeScreen(), 'title': 'Home Page'},
     {'page': const ProfileScreen(), 'title': 'Profile Page'},
     {'page': const MyFavoritesScreen(), 'title': 'My Favorites'},
+     {'page': const UserOrdersListScreen(), 'title': 'History Orders List'},
   ];
 
   void _selectPage(int index) {
@@ -90,6 +92,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                 leading: const Icon(Icons.favorite),
                 title: const Text('My Favorites'),
                 onTap: () => _selectPage(2)),
+                 ListTile(
+                leading: const Icon(Icons.archive),
+                title: const Text('History Orders List'),
+                onTap: () => _selectPage(3)),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

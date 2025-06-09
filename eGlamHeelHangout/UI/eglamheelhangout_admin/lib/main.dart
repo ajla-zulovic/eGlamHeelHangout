@@ -7,6 +7,7 @@ import 'package:eglamheelhangout_admin/providers/category_providers.dart';
 import 'package:eglamheelhangout_admin/providers/user_providers.dart';
 import 'package:eglamheelhangout_admin/utils/current_user.dart';
 import 'package:eglamheelhangout_admin/providers/giveaway_providers.dart';
+import 'package:eglamheelhangout_admin/providers/order_providers.dart';
 
 void main() {
   runApp(
@@ -15,6 +16,7 @@ void main() {
       ChangeNotifierProvider(create: (_) => CategoryProvider()),
        ChangeNotifierProvider(create: (_) => UserProvider()),
        ChangeNotifierProvider(create: (_) => GiveawayProvider()),
+       ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       
       child: const MaterialApp(

@@ -131,7 +131,7 @@ class CartScreen extends StatelessWidget {
 
     final createdOrder = await orderProvider.createOrder(newOrder);
     if (createdOrder == null) {
-      throw Exception("Naručivanje nije uspjelo.");
+      throw Exception("Ordering was unsuccessful.");
     }
 
     // 3. Priprema Stripe plaćanja
@@ -147,7 +147,7 @@ class CartScreen extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("Plaćanje uspješno!"),
+        content: Text("Successful Payment!"),
         backgroundColor: Colors.green,
       ),
     );
@@ -156,7 +156,7 @@ class CartScreen extends StatelessWidget {
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Greška: $e"),
+        content: Text("Error: $e"),
         backgroundColor: Colors.red,
       ),
     );

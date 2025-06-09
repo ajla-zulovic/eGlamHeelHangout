@@ -23,6 +23,7 @@ namespace eGlamHeelHangout.Service
             try
             {
                 var dbOrder = _mapper.Map<Order>(request);
+                dbOrder.OrderStatus = "Pending";
                 _context.Orders.Add(dbOrder);
                 await _context.SaveChangesAsync();
 
@@ -85,6 +86,26 @@ namespace eGlamHeelHangout.Service
                     .ThenInclude(oi => oi.ProductSize)
                 .Include(o => o.User);
         }
+        
+        public async Task UpdateOrderStatus(int orderId, string newStatus)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null)
+                throw new Exception("Order not found");
+
+            order.OrderStatus = newStatus;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error saving order status: {ex.Message}", ex);
+            }
+        }
+
 
 
     }

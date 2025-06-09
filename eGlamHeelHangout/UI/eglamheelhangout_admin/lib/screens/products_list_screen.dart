@@ -13,7 +13,9 @@ import 'package:eglamheelhangout_admin/providers/category_providers.dart';
 import 'package:eglamheelhangout_admin/models/category.dart';
 import 'package:eglamheelhangout_admin/screens/profile_screen.dart';
 import 'package:eglamheelhangout_admin/screens/add_giveaway_screen.dart';
-
+import '../models/order.dart';
+import '../providers/order_providers.dart';
+import 'package:eglamheelhangout_admin/screens/admin_orders_screen.dart';
 
 
 class ProductsListScreen extends StatefulWidget {
@@ -33,6 +35,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     {'page': const ReportScreen(), 'title': 'Report Page'},
     {'page': const AddGiveawayScreen(), 'title': 'Add Giveaway'},
     {'page': const AddProductScreen(), 'title': 'Add Product'},
+    {'page': const AdminOrdersScreen(), 'title': 'Manage Orders'},
 
   ];
 
@@ -102,6 +105,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
             title: const Text('Add New Product'),
             onTap: () => _selectPage(4), 
           ),
+          ListTile(leading: const Icon(Icons.assignment), title: const Text('Manage Orders'), onTap: () => _selectPage(5)),
 
             const Divider(),
             ListTile(
@@ -349,7 +353,7 @@ Future<void> _fetchData() async {
             child: GridView.builder(
               itemCount: result!.result.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 childAspectRatio: 3 / 2,
