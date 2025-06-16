@@ -16,6 +16,7 @@ import 'package:eglamheelhangout_admin/screens/add_giveaway_screen.dart';
 import '../models/order.dart';
 import '../providers/order_providers.dart';
 import 'package:eglamheelhangout_admin/screens/admin_orders_screen.dart';
+import 'package:eglamheelhangout_admin/screens/manage_giveaways_screen.dart';
 
 
 class ProductsListScreen extends StatefulWidget {
@@ -36,6 +37,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     {'page': const AddGiveawayScreen(), 'title': 'Add Giveaway'},
     {'page': const AddProductScreen(), 'title': 'Add Product'},
     {'page': const AdminOrdersScreen(), 'title': 'Manage Orders'},
+    {'page': const GiveawaysManageScreen(), 'title': 'Manage Giveaways'},
 
   ];
 
@@ -106,6 +108,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
             onTap: () => _selectPage(4), 
           ),
           ListTile(leading: const Icon(Icons.assignment), title: const Text('Manage Orders'), onTap: () => _selectPage(5)),
+           ListTile(leading: const Icon(Icons.assignment), title: const Text('Manage Giveaways'), onTap: () => _selectPage(6)),
 
             const Divider(),
             ListTile(

@@ -263,14 +263,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+        
+
   Widget _buildImageSection() {
     return (_base64Image != null && _base64Image!.isNotEmpty) ||
             (widget.product?.image?.isNotEmpty ?? false)
         ? Container(
-            height: 500,
+            height: 250,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: Colors.grey.shade500),
               borderRadius: BorderRadius.circular(8),
             ),
             child: _base64Image != null && _base64Image!.isNotEmpty

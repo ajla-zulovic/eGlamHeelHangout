@@ -59,7 +59,45 @@ namespace eGlamHeelHangout.Controllers
 
             return Ok(result);
         }
-      
+
+
+        [HttpGet("admin/filter")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetFiltered([FromQuery] bool? isActive)
+        {
+            var list = await _giveawayService.GetFiltered(isActive);
+
+            var result = new PagedResult<Model.Giveaways>
+            {
+                Count = list.Count,
+                Result = list
+            };
+
+            return Ok(result);
+        }
+
+
+        [HttpPost("{giveawayId}/notify-winner/{winnerUserId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> NotifyWinner(int giveawayId, int winnerUserId)
+        {
+            await _giveawayService.NotifyWinner(giveawayId, winnerUserId);
+            return Ok();
+        }
+
+        [HttpGet("user/notifications")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetUserNotifications()
+        {
+            var activeGiveaways = await _giveawayService.GetActive();
+            var lastWinnerNotification = await _giveawayService.GetLastWinnerNotification();
+
+            return Ok(new
+            {
+                ActiveGiveaways = activeGiveaways,
+                LastWinnerNotification = lastWinnerNotification
+            });
+        }
 
     }
 

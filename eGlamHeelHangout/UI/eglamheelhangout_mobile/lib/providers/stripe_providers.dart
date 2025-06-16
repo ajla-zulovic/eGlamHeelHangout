@@ -9,11 +9,12 @@ class StripeProvider with ChangeNotifier {
 
   bool get isInitialized => _initialized;
   String? get publishableKey => _publishableKey;
-
+  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://localhost:7277/');
+ 
   Future<void> initializeStripe() async {
     try {
-    //final response = await http.get(Uri.parse('https://10.0.2.2:7277/Stripe/config'));
-    final response = await http.get(Uri.parse('https://localhost:7277/Stripe/config'));
+    final response = await http.get(Uri.parse('$baseUrl/Stripe/config'));
+
 
 
       if (response.statusCode == 200) {

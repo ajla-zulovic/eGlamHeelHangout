@@ -14,8 +14,10 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.OpenApi.Models;
 using eGlamHeelHangout.Model.Utilities;
 using eGlamHeelHangout.Services;
+using eGlamHeelHangout.Service.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 
@@ -65,12 +67,22 @@ builder.Services.AddTransient<IFavoriteService, FavoriteService>();
 builder.Services.AddTransient<IReviewService, ReviewService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
+builder.Services.AddSignalR();
 
 
 
 builder.Services.AddHttpContextAccessor();
 
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 
 
@@ -84,6 +96,7 @@ builder.Services.AddAuthentication("BasicAuthentication").AddScheme<Authenticati
 
 
 var app = builder.Build();
+app.Urls.Add("http://0.0.0.0:7277");
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -133,11 +146,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); //za slike
+app.UseCors("AllowAll");
+
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<GiveawayHub>("/giveawayHub");
 
 //ovo je za nas kreirati vse tabele koje su nam potrebne za rad aplikacije 
 using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Context ima scoped lifetime, sto znaci da postoji samo u okviru jednog scope-a ili request-a
@@ -157,5 +173,5 @@ using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Co
 }
 
 
-app.MapControllers();
+
 app.Run();

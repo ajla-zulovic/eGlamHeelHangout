@@ -11,7 +11,7 @@ namespace eGlamHeelHangout.Model
         public int ParticipantId { get; set; }
         public int GiveawayId { get; set; }
         public int UserId { get; set; }
-        public string Size { get; set; }
+        public int Size { get; set; }
         public bool IsWinner { get; set; }
     }
 }

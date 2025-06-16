@@ -5,30 +5,28 @@ part 'giveaway.g.dart';
 @JsonSerializable()
 class Giveaway {
 
-    int? giveawayId;
-    String title;
-    String color;
-    String heelHeight;
-    String description;
-    DateTime endDate;
-    String giveawayProductImage;
-    String? winnerName; 
-    bool isClosed;
+final int giveawayId;
+  final String title;
+  final String color;
+  final String heelHeight;
+  final String description;
+  final DateTime endDate;
+  final bool isClosed;
+  final String? winnerName;
+  final String? giveawayProductImage;
 
-
-
-    Giveaway({
-    this.giveawayId,
+  Giveaway({
+    required this.giveawayId,
     required this.title,
     required this.color,
     required this.heelHeight,
     required this.description,
     required this.endDate,
-    required this.giveawayProductImage,
-    this.winnerName,
     required this.isClosed,
-     
-});
+    this.winnerName,
+    this.giveawayProductImage,
+  });
+
 
     factory Giveaway.fromJson(Map<String, dynamic> json) => _$GiveawayFromJson(json);
     

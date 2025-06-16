@@ -18,5 +18,7 @@ namespace eGlamHeelHangout.Model
         public bool IsClosed { get; set; }
 
         public byte[] GiveawayProductImage { get; set; }
+        public string? WinnerName { get; set; }
     }
+
 }

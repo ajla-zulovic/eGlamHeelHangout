@@ -12,6 +12,7 @@ import 'package:eglamheelhangout_mobile/providers/review_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/order_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/stripe_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/giveaway_providers.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
@@ -45,6 +46,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => StripeProvider()),
+        ChangeNotifierProvider(create: (_) => GiveawayProvider()),
       ],
       child: const flutter.MaterialApp(
         debugShowCheckedModeBanner: false,

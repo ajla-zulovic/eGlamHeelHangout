@@ -18,8 +18,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   BaseProvider(String endpoint) {
     _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment(
-      "baseUrl",
-    //defaultValue: "https://10.0.2.2:7277/",
+      "BASE_URL",
     defaultValue: "https://localhost:7277/",
     );
     client.badCertificateCallback=(cert,host,port)=>true;
@@ -27,7 +26,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
   
   }
 
-  //String get baseUrl => _baseUrl ?? "https://10.0.2.2:7277/";
   String get baseUrl => _baseUrl ?? "http://localhost:7277/";
   String get endpoint => _endpoint;
 
@@ -84,6 +82,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
   Map<String, String> createHeaders() {
     String username = Authorization.username ?? "";
     String password = Authorization.password ?? "";
+    print("BaseProvider Auth Header: username=$username, password=$password");
+
 
     if (username.isEmpty || password.isEmpty) {
       throw Exception("Username and password must be provided");

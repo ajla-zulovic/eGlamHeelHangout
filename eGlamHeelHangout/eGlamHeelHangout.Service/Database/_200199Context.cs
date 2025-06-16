@@ -30,19 +30,21 @@ namespace eGlamHeelHangout.Service.Database
       public virtual DbSet<User> Users { get; set; } = null!;
       public virtual DbSet<UsersRole> UsersRoles { get; set; } = null!;
       public virtual DbSet<ProductSize> ProductSizes { get; set; } = null!;
+     public virtual DbSet<WinnerNotificationEntity> WinnerNotifications { get; set; }
 
-    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //{
-    //  if (!optionsBuilder.IsConfigured)
-    //  {
-    //    optionsBuilder.UseSqlServer( "Server=localhost;Database=200199;User=sa;Password=QWEasd123!;TrustServerCertificate=True");
 
-    //    //optionsBuilder.UseSqlServer("Server=localhost;Database=200199;Trusted_Connection=True;TrustServerCertificate=True;");
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //  if (!optionsBuilder.IsConfigured)
+        //  {
+        //    optionsBuilder.UseSqlServer( "Server=localhost;Database=200199;User=sa;Password=QWEasd123!;TrustServerCertificate=True");
 
-    //  }
-    //}
+        //    //optionsBuilder.UseSqlServer("Server=localhost;Database=200199;Trusted_Connection=True;TrustServerCertificate=True;");
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        //  }
+        //}
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
       modelBuilder.Entity<User>(entity =>
       {

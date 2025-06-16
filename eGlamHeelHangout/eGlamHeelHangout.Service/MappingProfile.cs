@@ -87,12 +87,13 @@ namespace eGlamHeelHangout.Service
             CreateMap<UsersRole, UsersRoles>();
 
             // GIVEAWAYS
-            CreateMap<Giveaway, Giveaways>();
+            CreateMap<Giveaway, Giveaways>().ForMember(dest => dest.WinnerName, opt => opt.Ignore()); //nije polje iz baze 
             CreateMap<GiveawayParticipant, GiveawayParticipants>();
             CreateMap<GiveawayInsertRequest, Giveaway>()
                 .ForMember(dest => dest.GiveawayId, opt => opt.Ignore())
                 .ForMember(dest => dest.IsClosed, opt => opt.Ignore())
                 .ForMember(dest => dest.GiveawayParticipants, opt => opt.Ignore());
+
 
             // REVIEWS
             CreateMap<ReviewInsertRequest, Review>()

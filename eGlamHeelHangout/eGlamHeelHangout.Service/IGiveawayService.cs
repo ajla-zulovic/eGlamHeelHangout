@@ -1,4 +1,6 @@
-﻿using eGlamHeelHangout.Model.Requests;
+﻿using eGlamHeelHangout.Model;
+using eGlamHeelHangout.Model.Requests;
+using eGlamHeelHangout.Service.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +14,11 @@ namespace eGlamHeelHangout.Service
         Task<List<Model.Giveaways>> GetActive();
         Task<Model.GiveawayParticipants> AddParticipant(string username, GiveawayParticipantInsertRequest request);
         Task<Model.GiveawayParticipants?> PickWinner(int giveawayId);
+        Task NotifyWinner(int giveawayId, int winnerUserId);
+ 
+        Task<List<Model.Giveaways>> GetFiltered(bool? isActive);
         Task<bool> Delete(int id);
-
+        Task<WinnerNotificationEntity?> GetLastWinnerNotification();
 
     }
 }

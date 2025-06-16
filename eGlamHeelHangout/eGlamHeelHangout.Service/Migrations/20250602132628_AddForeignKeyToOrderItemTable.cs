@@ -26,7 +26,8 @@ namespace eGlamHeelHangout.Service.Migrations
                 column: "ProductSizeId",
                 principalTable: "ProductSizes",
                 principalColumn: "ProductSizeID",
-                onDelete: ReferentialAction.Cascade);
+                //onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Restrict);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:eglamheelhangout_mobile/providers/product_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/base_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_mobile/main.dart';
 import 'package:eglamheelhangout_mobile/models/search_result.dart';
@@ -14,9 +15,15 @@ import 'package:eglamheelhangout_mobile/models/cartitem.dart';
 import 'package:eglamheelhangout_mobile/screens/profile_screen.dart';
 import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/giveaway_providers.dart';
 import 'package:eglamheelhangout_mobile/screens/favorite_product_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/user_orders_list_screen.dart';
+import 'package:eglamheelhangout_mobile/screens/giveaway_participant_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:eglamheelhangout_mobile/models/giveaway.dart';
+import 'package:signalr_core/signalr_core.dart';
+
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -33,7 +40,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     {'page': const HomeScreen(), 'title': 'Home Page'},
     {'page': const ProfileScreen(), 'title': 'Profile Page'},
     {'page': const MyFavoritesScreen(), 'title': 'My Favorites'},
-     {'page': const UserOrdersListScreen(), 'title': 'History Orders List'},
+    {'page': const UserOrdersListScreen(), 'title': 'History Orders List'},
   ];
 
   void _selectPage(int index) {
@@ -132,13 +139,101 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _selectedCategoryId;
   bool _isLoading = true;
   bool _isCategoryLoading = false;
+  late HubConnection _hubConnection;
+  late final String signalrUrl;
+
 
   @override
   void initState() {
     super.initState();
+    signalrUrl = const String.fromEnvironment("SIGNALR_URL", defaultValue: "http://localhost:7277/giveawayHub");
     _productProvider = Provider.of<ProductProvider>(context, listen: false);
     _categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
     _initialize();
+    _initializeSignalR(); 
+  }
+
+Future<void> _initializeSignalR() async {
+_hubConnection = HubConnectionBuilder()
+    .withUrl(signalrUrl)
+    .build();
+
+  _hubConnection.on("ReceiveGiveaway", (arguments) {
+    final data = arguments?.first;
+    if (data != null) {
+        print("Deserializing giveaway...");
+      final giveaway = Giveaway.fromJson(Map<String, dynamic>.from(data));
+      _showGiveawayDialog(giveaway);
+    }
+  });
+
+  _hubConnection.on("ReceiveWinner", (arguments) {
+    print("Received 'ReceiveWinner' event");
+    final data = arguments?.first;
+    if (data != null) {
+      final winner = data["winnerUsername"];
+      final giveawayTitle = data["giveawayTitle"];
+      _showWinnerDialog(winner, giveawayTitle);
+    }
+  });
+
+   try {
+    await _hubConnection.start();
+    print("SignalR connected to: $signalrUrl");
+  } catch (e) {
+    print("SignalR failed to connect: $e");
+  }
+}
+
+void _showGiveawayDialog(Giveaway giveaway) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("New Giveaway!"),
+      content: Text("Would you like to participate in ${giveaway.title}?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text("No"),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GiveawayParticipationScreen(giveaway: giveaway),
+              ),
+            );
+          },
+          child: Text("Yes"),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showWinnerDialog(String winner, String giveawayTitle) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("Giveaway Winner!"),
+      content: Text("$winner won the giveaway: $giveawayTitle"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text("Close"),
+        ),
+      ],
+    ),
+  );
+}
+
+  @override
+  void dispose() {
+    _hubConnection.stop();
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initialize() async {

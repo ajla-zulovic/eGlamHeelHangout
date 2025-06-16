@@ -17,6 +17,7 @@ void main() {
        ChangeNotifierProvider(create: (_) => UserProvider()),
        ChangeNotifierProvider(create: (_) => GiveawayProvider()),
        ChangeNotifierProvider(create: (_) => OrderProvider()),
+       
       ],
       
       child: const MaterialApp(

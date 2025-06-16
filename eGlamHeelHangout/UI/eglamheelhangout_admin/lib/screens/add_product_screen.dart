@@ -86,50 +86,64 @@ void dispose() {
       });
     }
   }
-
-  Widget _buildImagePreview() {
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.grey.shade100,
-          ),
-          child: _base64Image != null
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.memory(
-                      base64Decode(_base64Image!),
-                      fit: BoxFit.contain,
-                      height: 150,
-                    ),
-                    if (_selectedImage != null)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          _selectedImage!.name,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                  ],
-                )
-              : const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.image, size: 50, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text('No image selected', style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
+Widget _buildImagePreview() {
+  return Column(
+    children: [
+      const SizedBox(height: 16),
+      Container(
+        constraints: const BoxConstraints(minHeight: 200),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey.shade100,
         ),
-      ],
-    );
-  }
+        child: _base64Image != null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.memory(
+                    base64Decode(_base64Image!),
+                    fit: BoxFit.contain,
+                    height: 150,
+                  ),
+                  if (_selectedImage != null)
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            _selectedImage!.name,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _base64Image = null;
+                              _selectedImage = null;
+                            });
+                          },
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          label: const Text('Remove Image', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                ],
+              )
+            : const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image, size: 50, color: Colors.grey),
+                  SizedBox(height: 8),
+                  Text('No image selected', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+      ),
+    ],
+  );
+}
+
 
   Widget _buildFormSection(String title, Widget child) {
     return Card(
@@ -320,6 +334,7 @@ void dispose() {
                 children: [
                   _buildImagePreview(),
                   const SizedBox(height: 16),
+                if (_base64Image == null)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(

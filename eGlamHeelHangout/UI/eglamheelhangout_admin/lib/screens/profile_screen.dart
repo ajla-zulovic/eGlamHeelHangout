@@ -23,12 +23,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   DateTime? _selectedDate;
   String? _base64Image;
   PlatformFile? _selectedImage;
+  bool _imageRemoved = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _userProvider = Provider.of<UserProvider>(context, listen: false);
     _loadUserData();
+  }
+
+  String? _emailValidator(String? value) {
+    if (value == null || value.isEmpty) return 'Required';
+   final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
+    return null;
+  }
+
+  String? _phoneValidator(String? value) {
+    if (value == null || value.isEmpty) return 'Required';
+    final phoneRegex = RegExp(r'^\+?[0-9]{6,15}$');
+    if (!phoneRegex.hasMatch(value)) return 'Enter a valid phone number';
+    return null;
   }
 
   Future<void> _loadUserData() async {
@@ -44,6 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedDate = user.dateOfBirth;
       _base64Image = user.profileImage;
       _selectedImage = null;
+     _imageRemoved = false;
     });
   }
 
@@ -71,19 +87,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         phoneNumber: _controllers['phoneNumber']?.text,
         address: _controllers['address']?.text,
         dateOfBirth: _selectedDate,
-        profileImage: _base64Image ?? _user!.profileImage,
+        profileImage: _imageRemoved ? null : _base64Image ?? _user!.profileImage,
+
       );
 
       try {
         await _userProvider.update(_user!.userId!, updatedUser.toJson());
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
+          const SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
         setState(() => _isEditing = false);
         _loadUserData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(
+            content: Text('Error: \${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -103,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("My Profile", style: TextStyle(fontSize: 24,)),
+              const Text("My Profile", style: TextStyle(fontSize: 24)),
               IconButton(
                 icon: Icon(_isEditing ? Icons.close : Icons.edit),
                 onPressed: () {
@@ -129,11 +152,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : null,
                 ),
                 if (_isEditing)
-                  TextButton.icon(
-                    onPressed: _pickImage,
-                    icon: const Icon(Icons.upload),
-                    label: const Text("Upload Image"),
-                  )
+                  Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      if (_base64Image == null)
+                        TextButton.icon(
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.upload),
+                          label: const Text("Upload Image"),
+                        )
+                      else
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _base64Image = null;
+                              _selectedImage = null;
+                              _imageRemoved = true;
+                            });
+                          },
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          label: const Text("Remove Image", style: TextStyle(color: Colors.red)),
+                        ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -145,8 +186,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildField("firstName", "First Name"),
                   _buildField("lastName", "Last Name"),
-                  _buildField("email", "Email", TextInputType.emailAddress),
-                  _buildField("phoneNumber", "Phone Number"),
+                  _buildField("email", "Email", TextInputType.emailAddress, _emailValidator),
+                  _buildField("phoneNumber", "Phone Number", TextInputType.phone, _phoneValidator),
                   _buildField("address", "Address"),
                   const SizedBox(height: 20),
                   if (_isEditing) ...[
@@ -163,9 +204,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() => _selectedDate = picked);
                         }
                       },
-                      child: Text(_selectedDate != null
+                     child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _selectedDate != null
                           ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                          : "Select date"),
+                          : "Select date",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
@@ -177,18 +225,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       ),
-                    )
-                  ]
+                    ),
+                  ],
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildField(String key, String label, [TextInputType keyboardType = TextInputType.text]) {
+  Widget _buildField(String key, String label,
+      [TextInputType keyboardType = TextInputType.text,
+      FormFieldValidator<String>? validator]) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
@@ -199,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           labelText: label,
           border: const OutlineInputBorder(),
         ),
-        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+        validator: validator ?? (value) => value == null || value.isEmpty ? 'Required' : null,
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_admin/providers/giveaway_providers.dart';
 import 'package:eglamheelhangout_admin/models/giveaway.dart';
 import 'package:eglamheelhangout_admin/screens/products_list_screen.dart';
+import 'package:intl/intl.dart';
 
 class AddGiveawayScreen extends StatefulWidget {
   const AddGiveawayScreen({super.key});
@@ -21,6 +22,7 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
   bool _isSubmitting = false;
   PlatformFile? _selectedImage;
   String? _base64Image;
+  DateTime? _selectedEndDate;
 
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(
@@ -33,97 +35,111 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
       setState(() {
         _selectedImage = result.files.first;
         _base64Image = base64Encode(_selectedImage!.bytes!);
+        _selectedEndDate = null;
       });
     }
   }
 
   Widget _buildImagePreview() {
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.grey.shade100,
-          ),
-          child: _base64Image != null
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.memory(
-                      base64Decode(_base64Image!),
-                      fit: BoxFit.contain,
-                      height: 150,
-                    ),
-                    if (_selectedImage != null)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          _selectedImage!.name,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                  ],
-                )
-              : const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.image, size: 50, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text('No image selected', style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
+  return Column(
+    children: [
+      const SizedBox(height: 16),
+      Container(
+        height: 250,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey.shade100,
         ),
-      ],
-    );
-  }
-
- Future<void> _submitForm() async {
-  if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
-
-  setState(() => _isSubmitting = true);
-
-  try {
-    final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
-    formData['endDate'] = formData['endDate'].toIso8601String();
-
-    if (_base64Image != null) {
-      formData['giveawayProductImage'] = _base64Image;
-    } else {
-      throw Exception('Image is required');
-    }
-
-    final provider = context.read<GiveawayProvider>();
-    await provider.insert(formData);
-
-    if (!mounted) return;
-
-    // ✅ Reset forme i slike
-    _formKey.currentState?.reset();
-    setState(() {
-      _base64Image = null;
-      _selectedImage = null;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Giveaway successfully created! Ready to add another?'),
-        backgroundColor: Colors.green,
+        child: _base64Image != null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.memory(
+                    base64Decode(_base64Image!),
+                    fit: BoxFit.contain,
+                    height: 150,
+                  ),
+                  if (_selectedImage != null)
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            _selectedImage!.name,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _base64Image = null;
+                              _selectedImage = null;
+                            });
+                          },
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          label: const Text('Remove Image', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                ],
+              )
+            : const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image, size: 50, color: Colors.grey),
+                  SizedBox(height: 8),
+                  Text('No image selected', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
       ),
-    );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
-    );
-  } finally {
-    if (mounted) setState(() => _isSubmitting = false);
-  }
+    ],
+  );
 }
 
+
+  Future<void> _submitForm() async {
+    if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
+      formData['endDate'] = (formData['endDate'] as DateTime).toIso8601String();
+
+      if (_base64Image != null) {
+        formData['giveawayProductImage'] = _base64Image;
+      } else {
+        throw Exception('Image is required');
+      }
+
+      final provider = context.read<GiveawayProvider>();
+      await provider.insert(formData);
+
+      if (!mounted) return;
+
+      _formKey.currentState?.reset();
+      setState(() {
+        _base64Image = null;
+        _selectedImage = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Giveaway successfully created! Ready to add another?'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
 
   Widget _buildForm() {
     return SingleChildScrollView(
@@ -172,15 +188,34 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
                   const SizedBox(height: 16),
                   FormBuilderDateTimePicker(
                     name: 'endDate',
+                    inputType: InputType.date,
+                    initialValue: DateTime.now().add(const Duration(days: 1)),
+                    format: DateFormat('yyyy-MM-dd'),
+                    firstDate: DateTime.now().add(const Duration(days: 1)),
+                    lastDate: DateTime(2100),
                     decoration: const InputDecoration(
                       labelText: 'End Date',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
-                    inputType: InputType.date,
-                    validator: (value) =>
-                        (value == null) ? 'End date is required' : null,
+                    validator: (value) {
+                      if (value == null) return 'End Date is required';
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
+                      final selected = DateTime(value.year, value.month, value.day);
+
+                      if (!selected.isAfter(today)) {
+                        return 'End Date must be a future date (after today)';
+                      }
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedEndDate = value;
+                      });
+                    },
                   ),
+
                 ],
               ),
             ),
@@ -204,6 +239,7 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
                 children: [
                   _buildImagePreview(),
                   const SizedBox(height: 16),
+                   if (_base64Image == null)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -274,6 +310,6 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
 
   @override
   Widget build(BuildContext context) {
-  return _buildForm();
+    return _buildForm();
   }
 }

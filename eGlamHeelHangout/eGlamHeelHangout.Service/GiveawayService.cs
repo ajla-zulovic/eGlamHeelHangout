@@ -36,11 +36,27 @@ namespace eGlamHeelHangout.Service
             if (user == null)
                 throw new Exception("User not found");
 
+        
+            var existingEntry = await _context.GiveawayParticipants
+                .FirstOrDefaultAsync(p => p.GiveawayId == request.GiveawayId && p.UserId == user.UserId);
+
+            if (existingEntry != null)
+                throw new Exception("User has already participated in this giveaway.");
+
+            
+            if (request.Size < 36 || request.Size > 46)
+                throw new Exception("Size must be between 36 and 46.");
+
+            
             var entity = new GiveawayParticipant
             {
                 GiveawayId = request.GiveawayId,
                 Size = request.Size,
-                UserId = user.UserId
+                UserId = user.UserId,
+                Address = request.Address,
+                City = request.City,
+                PostalCode = request.PostalCode,
+                IsWinner = false
             };
 
             _context.GiveawayParticipants.Add(entity);
@@ -51,6 +67,14 @@ namespace eGlamHeelHangout.Service
 
         public async Task<GiveawayParticipants?> PickWinner(int giveawayId)
         {
+
+            var existingWinner = await _context.GiveawayParticipants
+         .Where(e => e.GiveawayId == giveawayId && e.IsWinner)
+         .FirstOrDefaultAsync();
+
+            if (existingWinner != null)
+                throw new Exception("Winner already picked for this giveaway.");
+
             var entries = await _context.GiveawayParticipants
                 .Where(e => e.GiveawayId == giveawayId)
                 .ToListAsync();
@@ -60,7 +84,22 @@ namespace eGlamHeelHangout.Service
             var winner = entries[new Random().Next(entries.Count)];
             winner.IsWinner = true;
 
+            var giveaway = await _context.Giveaways.FindAsync(giveawayId);
+            giveaway.IsClosed = true;
+
             await _context.SaveChangesAsync();
+
+            try
+            {
+                await NotifyWinner(giveawayId, winner.UserId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send winner notification: {ex.Message}");
+            
+            }
+
+           
 
             return _mapper.Map<GiveawayParticipants>(winner);
         }
@@ -69,21 +108,134 @@ namespace eGlamHeelHangout.Service
         //overridana metoda inserta zbog slanja notif :
         public override async Task<Model.Giveaways> Insert(GiveawayInsertRequest insert)
         {
+            if (insert.EndDate <= DateTime.Now) //uslov da admin ne postavi datum u "proslosti"
+            {
+                throw new Exception("End date must be in the future.");
+            }
+
             var entity = _mapper.Map<Database.Giveaway>(insert);
             _context.Giveaways.Add(entity);
             await _context.SaveChangesAsync();
-            using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
-            {
-                await bus.PubSub.PublishAsync(new GiveawayNotificationDTO
-                {
-                    GiveawayID = entity.GiveawayId,
-                    Title = entity.Title
-                });
 
-                return _mapper.Map<Model.Giveaways>(entity);
+            try
+            {
+                using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+                {
+                    await bus.PubSub.PublishAsync(new GiveawayNotificationDTO
+                    {
+                        GiveawayID = entity.GiveawayId,
+                        Title = entity.Title
+                    }, "giveaway.new");
+                }
             }
+            catch (Exception ex)
+            {
+               
+                Console.WriteLine($"Failed to publish giveaway notification: {ex.Message}");
+            }
+
+            return _mapper.Map<Model.Giveaways>(entity);
         }
 
 
+
+        public override async Task<PagedResult<Model.Giveaways>> Get(Model.SearchObjects.GiveawaySearchObject? search = null)
+        {
+            var query = _context.Giveaways
+                .Include(g => g.GiveawayParticipants)
+                .AsQueryable();
+
+            var list = await query.ToListAsync();
+
+            var mappedList = _mapper.Map<List<Model.Giveaways>>(list);
+
+            foreach (var giveaway in mappedList)
+            {
+                var dbGiveaway = list.First(g => g.GiveawayId == giveaway.GiveawayId);
+
+                var winner = dbGiveaway.GiveawayParticipants.FirstOrDefault(p => p.IsWinner);
+
+                if (winner != null)
+                {
+                    var winnerUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == winner.UserId);
+                    giveaway.WinnerName = winnerUser?.Username;
+                }
+            }
+
+            return new PagedResult<Model.Giveaways>
+            {
+                Count = mappedList.Count,
+                Result = mappedList
+            };
+        }
+        public async Task<List<Giveaways>> GetFiltered(bool? isActive)
+        {
+            var query = _context.Giveaways
+                .Include(g => g.GiveawayParticipants)
+                .AsQueryable();
+
+            if (isActive.HasValue)
+            {
+                query = isActive.Value
+                    ? query.Where(g => g.EndDate > DateTime.Now && !g.IsClosed)
+                    : query.Where(g => g.EndDate <= DateTime.Now);
+            }
+
+            var list = await query.ToListAsync();
+
+            var mappedList = _mapper.Map<List<Model.Giveaways>>(list);
+
+            
+            foreach (var giveaway in mappedList)
+            {
+                var dbGiveaway = list.First(g => g.GiveawayId == giveaway.GiveawayId);
+
+                var winner = dbGiveaway.GiveawayParticipants.FirstOrDefault(p => p.IsWinner);
+
+                if (winner != null)
+                {
+                    var winnerUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == winner.UserId);
+                    giveaway.WinnerName = winnerUser?.Username;
+                }
+            }
+
+            return mappedList;
+        }
+
+
+        public async Task NotifyWinner(int giveawayId, int winnerUserId)
+        {
+            var giveaway = await _context.Giveaways.FindAsync(giveawayId);
+            var winner = await _context.Users.FindAsync(winnerUserId);
+
+            using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+            {
+                await bus.PubSub.PublishAsync(new WinnerNotification
+                {
+                    GiveawayId = giveawayId,
+                    GiveawayTitle = giveaway.Title,
+                    WinnerUserId = winnerUserId,
+                    WinnerUsername = winner.Username,
+                    NotificationDate = DateTime.Now
+                },"winner.notification");
+            } 
+            _context.WinnerNotifications.Add(new WinnerNotificationEntity
+            {
+                GiveawayId = giveawayId,
+                GiveawayTitle = giveaway.Title,
+                WinnerUserId = winnerUserId,
+                WinnerUsername = winner.Username,
+                NotificationDate = DateTime.Now
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<WinnerNotificationEntity?> GetLastWinnerNotification()
+        {
+            return await _context.WinnerNotifications
+                .OrderByDescending(n => n.NotificationDate)
+                .FirstOrDefaultAsync();
+        }
     }
 }

@@ -17,6 +17,14 @@ namespace eGlamHeelHangout.Service.Migrations
                 name: "FK_Giveaways_Users",
                 table: "Giveaways");
 
+            migrationBuilder.DropIndex(
+                name: "IX_Giveaways_ProductID",
+                table: "Giveaways");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Giveaways_WinnerUserID",
+                table: "Giveaways");
+
             migrationBuilder.DropColumn(
                 name: "StartDate",
                 table: "Giveaways");
@@ -76,17 +84,9 @@ namespace eGlamHeelHangout.Service.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Giveaways_Products_ProductId",
-                table: "Giveaways");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Giveaways_Users_UserId",
-                table: "Giveaways");
-
             migrationBuilder.DropColumn(
-                name: "Color",
-                table: "Giveaways");
+               name: "Color",
+               table: "Giveaways");
 
             migrationBuilder.DropColumn(
                 name: "Description",
@@ -104,19 +104,17 @@ namespace eGlamHeelHangout.Service.Migrations
                 name: "Title",
                 table: "Giveaways");
 
-
             migrationBuilder.AddColumn<int>(
-                 name: "ProductID",
-                 table: "Giveaways",
-                 type: "int",
-                 nullable: true);
+                name: "ProductID",
+                table: "Giveaways",
+                type: "int",
+                nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "WinnerUserID",
                 table: "Giveaways",
                 type: "int",
                 nullable: true);
-
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "StartDate",
@@ -131,6 +129,16 @@ namespace eGlamHeelHangout.Service.Migrations
                 type: "datetime",
                 nullable: true,
                 defaultValueSql: "(getdate())");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Giveaways_ProductID",
+                table: "Giveaways",
+                column: "ProductID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Giveaways_WinnerUserID",
+                table: "Giveaways",
+                column: "WinnerUserID");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Giveaways_Products",

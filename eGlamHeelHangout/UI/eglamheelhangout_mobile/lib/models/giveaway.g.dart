@@ -7,15 +7,15 @@ part of 'giveaway.dart';
 // **************************************************************************
 
 Giveaway _$GiveawayFromJson(Map<String, dynamic> json) => Giveaway(
-  giveawayId: (json['giveawayId'] as num?)?.toInt(),
+  giveawayId: (json['giveawayId'] as num).toInt(),
   title: json['title'] as String,
   color: json['color'] as String,
   heelHeight: json['heelHeight'] as String,
   description: json['description'] as String,
   endDate: DateTime.parse(json['endDate'] as String),
-  giveawayProductImage: json['giveawayProductImage'] as String,
-  winnerName: json['winnerName'] as String?,
   isClosed: json['isClosed'] as bool,
+  winnerName: json['winnerName'] as String?,
+  giveawayProductImage: json['giveawayProductImage'] as String?,
 );
 
 Map<String, dynamic> _$GiveawayToJson(Giveaway instance) => <String, dynamic>{
@@ -25,7 +25,7 @@ Map<String, dynamic> _$GiveawayToJson(Giveaway instance) => <String, dynamic>{
   'heelHeight': instance.heelHeight,
   'description': instance.description,
   'endDate': instance.endDate.toIso8601String(),
-  'giveawayProductImage': instance.giveawayProductImage,
-  'winnerName': instance.winnerName,
   'isClosed': instance.isClosed,
+  'winnerName': instance.winnerName,
+  'giveawayProductImage': instance.giveawayProductImage,
 };
