@@ -14,6 +14,7 @@ final int giveawayId;
   final bool isClosed;
   final String? winnerName;
   final String? giveawayProductImage;
+  final bool? hasParticipated;
 
   Giveaway({
     required this.giveawayId,
@@ -25,6 +26,8 @@ final int giveawayId;
     required this.isClosed,
     this.winnerName,
     this.giveawayProductImage,
+    this.hasParticipated,
+    
   });
 
 

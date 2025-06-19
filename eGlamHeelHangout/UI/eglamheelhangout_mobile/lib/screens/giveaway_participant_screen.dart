@@ -215,7 +215,9 @@ class _GiveawayParticipationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar:
-          AppBar(title: Text('Participate in ${widget.giveaway.title}')),
+          AppBar(title: Text('Participate in ${widget.giveaway.title}'),
+          backgroundColor: Colors.grey[800],
+           foregroundColor: Colors.white,),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(

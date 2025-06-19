@@ -32,8 +32,7 @@ class GiveawayProvider extends BaseProvider<Giveaway> {
       throw Exception("Failed to load notifications");
     }
   }
-
- Future<void> participate(Map<String, dynamic> data) async {
+Future<void> participate(Map<String, dynamic> data) async {
   final uri = Uri.parse("${baseUrl}${endpoint}/participate");
 
   final response = await http!.post(
@@ -43,9 +42,25 @@ class GiveawayProvider extends BaseProvider<Giveaway> {
   );
 
   if (response.statusCode != 200) {
-    final error = jsonDecode(response.body);
-    throw Exception(error['message'] ?? "Failed to participate");
+    try {
+      final error = jsonDecode(response.body);
+
+      if (error is Map && error.containsKey("errors")) {
+        final errors = error["errors"];
+        if (errors is Map && errors.containsKey("ERROR")) {
+          final msg = errors["ERROR"];
+          if (msg is List && msg.isNotEmpty) {
+            throw Exception(msg.first);
+          }
+        }
+      }
+
+      throw Exception("Failed to participate");
+    } catch (e) {
+      throw Exception(" ${e.toString()}");
+    }
   }
 }
+
 
 }

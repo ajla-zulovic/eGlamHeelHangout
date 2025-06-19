@@ -21,6 +21,7 @@ import 'package:eglamheelhangout_mobile/screens/favorite_product_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/user_orders_list_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/giveaway_participant_screen.dart';
+import 'package:eglamheelhangout_mobile/screens/active_giveaway_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eglamheelhangout_mobile/models/giveaway.dart';
 import 'package:eglamheelhangout_mobile/models/giveawaydto.dart';
@@ -65,21 +66,31 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
       appBar: AppBar(
         title: Text(_pages[selectedIndex]['title'], style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[800],
-        actions: 
-      [
-         Padding(
-           padding: const EdgeInsets.only(right: 18), 
-           child:IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CartScreen()),
-              );
-                },
-            ),
-         ),
-        ],
+       actions: [
+
+  IconButton(
+    icon: const Icon(Icons.card_giftcard, color: Colors.white),
+    tooltip: 'Giveaways',
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ActiveGiveawaysScreen()),
+      );
+    },
+  ),
+  
+  IconButton(
+    icon: const Icon(Icons.shopping_cart, color: Colors.white),
+    tooltip: 'Cart',
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CartScreen()),
+      );
+    },
+  ),
+],
+
       ),
       drawer: Drawer(
         child: ListView(
