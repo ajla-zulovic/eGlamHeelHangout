@@ -8,6 +8,7 @@ import 'package:eglamheelhangout_admin/providers/user_providers.dart';
 import 'package:eglamheelhangout_admin/utils/current_user.dart';
 import 'package:eglamheelhangout_admin/providers/giveaway_providers.dart';
 import 'package:eglamheelhangout_admin/providers/order_providers.dart';
+import 'package:eglamheelhangout_admin/screens/register_user_screen.dart';
 
 void main() {
   runApp(
@@ -39,6 +40,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   late final ProductProvider _productProvider;
   final _formKey = GlobalKey<FormState>();
+  bool _showPassword = false;
+
 
   @override
   void initState() {
@@ -116,23 +119,33 @@ class _LoginPageState extends State<LoginPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: "Password",
-                          prefixIcon: const Icon(Icons.lock),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                     TextFormField(
+                      obscureText: !_showPassword,
+                      decoration: InputDecoration(
+                        labelText: "Password",
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _showPassword = !_showPassword;
+                            });
+                          },
                         ),
-                        controller: _passwordController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Enter Password';
-                          }
-                          return null;
-                        },
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      controller: _passwordController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Enter Password';
+                        }
+                        return null;
+                      },
+                    ),
+
+                      
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
@@ -203,9 +216,15 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 16),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterPage(),
+                            ),
+                          );
+                        },
                         child: const Text(
-                          "Forget password?",
+                          "Don't have an account? Register!",
                           style: TextStyle(color: Colors.black),
                         ),
                       ),

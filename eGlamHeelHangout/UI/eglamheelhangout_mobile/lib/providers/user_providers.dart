@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http_package;
 import 'dart:convert';
 import '../models/user.dart';
 import 'base_providers.dart';
@@ -18,7 +18,7 @@ User fromJson(Map<String, dynamic> json) {
   var uri = Uri.parse(url);
   var headers = createHeaders();
 
-  final response = await http.get(uri, headers: headers); //!
+  final response = await http!.get(uri, headers: headers);
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
@@ -27,6 +27,22 @@ User fromJson(Map<String, dynamic> json) {
     throw Exception("Failed to fetch current user");
   }
 }
+
+Future<void> register(Map<String, dynamic> data) async {
+  var uri = Uri.parse("$baseUrl$endpoint/register");
+  var headers = {
+    "Content-Type": "application/json"
+  };
+  var body = jsonEncode(data);
+
+  final response = await http_package.post(uri, headers: headers, body: body);
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception("Registration failed: ${response.body}");
+  }
+}
+
+
 
 
  

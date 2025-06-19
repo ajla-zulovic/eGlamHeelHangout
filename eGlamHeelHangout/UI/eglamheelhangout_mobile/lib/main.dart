@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' as flutter;
 import 'package:eglamheelhangout_mobile/providers/product_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_mobile/screens/products_list_screen.dart';
+import 'package:eglamheelhangout_mobile/screens/register_user_screen.dart';
 import 'package:eglamheelhangout_mobile/utils/utils.dart';
 import 'package:eglamheelhangout_mobile/providers/category_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/user_providers.dart';
@@ -68,6 +69,8 @@ class _LoginPageState extends flutter.State<LoginPage> {
   final _passwordController = flutter.TextEditingController();
   late final ProductProvider _productProvider;
   final _formKey = flutter.GlobalKey<flutter.FormState>();
+  bool _showPassword = false;
+
 
   @override
   void initState() {
@@ -149,22 +152,31 @@ class _LoginPageState extends flutter.State<LoginPage> {
                       ),
                       const flutter.SizedBox(height: 16),
                       flutter.TextFormField(
-                        obscureText: true,
-                        decoration: flutter.InputDecoration(
-                          labelText: "Password",
-                          prefixIcon: const flutter.Icon(flutter.Icons.lock),
-                          border: flutter.OutlineInputBorder(
-                            borderRadius: flutter.BorderRadius.circular(8),
-                          ),
+                      obscureText: !_showPassword,
+                      decoration: flutter.InputDecoration(
+                        labelText: "Password",
+                        prefixIcon: const flutter.Icon(flutter.Icons.lock),
+                        suffixIcon: flutter.IconButton(
+                          icon: flutter.Icon(_showPassword ? flutter.Icons.visibility_off : flutter.Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _showPassword = !_showPassword;
+                            });
+                          },
                         ),
-                        controller: _passwordController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Enter Password';
-                          }
-                          return null;
-                        },
+                        border: flutter.OutlineInputBorder(
+                          borderRadius: flutter.BorderRadius.circular(8),
+                        ),
                       ),
+                      controller: _passwordController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Enter Password';
+                        }
+                        return null;
+                      },
+                    ),
+
                       const flutter.SizedBox(height: 24),
                       flutter.SizedBox(
                         width: double.infinity,
@@ -197,12 +209,6 @@ class _LoginPageState extends flutter.State<LoginPage> {
 
                                 final loggedInUser = await userProvider.getCurrentUser();
                                 CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
-
-                                // flutter.Navigator.of(context).pushReplacement(
-                                //   flutter.MaterialPageRoute(
-                                //     builder: (context) => const ProductsListScreen(),
-                                //   ),
-                                // );
                                 Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) => const ProductsListScreen(),
@@ -237,9 +243,15 @@ class _LoginPageState extends flutter.State<LoginPage> {
                       ),
                       const flutter.SizedBox(height: 16),
                       flutter.TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterPage(),
+                            ),
+                          );
+                        },
                         child: const flutter.Text(
-                          "Forget password?",
+                          "Don't have an account? Register!",
                           style: flutter.TextStyle(color: flutter.Colors.black),
                         ),
                       ),
