@@ -175,16 +175,27 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
                         (value == null || value.isEmpty) ? 'Color is required' : null,
                   ),
                   const SizedBox(height: 16),
-                  FormBuilderTextField(
+                 FormBuilderTextField(
                     name: 'heelHeight',
                     decoration: const InputDecoration(
-                      labelText: 'Heel Height',
+                      labelText: 'Heel Height (e.g. 7.5)',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Heel height is required' : null,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Heel height is required';
+                      }
+                      final height = double.tryParse(value);
+                      if (height == null || height <= 0) {
+                        return 'Enter a valid number (e.g. 7.5)';
+                      }
+                      return null;
+                    },
+                    valueTransformer: (value) => value != null ? double.tryParse(value) : null,
                   ),
+
                   const SizedBox(height: 16),
                   FormBuilderDateTimePicker(
                     name: 'endDate',

@@ -8,7 +8,7 @@ class Giveaway {
     int? giveawayId;
     String title;
     String color;
-    String heelHeight;
+    double heelHeight;
     String description;
     DateTime endDate;
     String giveawayProductImage;

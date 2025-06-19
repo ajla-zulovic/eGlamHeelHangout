@@ -33,27 +33,19 @@ class GiveawayProvider extends BaseProvider<Giveaway> {
     }
   }
 
-  Future<void> participate({
-    required int giveawayId,
-    required int size,
-    required String address,
-    required String postalCode,
-    required String city,
-  }) async {
-    var uri = Uri.parse("${baseUrl}${endpoint}/participate");
+ Future<void> participate(Map<String, dynamic> data) async {
+  final uri = Uri.parse("${baseUrl}${endpoint}/participate");
 
-    var body = jsonEncode({
-      "giveawayId": giveawayId,
-      "size": size,
-      "address": address,
-      "postalCode": postalCode,
-      "city": city,
-    });
+  final response = await http!.post(
+    uri,
+    headers: createHeaders(),
+    body: jsonEncode(data),
+  );
 
-    var response = await http!.post(uri, headers: createHeaders(), body: body);
-
-    if (response.statusCode != 200) {
-      throw Exception("Failed to participate: ${response.body}");
-    }
+  if (response.statusCode != 200) {
+    final error = jsonDecode(response.body);
+    throw Exception(error['message'] ?? "Failed to participate");
   }
+}
+
 }

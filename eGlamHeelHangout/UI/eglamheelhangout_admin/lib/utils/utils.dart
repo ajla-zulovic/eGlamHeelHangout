@@ -36,3 +36,19 @@ Image imageFromBase64String(String? base64String) {
     return Image.asset('assets/images/images.png');
   }
 }
+
+
+Widget imageFromBase64StringFormat(String base64String,
+    {double width = 120, double height = 120, double radius = 10}) {
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(radius),
+    child: SizedBox(
+      width: width,
+      height: height,
+      child: Image.memory(
+        base64Decode(base64String),
+        fit: BoxFit.cover, 
+      ),
+    ),
+  );
+}

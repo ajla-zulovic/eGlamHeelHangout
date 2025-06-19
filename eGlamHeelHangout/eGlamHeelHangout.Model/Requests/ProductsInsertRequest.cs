@@ -26,8 +26,8 @@ namespace eGlamHeelHangout.Model.Requests
     public string Material { get; set; }
     [Required(AllowEmptyStrings = false,ErrorMessage ="Color is required !")]
     public string Color { get; set; }
-   
-    public decimal? HeelHeight { get; set; } // ne mora svaka obuca imati petu 
+    [Range(1, 50)]
+     public decimal? HeelHeight { get; set; } // ne mora svaka obuca imati petu 
     [Required]
      public List<ProductSizes>Sizes { get; set; }
 

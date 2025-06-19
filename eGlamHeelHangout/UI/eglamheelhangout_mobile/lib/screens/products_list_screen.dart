@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:eglamheelhangout_mobile/providers/product_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/base_providers.dart';
@@ -22,6 +23,7 @@ import 'package:eglamheelhangout_mobile/screens/user_orders_list_screen.dart';
 import 'package:eglamheelhangout_mobile/screens/giveaway_participant_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eglamheelhangout_mobile/models/giveaway.dart';
+import 'package:eglamheelhangout_mobile/models/giveawaydto.dart';
 import 'package:signalr_core/signalr_core.dart';
 
 
@@ -141,6 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isCategoryLoading = false;
   late HubConnection _hubConnection;
   late final String signalrUrl;
+  late BuildContext dialogContext;
+  bool _hubConnectionStarted = false;
 
 
   @override
@@ -152,18 +156,37 @@ class _HomeScreenState extends State<HomeScreen> {
     _initialize();
     _initializeSignalR(); 
   }
-
 Future<void> _initializeSignalR() async {
-_hubConnection = HubConnectionBuilder()
-    .withUrl(signalrUrl)
-    .build();
+  _hubConnection = HubConnectionBuilder()
+      .withUrl(
+        signalrUrl,
+        HttpConnectionOptions(
+          transport: HttpTransportType.webSockets,
+          skipNegotiation: true,
+        ),
+      )
+      .build();
 
   _hubConnection.on("ReceiveGiveaway", (arguments) {
+    print("ReceiveGiveaway event triggered");
     final data = arguments?.first;
     if (data != null) {
-        print("Deserializing giveaway...");
-      final giveaway = Giveaway.fromJson(Map<String, dynamic>.from(data));
-      _showGiveawayDialog(giveaway);
+      print("Data: ${data.toString()}");
+
+      try {
+        final giveaway = GiveawayNotification.fromJson(Map<String, dynamic>.from(data));
+        print("MAPIRANJE ?...");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            print("Prikazujem dialog...");
+            _showGiveawayDialog(giveaway);
+          }
+        });
+      } catch (e, stackTrace) {
+        print(" Greška prilikom mapiranja giveaway objekta: $e");
+        print(" StackTrace: $stackTrace");
+      }
     }
   });
 
@@ -177,7 +200,7 @@ _hubConnection = HubConnectionBuilder()
     }
   });
 
-   try {
+  try {
     await _hubConnection.start();
     print("SignalR connected to: $signalrUrl");
   } catch (e) {
@@ -185,16 +208,28 @@ _hubConnection = HubConnectionBuilder()
   }
 }
 
-void _showGiveawayDialog(Giveaway giveaway) {
+
+void _showGiveawayDialog(GiveawayNotification giveaway) {
+  print(">> Pokrećem _showGiveawayDialog za: ${giveaway.title}");
+  Future.delayed(Duration(milliseconds: 200), () {
+    if (!mounted) return;
+
+    print("Prikazujem giveaway dialog");
+try {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text("New Giveaway!"),
-      content: Text("Would you like to participate in ${giveaway.title}?"),
+      title: const Text("New Giveaway!"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Would you like to participate in ${giveaway.title}?"),
+        ],
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text("No"),
+          child: const Text("No"),
         ),
         TextButton(
           onPressed: () {
@@ -206,11 +241,15 @@ void _showGiveawayDialog(Giveaway giveaway) {
               ),
             );
           },
-          child: Text("Yes"),
+          child: const Text("Yes"),
         ),
       ],
     ),
   );
+} catch (e, stack) {
+  print(" Dijalog nije prikazan: $e");
+}
+  });
 }
 
 void _showWinnerDialog(String winner, String giveawayTitle) {
@@ -353,6 +392,7 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
 
   @override
   Widget build(BuildContext context) {
+   dialogContext = context;
     if (_isLoading && result == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -497,7 +537,7 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
                       );
                     },
                   ),
-          ),
+         ),
         ],
       ),
     );

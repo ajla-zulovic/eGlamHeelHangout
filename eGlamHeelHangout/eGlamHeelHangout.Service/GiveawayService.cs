@@ -10,15 +10,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EasyNetQ;
+using eGlamHeelHangout.Service.SignalR;
+using Microsoft.AspNetCore.SignalR;
 
 namespace eGlamHeelHangout.Service
 {
     public class GiveawayService:BaseCRUDService<Model.Giveaways,Database.Giveaway,Model.SearchObjects.GiveawaySearchObject,Model.Requests.GiveawayInsertRequest,object>,IGiveawayService
     {
         public BaseState _baseState { get; set; }
-        public GiveawayService(_200199Context context, IMapper mapper, BaseState baseState) : base(context, mapper)
+        private readonly IHubContext<GiveawayHub> _hubContext;
+        public GiveawayService(_200199Context context, IMapper mapper, BaseState baseState, IHubContext<GiveawayHub> hubContext) : base(context, mapper)
         {
             _baseState = baseState;
+            _hubContext = hubContext;
         }
 
         public async Task<List<Giveaways>> GetActive()
@@ -79,7 +83,8 @@ namespace eGlamHeelHangout.Service
                 .Where(e => e.GiveawayId == giveawayId)
                 .ToListAsync();
 
-            if (!entries.Any()) return null;
+            if (!entries.Any())
+                throw new Exception("There are no participants, not able to generate a winner.");
 
             var winner = entries[new Random().Next(entries.Count)];
             winner.IsWinner = true;
@@ -108,34 +113,73 @@ namespace eGlamHeelHangout.Service
         //overridana metoda inserta zbog slanja notif :
         public override async Task<Model.Giveaways> Insert(GiveawayInsertRequest insert)
         {
-            if (insert.EndDate <= DateTime.Now) //uslov da admin ne postavi datum u "proslosti"
-            {
+            if (insert.EndDate <= DateTime.Now)
                 throw new Exception("End date must be in the future.");
-            }
 
             var entity = _mapper.Map<Database.Giveaway>(insert);
+
+            if (!string.IsNullOrWhiteSpace(insert.GiveawayProductImage))
+            {
+                try
+                {
+                    var base64 = insert.GiveawayProductImage;
+
+                    
+                    if (base64.Contains(","))
+                        base64 = base64.Split(',')[1];
+
+                    entity.GiveawayProductImage = Convert.FromBase64String(base64);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Invalid image format. Cannot decode base64 string.", ex);
+                }
+            }
+
             _context.Giveaways.Add(entity);
             await _context.SaveChangesAsync();
 
             try
             {
-                using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+                using var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123");
+                await bus.PubSub.PublishAsync(new GiveawayNotificationDTO
                 {
-                    await bus.PubSub.PublishAsync(new GiveawayNotificationDTO
-                    {
-                        GiveawayID = entity.GiveawayId,
-                        Title = entity.Title
-                    }, "giveaway.new");
-                }
+                    GiveawayId = entity.GiveawayId,
+                    Title = entity.Title,
+                    Color = entity.Color,
+                    HeelHeight = entity.HeelHeight,
+                    Description = entity.Description,
+                    GiveawayProductImage = entity.GiveawayProductImage != null
+                        ? Convert.ToBase64String(entity.GiveawayProductImage)
+                        : null
+                }, "giveaway.new");
+
+                Console.WriteLine("Giveaway published to RabbitMQ");
             }
             catch (Exception ex)
             {
-               
-                Console.WriteLine($"Failed to publish giveaway notification: {ex.Message}");
+                Console.WriteLine($"RabbitMQ error: {ex.Message}");
+            }
+
+            
+            if (_hubContext != null)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveGiveaway", new
+                {
+                    giveawayId = entity.GiveawayId,
+                    title = entity.Title,
+                    description = entity.Description,
+                    heelHeight = entity.HeelHeight,
+                    color = entity.Color,
+                    giveawayProductImage = entity.GiveawayProductImage != null
+                        ? Convert.ToBase64String(entity.GiveawayProductImage)
+                        : null
+                });
             }
 
             return _mapper.Map<Model.Giveaways>(entity);
         }
+
 
 
 

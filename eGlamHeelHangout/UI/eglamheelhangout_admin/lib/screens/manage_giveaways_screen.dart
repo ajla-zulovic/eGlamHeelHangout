@@ -32,11 +32,8 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
 
   Future<void> _loadAllCounts() async {
     try {
-      // All
       SearchResult<Giveaway> allData = await _giveawayProvider.getFiltered(isActive: null);
-      // Active
       SearchResult<Giveaway> activeData = await _giveawayProvider.getFiltered(isActive: true);
-      // Inactive
       SearchResult<Giveaway> inactiveData = await _giveawayProvider.getFiltered(isActive: false);
 
       setState(() {
@@ -93,17 +90,18 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
          backgroundColor: Colors.green,
          ),
       );
-      // Ponovno ucitaj i countove i podatke nakon generisanja
+      
       await _loadAllCounts();
       await _loadGiveaways();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error generating winner."),
-         backgroundColor: Colors.red,
-         ),
-      );
-    }
-  }
+  final errorMessage = e.toString().contains("There are no participants")
+      ? "There are no participants, not able to generate winner."
+      : "Error generating winner.";
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+  );
+}}
 
   Widget _buildFilterButton(String label, int count) {
     final isSelected = _selectedFilter == label;
@@ -175,40 +173,59 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
 
 
                           return Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: ListTile(
-                              leading: giveaway.giveawayProductImage.isNotEmpty
-                                  ? imageFromBase64String(giveaway.giveawayProductImage)
-                                  : const Icon(Icons.image_not_supported),
-                              title: Text(giveaway.title),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("End date: ${DateFormat('yyyy-MM-dd').format(giveaway.endDate)}"),
-                                  Text("Winner: ${giveaway.winnerName ?? 'No winner yet'}"),
-                                ],
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: ExpansionTile(
+                            leading: const Icon(Icons.card_giftcard, color: Colors.deepPurple),
+                            title: Text(giveaway.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("End date: ${DateFormat('yyyy-MM-dd').format(giveaway.endDate)}"),
+                                Text("Winner: ${giveaway.winnerName ?? 'No winner yet'}"),
+                                Text("Color: ${giveaway.color}"),
+                                Text("Heel Height: ${giveaway.heelHeight.toStringAsFixed(1)} cm"),
+                              ],
+                            ),
+                            children: [
+                              if (giveaway.giveawayProductImage.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: imageFromBase64StringFormat(
+                                  giveaway.giveawayProductImage,
+                                  width: 200,
+                                  height: 200,
+                                  radius: 10,
+                                ),
                               ),
-                              trailing: canGenerateWinner
-                                ? OutlinedButton.icon(
+
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                child: Text(
+                                  giveaway.description,
+                                  style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                ),
+                              ),
+                              if (canGenerateWinner)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  child: OutlinedButton.icon(
                                     onPressed: () => _generateWinner(giveaway.giveawayId!),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.green,
                                       side: const BorderSide(color: Colors.green, width: 1.5),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                     ),
-                                    icon: const Icon(Icons.emoji_events, size: 20), 
-                                    label: const Text(
-                                      "Generate Winner",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                    ),
-                                  )
-                                : null,
+                                    icon: const Icon(Icons.emoji_events, size: 20),
+                                    label: const Text("Generate Winner",
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        );
 
-                            ),
-                          );
                         },
                       ),
           ),

@@ -10,7 +10,7 @@ Giveaway _$GiveawayFromJson(Map<String, dynamic> json) => Giveaway(
   giveawayId: (json['giveawayId'] as num?)?.toInt(),
   title: json['title'] as String,
   color: json['color'] as String,
-  heelHeight: json['heelHeight'] as String,
+  heelHeight: (json['heelHeight'] as num).toDouble(),
   description: json['description'] as String,
   endDate: DateTime.parse(json['endDate'] as String),
   giveawayProductImage: json['giveawayProductImage'] as String,

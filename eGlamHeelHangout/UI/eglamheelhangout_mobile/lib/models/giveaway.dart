@@ -8,7 +8,7 @@ class Giveaway {
 final int giveawayId;
   final String title;
   final String color;
-  final String heelHeight;
+  final double heelHeight;
   final String description;
   final DateTime endDate;
   final bool isClosed;

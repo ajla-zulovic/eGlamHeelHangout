@@ -40,42 +40,43 @@ class _UserOrdersListScreenState extends State<UserOrdersListScreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Orders"),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _orders.isEmpty
               ? const Center(child: Text("You have no orders."))
               : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     final order = _orders[index];
+                    final date = order.orderDate?.toLocal();
                     return Card(
-                      margin: const EdgeInsets.all(10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 3,
                       child: ExpansionTile(
+                        leading: const Icon(Icons.shopping_bag_outlined, color: Colors.blue),
                         title: Text(
-  "Purchase from ${order.orderDate != null ? "${order.orderDate!.toLocal().day}/${order.orderDate!.toLocal().month}/${order.orderDate!.toLocal().year}" : "N/A"}",
-  style: const TextStyle(fontWeight: FontWeight.bold),
-),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Total: \$${order.totalPrice.toStringAsFixed(2)}"),
-                           Text("Date: ${order.orderDate != null ? order.orderDate!.toLocal().toString() : "N/A"}"),
-                            Text("Payment: ${order.paymentMethod}"),
-                          ],
+                          "Purchase dated ${date != null ? "${date.day}/${date.month}/${date.year}" : "N/A"}",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Total: \$${order.totalPrice.toStringAsFixed(2)}"),
+                              Text("Time: ${date?.toString().split('.')[0] ?? "N/A"}"),
+                              Text("Payment: ${order.paymentMethod}"),
+                            ],
+                          ),
                         ),
                         children: order.items.map((item) {
                           return ListTile(
-                            title: Text("${item.productName}"),
-                            subtitle: Text("Size: ${item.size} | Quantity: ${item.quantity}"),
+                            title: Text(item.productName ?? ''),
+                            subtitle: Text("Size: ${item.size} • Quantity: ${item.quantity}"),
                             trailing: Text("\$${(item.pricePerUnit * item.quantity).toStringAsFixed(2)}"),
                           );
                         }).toList(),

@@ -54,10 +54,15 @@ namespace eGlamHeelHangout.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PickWinner(int id)
         {
-            var result = await _giveawayService.PickWinner(id);
-            if (result == null) return NotFound("No participants found.");
-
-            return Ok(result);
+            try
+            {
+                var result = await _giveawayService.PickWinner(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 

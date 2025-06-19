@@ -35,8 +35,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       });
     }
   }
-
-
 Future<void> _changeOrderStatus(int orderId, String newStatus) async {
   try {
     var provider = context.read<OrderProvider>();
@@ -74,13 +72,14 @@ Future<void> _changeOrderStatus(int orderId, String newStatus) async {
                 return Card(
                   margin: EdgeInsets.all(10),
                   child: ExpansionTile(
-                    title: Text("Order #${order.orderId} - ${order.username}"),
+                    leading: const Icon(Icons.receipt_long, color: Colors.blue),
+                    title: Text("Purchase dated ${order.orderDate != null ? order.orderDate!.toLocal().toString() : 'N/A'}"),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text("Username: ${order.username}"),
                         Text("Total: €${order.totalPrice}"),
                         Text("Status: ${order.orderStatus}"),
-                        Text("Date: ${order.orderDate != null ? order.orderDate!.toLocal().toString() : 'N/A'}"),
                         Text("Payment: ${order.paymentMethod}"),
                       ],
                     ),

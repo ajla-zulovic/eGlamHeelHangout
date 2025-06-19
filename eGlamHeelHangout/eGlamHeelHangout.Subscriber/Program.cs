@@ -1,6 +1,7 @@
 using EasyNetQ;
 using Microsoft.AspNetCore.SignalR.Client;
 using eGlamHeelHangout.Model;
+using System.Net.Http.Json;
 
 public class Program
 {
@@ -37,17 +38,21 @@ public class Program
 
     static async Task HandleWinnerNotification(WinnerNotification message)
     {
-        Console.WriteLine($"The winner: {message.WinnerUsername} won: {message.GiveawayTitle}");
-        await _hubConnection.InvokeAsync("ReceiveWinner", message);
+        Console.WriteLine($"Winner from RabbitMQ: {message.WinnerUsername}");
+
+        using var client = new HttpClient();
+        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/winner", message);
+        Console.WriteLine($"Winner notify status: {response.StatusCode}");
     }
 
     static async Task HandleGiveawayMessage(GiveawayNotificationDTO message)
     {
-        Console.WriteLine($"Received message from RabbitMQ: {message.Title}");
+        Console.WriteLine($"Received giveaway from RabbitMQ: {message.Title}");
 
-        await _hubConnection.InvokeAsync("ReceiveGiveaway", message);
-
-        Console.WriteLine("Sent message to SignalR");
+        using var client = new HttpClient();
+        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/giveaway", message);
+        // Console.WriteLine($"Notification API status: {response.StatusCode}");
+        Console.WriteLine(await response.Content.ReadAsStringAsync());
 
     }
 }

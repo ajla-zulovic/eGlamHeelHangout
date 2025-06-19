@@ -23,7 +23,7 @@ namespace eGlamHeelHangout.Service.Database
         public string Email { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
         public string PasswordSalt { get; set; } = null!;
-        public string? PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; }
         public string? Address { get; set; }
         public DateTime? DateCreated { get; set; }
         public byte[]? ProfileImage { get; set; }

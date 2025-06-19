@@ -56,7 +56,7 @@ namespace eGlamHeelHangout.Service.Database
         entity.Property(e => e.Email).HasMaxLength(100);
         entity.Property(e => e.PasswordHash).HasMaxLength(255);
         entity.Property(e => e.PasswordSalt).HasMaxLength(255);
-        entity.Property(e => e.PhoneNumber).HasMaxLength(20).IsRequired(false);
+        entity.Property(e => e.PhoneNumber).HasMaxLength(20);
         entity.Property(e => e.Address).HasMaxLength(255).IsRequired(false);
         entity.Property(e => e.ProfileImage).HasMaxLength(255).IsRequired(false);
         entity.Property(e => e.DateCreated).HasColumnType("datetime").IsRequired(false);
@@ -120,7 +120,8 @@ namespace eGlamHeelHangout.Service.Database
 
           entity.Property(e => e.Title).HasMaxLength(100);
           entity.Property(e => e.Color).HasMaxLength(50);
-          entity.Property(e => e.HeelHeight).HasMaxLength(50);
+          entity.Property(e => e.HeelHeight).HasPrecision(18, 2);
+
 
       });
 

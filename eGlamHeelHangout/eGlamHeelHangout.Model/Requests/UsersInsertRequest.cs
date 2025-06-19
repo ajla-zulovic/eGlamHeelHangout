@@ -24,7 +24,7 @@ namespace eGlamHeelHangout.Model.Requests
         @"^\+?[0-9]{6,15}$",
         ErrorMessage = "Invalid phone number format"
     )]
-        public string? PhoneNumber { get; set; }
+    public string PhoneNumber { get; set; }
     public string? Address { get; set; }
     public byte[]? ProfileImage { get; set; }
     public DateTime? DateOfBirth { get; set; }
