@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../providers/user_providers.dart';
 import '../utils/current_user.dart';
+import '../screens/change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -34,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String? _emailValidator(String? value) {
     if (value == null || value.isEmpty) return 'Required';
-   final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$');
     if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
     return null;
   }
@@ -59,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _selectedDate = user.dateOfBirth;
       _base64Image = user.profileImage;
       _selectedImage = null;
-     _imageRemoved = false;
+      _imageRemoved = false;
     });
   }
 
@@ -88,7 +89,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         address: _controllers['address']?.text,
         dateOfBirth: _selectedDate,
         profileImage: _imageRemoved ? null : _base64Image ?? _user!.profileImage,
-
       );
 
       try {
@@ -100,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
         setState(() => _isEditing = false);
+        _formKey.currentState?.reset();
         _loadUserData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -131,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icon(_isEditing ? Icons.close : Icons.edit),
                 onPressed: () {
                   if (_isEditing) {
-                    _loadUserData(); // reset forma
+                    _formKey.currentState?.reset();
+                    _loadUserData();
                   }
                   setState(() => _isEditing = !_isEditing);
                 },
@@ -182,6 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Expanded(
             child: Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: ListView(
                 children: [
                   _buildField("firstName", "First Name"),
@@ -189,9 +192,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildField("email", "Email", TextInputType.emailAddress, _emailValidator),
                   _buildField("phoneNumber", "Phone Number", TextInputType.phone, _phoneValidator),
                   _buildField("address", "Address"),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 5),
                   if (_isEditing) ...[
-                    const Text("Date of Birth", style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text("Date of Birth"),
                     TextButton(
                       onPressed: () async {
                         final picked = await showDatePicker(
@@ -204,26 +207,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() => _selectedDate = picked);
                         }
                       },
-                     child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        _selectedDate != null
-                          ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                          : "Select date",
-                        style: TextStyle(color: Colors.black),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _selectedDate != null
+                              ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+                              : "Select date",
+                          style: const TextStyle(color: Colors.black),
+                        ),
                       ),
                     ),
-
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Security", style: TextStyle(fontSize: 18)),
+                        TextButton.icon(
+                          icon: const Icon(Icons.lock_outline),
+                          label: const Text("Change Password"),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 80),
                     ElevatedButton.icon(
                       onPressed: _saveChanges,
                       icon: const Icon(Icons.save),
                       label: const Text("Save Changes"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ],

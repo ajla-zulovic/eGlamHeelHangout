@@ -395,8 +395,8 @@ Future<void> _fetchData() async {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                               SizedBox(
-                                height: 200,
-                                width: 200,
+                                height: 180,
+                                width: 230,
                                 child: product.image != null && product.image!.isNotEmpty
                                     ? imageFromBase64String(product.image!)
                                     : const Icon(Icons.image_not_supported, size: 50),

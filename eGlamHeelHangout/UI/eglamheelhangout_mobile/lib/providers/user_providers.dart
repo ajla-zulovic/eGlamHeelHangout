@@ -43,6 +43,17 @@ Future<void> register(Map<String, dynamic> data) async {
 }
 
 
+Future<void> changePassword(Map<String, dynamic> data) async {
+  var uri = Uri.parse("$baseUrl$endpoint/change-password");
+  var headers = createHeaders();
+  var body = jsonEncode(data);
+
+  final response = await http_package.put(uri, headers: headers, body: body);
+
+ if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw response;
+  }
+}
 
 
  

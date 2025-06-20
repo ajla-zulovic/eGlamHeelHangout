@@ -138,7 +138,33 @@ namespace eGlamHeelHangout.Service
             var user = _context.Users.FirstOrDefault(u => u.Username == username);
             return user?.UserId ?? 0;
         }
-      
+
+        public async Task ChangePassword(ChangePasswordRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Username))
+                throw new Exception("Username is required.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+            if (user == null)
+                throw new Exception("User not found.");
+
+            if (request.NewPassword != request.ConfirmNewPassword)
+                throw new Exception("New password values don't match.");
+
+            string hashOfNewWithOldSalt = GenerateHash(user.PasswordSalt, request.NewPassword);
+            if (hashOfNewWithOldSalt == user.PasswordHash)
+                throw new Exception("New password can't be the same as the old one.");
+
+            string hashOfOldPassword = GenerateHash(user.PasswordSalt, request.CurrentPassword);
+            if (hashOfOldPassword != user.PasswordHash)
+                throw new Exception("Current password is incorrect.");
+
+            user.PasswordSalt = GenerateSalt();
+            user.PasswordHash = GenerateHash(user.PasswordSalt, request.NewPassword);
+
+            await _context.SaveChangesAsync();
+        }
 
 
     }

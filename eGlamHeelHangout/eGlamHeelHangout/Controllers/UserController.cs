@@ -45,11 +45,31 @@ namespace eGlamHeelHangout.Controllers
         {
             return await _userService.Insert(insert);
         }
+
+        [HttpPut("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var username = HttpContext.User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(username))
+                return Unauthorized();
+
+            request.Username = username;
+
+            try
+            {
+                await (_userService as IUserService).ChangePassword(request);
+                return Ok(new { message = "Password changed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+
+
     }
-
-
-
-
-
 }
 
