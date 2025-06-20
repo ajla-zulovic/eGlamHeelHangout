@@ -33,7 +33,7 @@ namespace eGlamHeelHangout.Controllers
       
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        public virtual async Task<IActionResult> Delete(int id)
         {
             var success = await _service.Delete(id);
             if (success)

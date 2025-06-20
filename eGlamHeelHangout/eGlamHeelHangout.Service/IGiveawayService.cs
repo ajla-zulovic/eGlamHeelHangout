@@ -19,6 +19,8 @@ namespace eGlamHeelHangout.Service
         Task<List<Model.Giveaways>> GetFiltered(bool? isActive);
         Task<bool> Delete(int id);
         Task<WinnerNotificationEntity?> GetLastWinnerNotification();
+        Task<bool> DeleteGiveawayIfFinishedAndHasWinner(int id);
+
 
     }
 }

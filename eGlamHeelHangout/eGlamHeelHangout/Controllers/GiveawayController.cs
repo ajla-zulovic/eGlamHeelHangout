@@ -103,6 +103,20 @@ namespace eGlamHeelHangout.Controllers
                 LastWinnerNotification = lastWinnerNotification
             });
         }
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public override async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var result = await _giveawayService.DeleteGiveawayIfFinishedAndHasWinner(id);
+                return Ok(new { message = "Giveaway deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
 
     }
 

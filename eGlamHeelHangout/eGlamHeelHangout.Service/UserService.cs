@@ -99,19 +99,17 @@ namespace eGlamHeelHangout.Service
             if (_context.Users.Any(u => u.Username == insert.Username))
                 throw new Exception("Username already exists.");
 
-            // 1. Dodaj korisnika
+   
             var result = await base.Insert(insert);
-            await _context.SaveChangesAsync(); // snimi da dobije UserId
+            await _context.SaveChangesAsync(); 
 
-            // 2. Nađi rolu
+            
             var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
             if (userRole == null)
                 throw new Exception("Role 'User' not found.");
 
-            // 3. Log - DEBUG info
             Console.WriteLine($"Dodajem rolu {userRole.RoleId} korisniku {result.UserId}");
 
-            // 4. Dodaj povezanu rolu
             var newUserRole = new UsersRole
             {
                 UserId = result.UserId,
@@ -124,7 +122,7 @@ namespace eGlamHeelHangout.Service
           
             try
             {
-                await _context.SaveChangesAsync(); // <-- Save za UsersRole
+                await _context.SaveChangesAsync(); 
             }
             catch (Exception ex)
             {

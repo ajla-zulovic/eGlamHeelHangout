@@ -281,5 +281,26 @@ namespace eGlamHeelHangout.Service
                 .OrderByDescending(n => n.NotificationDate)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<bool> DeleteGiveawayIfFinishedAndHasWinner(int id)
+        {
+            var giveaway = await _context.Giveaways
+                .Include(g => g.GiveawayParticipants)
+                .FirstOrDefaultAsync(g => g.GiveawayId == id);
+
+            if (giveaway == null)
+                throw new Exception("Giveaway not found.");
+
+            var hasWinner = giveaway.GiveawayParticipants.Any(p => p.IsWinner);
+            var isFinished = giveaway.EndDate <= DateTime.Now;
+
+            if (!isFinished || !hasWinner)
+                throw new Exception("Only giveaways that are finished and have a winner can be deleted.");
+
+            _context.Giveaways.Remove(giveaway);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

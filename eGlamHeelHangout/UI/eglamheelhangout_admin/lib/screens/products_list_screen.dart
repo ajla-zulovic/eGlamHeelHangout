@@ -356,10 +356,10 @@ Future<void> _fetchData() async {
             child: GridView.builder(
               itemCount: result!.result.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
+                crossAxisCount: 3,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 3 / 2,
+                childAspectRatio: 3/2,
               ),
               itemBuilder: (context, index) {
                 final product = result!.result[index];
@@ -394,11 +394,13 @@ Future<void> _fetchData() async {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Expanded(
-                                  child: product.image != null && product.image!.isNotEmpty
-                                      ? imageFromBase64String(product.image!)
-                                      : const Icon(Icons.image_not_supported, size: 50),
-                                ),
+                              SizedBox(
+                                height: 200,
+                                width: 200,
+                                child: product.image != null && product.image!.isNotEmpty
+                                    ? imageFromBase64String(product.image!)
+                                    : const Icon(Icons.image_not_supported, size: 50),
+                              ),
                                 const SizedBox(height: 4),
                                 Text(
                                   product.name ?? "",
@@ -421,7 +423,7 @@ Future<void> _fetchData() async {
                           top: 4,
                           right: 4,
                           child: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                            icon: const Icon(Icons.delete, color: Colors.red, size: 22),
                             tooltip: 'Delete product',
                             onPressed: () => _confirmDelete(context, product),
                           ),

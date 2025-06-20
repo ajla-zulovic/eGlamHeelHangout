@@ -101,7 +101,40 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
   );
-}}
+  }}
+
+  void _confirmDeleteGiveaway(BuildContext context, int giveawayId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Giveaway'),
+        content: const Text('Are you sure about this action?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('No')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Yes', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _giveawayProvider.delete(giveawayId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Giveaway deleted'), backgroundColor: Colors.green),
+        );
+        await _loadAllCounts();
+        await _loadGiveaways();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
 
   Widget _buildFilterButton(String label, int count) {
     final isSelected = _selectedFilter == label;
@@ -144,7 +177,7 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
       body: Column(
         children: [
           const SizedBox(height: 16),
-        
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -163,14 +196,11 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
                         itemCount: _giveaways.length,
                         itemBuilder: (context, index) {
                           final giveaway = _giveaways[index];
-                          final now = DateTime.now();
-
-                       
-            
-                        final canGenerateWinner = giveaway.endDate.isBefore(now) &&
-                        (giveaway.winnerName == null);
-
-
+                          final now = DateTime.now();                     
+                          final canGenerateWinner = giveaway.endDate.isBefore(now) &&
+                            (giveaway.winnerName == null);
+                          final canDelete = giveaway.endDate.isBefore(now) &&
+                            (giveaway.winnerName != null);
 
                           return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -208,16 +238,36 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
                               if (canGenerateWinner)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  child: OutlinedButton.icon(
+                                  child:ElevatedButton.icon(
                                     onPressed: () => _generateWinner(giveaway.giveawayId!),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF2E7D32), // tamnozelena
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      elevation: 2,
+                                    ),
+                                    icon: const Icon(Icons.emoji_events, size: 20),
+                                    label: const Text(
+                                      "Generate Winner",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                  ),
+
+                                ),
+                              if (canDelete)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _confirmDeleteGiveaway(context, giveaway.giveawayId!),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.green,
-                                      side: const BorderSide(color: Colors.green, width: 1.5),
+                                      foregroundColor: Colors.red,
+                                      side: const BorderSide(color: Colors.red, width: 1.5),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                     ),
-                                    icon: const Icon(Icons.emoji_events, size: 20),
-                                    label: const Text("Generate Winner",
+                                    icon: const Icon(Icons.delete, size: 20),
+                                    label: const Text("Delete Giveaway",
                                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                   ),
                                 ),
