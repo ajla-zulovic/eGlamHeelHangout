@@ -15,9 +15,11 @@ using Microsoft.OpenApi.Models;
 using eGlamHeelHangout.Model.Utilities;
 using eGlamHeelHangout.Services;
 using eGlamHeelHangout.Service.SignalR;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to the container.
 
@@ -67,6 +69,8 @@ builder.Services.AddTransient<IFavoriteService, FavoriteService>();
 builder.Services.AddTransient<IReviewService, ReviewService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
+builder.Services.AddTransient<IReportService, ReportService>();
+
 builder.Services.AddSignalR();
 
 

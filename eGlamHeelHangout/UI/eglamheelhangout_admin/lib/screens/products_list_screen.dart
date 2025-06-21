@@ -17,6 +17,7 @@ import '../models/order.dart';
 import '../providers/order_providers.dart';
 import 'package:eglamheelhangout_admin/screens/admin_orders_screen.dart';
 import 'package:eglamheelhangout_admin/screens/manage_giveaways_screen.dart';
+import 'package:eglamheelhangout_admin/screens/report_screen.dart';
 
 
 class ProductsListScreen extends StatefulWidget {
@@ -438,15 +439,5 @@ Future<void> _fetchData() async {
         ],
       ),
     );
-  }
-}
-
-
-class ReportScreen extends StatelessWidget {
-  const ReportScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Report Screen'));
   }
 }

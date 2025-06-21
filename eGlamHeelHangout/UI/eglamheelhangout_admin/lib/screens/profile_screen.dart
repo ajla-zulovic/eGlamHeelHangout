@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String? _emailValidator(String? value) {
     if (value == null || value.isEmpty) return 'Required';
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$');
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
     return null;
   }
@@ -75,6 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _selectedImage = result.files.first;
         _base64Image = base64Encode(_selectedImage!.bytes!);
+        _imageRemoved = false;
       });
     }
   }
@@ -146,10 +147,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 60,
-                  backgroundImage: _base64Image != null
-                      ? MemoryImage(base64Decode(_base64Image!))
-                      : null,
-                  child: _base64Image == null
+                  backgroundImage: _selectedImage != null
+                      ? MemoryImage(_selectedImage!.bytes!)
+                      : (_base64Image != null && _base64Image!.isNotEmpty
+                          ? MemoryImage(base64Decode(_base64Image!))
+                          : null),
+                  child: (_selectedImage == null && (_base64Image == null || _base64Image!.isEmpty))
                       ? const Icon(Icons.person, size: 60)
                       : null,
                 ),
