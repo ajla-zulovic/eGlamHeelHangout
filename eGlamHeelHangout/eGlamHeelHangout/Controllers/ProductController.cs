@@ -13,10 +13,12 @@ namespace eGlamHeelHangout.Controllers
   public class ProductController : BaseCRUDController<Model.Products,Model.SearchObjects.ProductsSearchObjects,Model.Requests.ProductsInsertRequest,Model.Requests.ProductsUpdateRequest>
   {
         private readonly IReviewService _reviewService;
+        private readonly IProductService _productService;
         public ProductController(ILogger<BaseController<Model.Products, Model.SearchObjects.ProductsSearchObjects>> logger, IProductService service, IReviewService reviewService)
       : base(logger, service)
     {
             _reviewService = reviewService;
+            _productService = service;
         }
 
       [HttpPut("{id}/activate")]
@@ -51,6 +53,13 @@ namespace eGlamHeelHangout.Controllers
             return Ok(average);
         }
 
+
+        [HttpGet("{userId}/recommend")]
+        public ActionResult<List<eGlamHeelHangout.Model.Products>> Recommend(int userId)
+        {
+            var result = _productService.Recommend(userId);
+            return Ok(result);
+        }
 
 
     }

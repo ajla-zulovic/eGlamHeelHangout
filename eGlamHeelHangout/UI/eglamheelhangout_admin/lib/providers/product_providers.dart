@@ -9,8 +9,5 @@ class ProductProvider extends BaseProvider<Product> {
 @override
 Product fromJson(Map<String, dynamic> json) {
   return Product.fromJson(json); 
-}
-
-
- 
+} 
 }

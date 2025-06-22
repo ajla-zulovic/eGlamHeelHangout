@@ -156,6 +156,10 @@ class _HomeScreenState extends State<HomeScreen> {
   late final String signalrUrl;
   late BuildContext dialogContext;
   bool _hubConnectionStarted = false;
+  List<Product>? _recommendedProducts;
+  bool _isLoadingRecommendations = true;
+  bool _showRecommendations = true;
+
 
 
   @override
@@ -286,21 +290,66 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
     super.dispose();
   }
 
-  Future<void> _initialize() async {
-    try {
-      await context.read<FavoriteProvider>().refreshFavorites();
-      await _fetchCategories();
-      await _fetchData();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+Future<void> _initialize() async {
+  print(">>> [_initialize] START");
+
+  try {
+    print(">>> refreshing favorites");
+    await context.read<FavoriteProvider>().refreshFavorites();
+
+    print(">>> fetching categories");
+    await _fetchCategories();
+
+    print(">>> fetching main products");
+    await _fetchData();
+
+    print(">>> getting userId from SharedPreferences");
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt("userId");
+
+    print(">>> userId = $userId");
+
+    if (userId != null) {
+      try {
+        print(">>> fetching recommended products for user $userId");
+        final recommended = await _productProvider.getRecommendedProducts(userId);
+        print(">>> recommended count = ${recommended.length}");
+
+        if (mounted) {
+          setState(() {
+            _recommendedProducts = recommended;
+            _isLoadingRecommendations = false;
+          });
+        }
+      } catch (e) {
+        print(">>> error while fetching recommended: $e");
+
+        if (mounted) {
+          setState(() {
+            _recommendedProducts = [];
+            _isLoadingRecommendations = false;
+          });
+        }
       }
     }
+  } catch (e) {
+    print(">>> error in _initialize(): $e");
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: $e')),
+      );
+    }
+  } finally {
+    print(">>> [_initialize] END");
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
+}
+
+
+
 
   Future<void> _fetchCategories() async {
     final categoryResult = await _categoryProvider.get();
@@ -402,36 +451,141 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
 
 
   @override
-  Widget build(BuildContext context) {
-   dialogContext = context;
-    if (_isLoading && result == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+Widget build(BuildContext context) {
+  dialogContext = context;
+  if (_isLoading && result == null) {
+    return const Center(child: CircularProgressIndicator());
+  }
 
-    final favoriteProvider = Provider.of<FavoriteProvider>(context);
-    final isWide = MediaQuery.of(context).size.width > 600;
+  final favoriteProvider = Provider.of<FavoriteProvider>(context);
+  final isWide = MediaQuery.of(context).size.width > 600;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
           Center(
             child: Image.asset("assets/images/logologo.png", height: 120),
           ),
           const SizedBox(height: 20),
-         Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 4,
-            runSpacing: 15,
-            children: [
-              _buildFilterButton(null, 'All'),
-              ..._categories.map((cat) => _buildFilterButton(cat.categoryID, cat.categoryName ?? '')),
-            ],
+          Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 4,
+              runSpacing: 15,
+              children: [
+                _buildFilterButton(null, 'All'),
+                ..._categories.map((cat) => _buildFilterButton(cat.categoryID, cat.categoryName ?? '')),
+              ],
+            ),
           ),
-        ),
-
+          const SizedBox(height: 20),
+          if (_recommendedProducts != null && _recommendedProducts!.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 30),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Recommended for you",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _showRecommendations = !_showRecommendations;
+                          });
+                        },
+                        child: Text(
+                          _showRecommendations ? "Hide" : "Show",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (_showRecommendations)
+                  SizedBox(
+                    height: 240,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _recommendedProducts!.length,
+                      itemBuilder: (context, index) {
+                        final product = _recommendedProducts![index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+                            );
+                          },
+                          child: Container(
+                            width: 140,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                  child: product.image != null
+                                      ? Image.memory(
+                                          base64Decode(product.image!),
+                                          height: 120,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : const Icon(Icons.image_not_supported, size: 60),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        product.name ?? '',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        formatNumber(product.price),
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
           const SizedBox(height: 18),
           TextField(
             controller: _ftsController,
@@ -463,94 +617,96 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
               });
             },
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _isCategoryLoading
-                ? _buildProductShimmer()
-                : GridView.builder(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isWide ? 4 : 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 3 / 4,
-                    ),
-                    itemCount: result?.result.length ?? 0,
-                    itemBuilder: (context, index) {
-                      final product = result!.result[index];
-                      final isFavorite = favoriteProvider.isFavorite(product.productID!);
-                      return GestureDetector(
-                        onTap: () async {
-                          final updated = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: product),
-                            ),
-                          );
-                          if (updated == true) await _fetchData();
-                        },
-                        child: Card(
-                          color: Colors.white,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Stack(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                      child: product.image != null && product.image!.isNotEmpty
-                                          ? imageFromBase64String(product.image!)
-                                          : const Icon(Icons.image_not_supported, size: 50),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      product.name ?? '',
-                                      style: const TextStyle(fontSize: 14),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      formatNumber(product.price),
-                                      style: const TextStyle(color: Colors.green, fontSize: 14),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: IconButton(
-                                  icon: Icon(
-                                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                                    color: Colors.pink,
-                                  ),
-                                  onPressed: () async {
-                                    try {
-                                      final liked = await favoriteProvider.toggle(product.productID!);
-                                      setState(() => product.isFavorite = liked);
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Error: ${e.toString()}')),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+          const SizedBox(height: 20),
+          _isCategoryLoading
+              ? _buildProductShimmer()
+              : GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 16),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isWide ? 4 : 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 3 / 4,
                   ),
-         ),
+                  itemCount: result?.result.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final product = result!.result[index];
+                    final isFavorite = favoriteProvider.isFavorite(product.productID!);
+                    return GestureDetector(
+                      onTap: () async {
+                        final updated = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(product: product),
+                          ),
+                        );
+                        if (updated == true) await _fetchData();
+                      },
+                      child: Card(
+                        color: Colors.white,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Stack(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: product.image != null && product.image!.isNotEmpty
+                                        ? imageFromBase64String(product.image!)
+                                        : const Icon(Icons.image_not_supported, size: 50),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    product.name ?? '',
+                                    style: const TextStyle(fontSize: 14),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    formatNumber(product.price),
+                                    style: const TextStyle(color: Colors.green, fontSize: 14),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: IconButton(
+                                icon: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: Colors.pink,
+                                ),
+                                onPressed: () async {
+                                  try {
+                                    final liked = await favoriteProvider.toggle(product.productID!);
+                                    setState(() => product.isFavorite = liked);
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: ${e.toString()}')),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

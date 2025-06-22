@@ -17,6 +17,7 @@ import 'package:eglamheelhangout_mobile/providers/giveaway_providers.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -208,6 +209,9 @@ class _LoginPageState extends flutter.State<LoginPage> {
                                 }
 
                                 final loggedInUser = await userProvider.getCurrentUser();
+                                final prefs = await SharedPreferences.getInstance();
+                                prefs.setInt("userId", loggedInUser.userId!);
+
                                 CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
                                 Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(

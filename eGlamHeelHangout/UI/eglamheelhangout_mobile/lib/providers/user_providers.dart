@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http_package;
 import 'dart:convert';
 import '../models/user.dart';
 import 'base_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider extends BaseProvider<User> {
   UserProvider() : super("User");
@@ -22,11 +23,17 @@ User fromJson(Map<String, dynamic> json) {
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
-    return fromJson(data);
+    final user = fromJson(data);
+
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt("userId", user.userId!);
+
+    return user;
   } else {
     throw Exception("Failed to fetch current user");
   }
 }
+
 
 Future<void> register(Map<String, dynamic> data) async {
   var uri = Uri.parse("$baseUrl$endpoint/register");
