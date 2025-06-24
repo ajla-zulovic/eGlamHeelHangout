@@ -4,15 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/product_providers.dart';
 import 'package:eglamheelhangout_mobile/models/cartitem.dart';
-import 'package:eglamheelhangout_mobile/models/product.dart';
 import 'package:eglamheelhangout_mobile/screens/product_details_screen.dart';
-import 'package:eglamheelhangout_mobile/services/payment_service.dart';
-import 'package:eglamheelhangout_mobile/models/paymentcreate.dart';
-import 'package:eglamheelhangout_mobile/providers/order_providers.dart';
-import 'package:eglamheelhangout_mobile/models/order.dart';
-import 'package:eglamheelhangout_mobile/models/orderitem.dart';
-import 'package:eglamheelhangout_mobile/utils/current_user.dart';
-
+import 'package:eglamheelhangout_mobile/screens/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -106,64 +99,14 @@ class CartScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ElevatedButton(
-              onPressed: cartItems.isNotEmpty ? () async {
-  try {
-    final orderProvider = context.read<OrderProvider>();
-
-   final List<OrderItem> orderItems = cartItems.map((item) => OrderItem(
-  productId: item.productId,
-  quantity: item.quantity,
-  productSizeId: item.productSizeId,
-  pricePerUnit: item.price, 
-)).toList();
-
-
-  
-    final newOrder = Order(
-      orderId: 0,
-      totalPrice: cartProvider.total,
-      orderStatus: "Pending",
-      paymentMethod: "Card",
-      username: CurrentUser.username ?? '',
-      items: orderItems,
-      orderDate: DateTime.now(),
-    );
-
-    final createdOrder = await orderProvider.createOrder(newOrder);
-    if (createdOrder == null) {
-      throw Exception("Ordering was unsuccessful.");
-    }
-
-    // 3. Priprema Stripe plaćanja
-    final payment = PaymentCreate(
-      orderId: createdOrder.orderId,
-      totalAmount: (createdOrder.totalPrice * 100).toInt(),
-      paymentMethodId: '',
-      username: CurrentUser.username ?? '',
-    );
-
-    final paymentService = PaymentService();
-    await paymentService.makePayment(payment);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Successful Payment!"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    cartProvider.clear();
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Error: $e"),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-} : null,
-
-
+              onPressed: cartItems.any((item) => item.stockQuantity > 0)
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+                      );
+                    }
+                  : null,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
               child: const Text("Checkout"),
             )

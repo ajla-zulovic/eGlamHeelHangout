@@ -5,6 +5,7 @@ part 'orderitem.g.dart';
 @JsonSerializable()
 class OrderItem {
   final int productId;
+   @JsonKey(includeIfNull: true)
   final String? productName;
   final int quantity;
   final double pricePerUnit;

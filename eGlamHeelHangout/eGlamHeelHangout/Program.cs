@@ -16,9 +16,21 @@ using eGlamHeelHangout.Model.Utilities;
 using eGlamHeelHangout.Services;
 using eGlamHeelHangout.Service.SignalR;
 using QuestPDF.Infrastructure;
+using DotNetEnv;
+
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddEnvironmentVariables();
+var envPath = Path.Combine(AppContext.BaseDirectory, "../../../../.env");
+Console.WriteLine("ENV FILE: " + envPath);
+Env.Load(envPath);
+
+Console.WriteLine(" Loaded SecretKey: " + Environment.GetEnvironmentVariable("Stripe__SecretKey"));
+
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddEnvironmentVariables() //da moze citati pub_key iz .env fajla
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+    
 QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to the container.
@@ -28,7 +40,26 @@ builder.Services.AddControllers(x => {
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+var stripeSecretKey = Environment.GetEnvironmentVariable("Stripe__SecretKey");
+var stripePublishableKey = Environment.GetEnvironmentVariable("Stripe__PublishableKey");
+
+if (string.IsNullOrEmpty(stripeSecretKey) || string.IsNullOrEmpty(stripePublishableKey))
+{
+    Console.WriteLine("Stripe kljucevi nisu ucitani iz .env fajla. Provjeri putanju ili sadrzaj fajla.");
+}
+
+if (!string.IsNullOrEmpty(stripeSecretKey) && !string.IsNullOrEmpty(stripePublishableKey))
+{
+    builder.Services.Configure<StripeSettings>(options =>
+    {
+        options.SecretKey = stripeSecretKey;
+        options.PublishableKey = stripePublishableKey;
+    });
+}
+else
+{
+    builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+}
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -133,7 +164,7 @@ using (var scope = app.Services.CreateScope())
         }
 
 
-        throw; // zadrži pad ako želiš da Swagger ne prikrije grešku
+        throw; 
     }
 }
 
@@ -150,7 +181,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles(); //za slike
 app.UseRouting();
 app.UseCors("AllowAll");
@@ -169,9 +200,6 @@ app.UseEndpoints(endpoints =>
 using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Context ima scoped lifetime, sto znaci da postoji samo u okviru jednog scope-a ili request-a
 {
   var dataContext = scope.ServiceProvider.GetRequiredService<_200199Context>();
-    //dataContext.Database.EnsureCreated(); // provjerava da li baza postoji, ako ne postoji - kreira je
-    //var conn = dataContext.Database.GetConnectionString();
-    //dataContext.Database.Migrate(); // primijenjuje sve migracije na bazu 
     try
     {
         dataContext.Database.Migrate();

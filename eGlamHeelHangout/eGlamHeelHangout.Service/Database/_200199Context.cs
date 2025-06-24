@@ -199,7 +199,7 @@ namespace eGlamHeelHangout.Service.Database
 
       modelBuilder.Entity<Product>(entity =>
       {
-        entity.HasKey(e => e.ProductId); // Popravljeno!
+        entity.HasKey(e => e.ProductId); 
 
         entity.Property(e => e.ProductId).HasColumnName("ProductID");
         entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
@@ -208,6 +208,8 @@ namespace eGlamHeelHangout.Service.Database
             .HasColumnType("datetime")
             .HasDefaultValueSql("(getdate())");
         entity.Property(e => e.HeelHeight).HasColumnType("decimal(5, 2)");
+        entity.Property(e => e.Price)
+         .HasPrecision(10, 2);
       });
 
       modelBuilder.Entity<UsersRole>(entity =>

@@ -19,7 +19,7 @@ class OrderProvider extends BaseProvider<Order> {
 
   final jsonBody = jsonEncode(order.toJson());
 
-  print("Order payload: $jsonBody"); 
+  print("Order payload: $jsonBody");
 
   final response = await http!.post(uri, headers: headers, body: jsonBody);
 
@@ -27,14 +27,22 @@ class OrderProvider extends BaseProvider<Order> {
   print("body: ${response.body}");
 
   if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      final parsed = fromJson(data);
+      return parsed;
+    } catch (e, stacktrace) {
+      print("Error parsing order response: $e");
+      print("Stacktrace: $stacktrace");
+      return null;
+    }
   } else if (response.statusCode == 403) {
     throw Exception("You are not authorized to create an order.");
   } else {
     throw Exception("Failed to create order. (${response.statusCode})");
   }
 }
+
 
 Future<List<Order>> getMyOrders() async {
   var url = "$baseUrl$endpoint/my-orders";

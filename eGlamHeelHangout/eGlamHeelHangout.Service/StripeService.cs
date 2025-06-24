@@ -41,48 +41,6 @@ namespace eGlamHeelHangout.Services
             await refundService.CreateAsync(options);
         }
 
-        //public async Task<PaymentResponseDTO> ConfirmPayment(PaymentCreateDTO request)
-        //{
-        //    var intentOptions = new PaymentIntentCreateOptions
-        //    {
-        //        Amount = request.TotalAmount,
-        //        Currency = "eur",
-        //        PaymentMethodTypes = new List<string> { "card" },
-        //        Metadata = new Dictionary<string, string>
-        //        {
-        //            { "order_id", request.OrderId.ToString() },
-        //            { "username", request.Username },
-        //        },
-        //    };
-
-        //    var service = new PaymentIntentService();
-
-        //    var intent = await service.CreateAsync(intentOptions);
-
-        //    var confirmOptions = new PaymentIntentConfirmOptions
-        //    {
-        //        PaymentMethod = request.PaymentMethodId,
-        //    };
-
-        //    var response = new PaymentResponseDTO { PaymentIntentId = intent.Id };
-
-        //    try
-        //    {
-        //        var confirmation = await service.ConfirmAsync(intent.Id, confirmOptions);
-
-        //        response.Message = confirmation.Status;
-        //    }
-        //    catch (StripeException ex)
-        //    {
-        //        response.Message = ex.StripeError?.Message ?? "An error occurred while processing the payment.";
-        //    }
-        //    catch (UserException ex)
-        //    {
-        //        response.Message = $"An unexpected error occurred: {ex.Message}";
-        //    }
-
-        //    return response;
-        //}
         public async Task<PaymentResponseDTO> ConfirmPayment(PaymentCreateDTO request)
         {
             var intentOptions = new PaymentIntentCreateOptions

@@ -24,6 +24,15 @@ namespace eGlamHeelHangout.Service
             {
                 var dbOrder = _mapper.Map<Order>(request);
                 dbOrder.OrderStatus = "Pending";
+
+                
+                dbOrder.FullName = request.FullName;
+                dbOrder.Email = request.Email;
+                dbOrder.Address = request.Address;
+                dbOrder.City = request.City;
+                dbOrder.PostalCode = request.PostalCode;
+                dbOrder.PhoneNumber = request.PhoneNumber;
+
                 _context.Orders.Add(dbOrder);
                 await _context.SaveChangesAsync();
 
@@ -50,12 +59,9 @@ namespace eGlamHeelHangout.Service
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                // Dohvati punu narudžbu s uključenim navigacijama
                 var fullOrder = await _context.Orders
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.ProductSize)
+                    .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+                    .Include(o => o.OrderItems).ThenInclude(oi => oi.ProductSize)
                     .Include(o => o.User)
                     .FirstOrDefaultAsync(o => o.OrderId == dbOrder.OrderId);
 
@@ -67,6 +73,7 @@ namespace eGlamHeelHangout.Service
                 throw;
             }
         }
+
 
         public override IQueryable<Order> AddFilter(IQueryable<Order> query, Model.SearchObjects.OrderSearchObject ? search)
         {

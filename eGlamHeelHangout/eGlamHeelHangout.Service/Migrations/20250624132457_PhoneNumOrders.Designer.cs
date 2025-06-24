@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eGlamHeelHangout.Service.Database;
 
@@ -11,9 +12,10 @@ using eGlamHeelHangout.Service.Database;
 namespace eGlamHeelHangout.Service.Migrations
 {
     [DbContext(typeof(_200199Context))]
-    partial class _200199ContextModelSnapshot : ModelSnapshot
+    [Migration("20250624132457_PhoneNumOrders")]
+    partial class PhoneNumOrders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -33,6 +33,7 @@ Future<void> main() async {
 
  await dotenv.load(fileName: ".env");
  Stripe.publishableKey = dotenv.env['Stripe__PublishableKey']!;
+ await Stripe.instance.applySettings();
  print("Stripe Key: ${dotenv.env['Stripe__PublishableKey']}");
 
  HttpOverrides.global = MyHttpOverrides();
@@ -211,8 +212,12 @@ class _LoginPageState extends flutter.State<LoginPage> {
                                 final loggedInUser = await userProvider.getCurrentUser();
                                 final prefs = await SharedPreferences.getInstance();
                                 prefs.setInt("userId", loggedInUser.userId!);
+                                CurrentUser.set(
+                                loggedInUser.userId!,
+                                loggedInUser.username!,
+                                fullUser: loggedInUser,
+                              );
 
-                                CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
                                 Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) => const ProductsListScreen(),

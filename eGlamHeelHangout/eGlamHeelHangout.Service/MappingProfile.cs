@@ -124,7 +124,9 @@ namespace eGlamHeelHangout.Service
     .ForMember(dest => dest.Product, opt => opt.Ignore());
 
             CreateMap<OrderItem, OrderItemDTO>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.ProductName,
+           opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null))
+
                 .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.ProductSize.Size))
                 .ForMember(dest => dest.ProductSizeId, opt => opt.MapFrom(src => src.ProductSizeId));
 

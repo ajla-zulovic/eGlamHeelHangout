@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eGlamHeelHangout.Service.Database;
 
@@ -11,9 +12,10 @@ using eGlamHeelHangout.Service.Database;
 namespace eGlamHeelHangout.Service.Migrations
 {
     [DbContext(typeof(_200199Context))]
-    partial class _200199ContextModelSnapshot : ModelSnapshot
+    [Migration("20250623120611_EntityOrdersExtended")]
+    partial class EntityOrdersExtended
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -267,9 +269,6 @@ namespace eGlamHeelHangout.Service.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PostalCode")
                         .HasColumnType("nvarchar(max)");
 
@@ -365,8 +364,7 @@ namespace eGlamHeelHangout.Service.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("StateMachine")
                         .HasColumnType("nvarchar(max)");

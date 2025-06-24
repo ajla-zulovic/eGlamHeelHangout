@@ -11,6 +11,12 @@ class Order {
   final String? username;
   final DateTime? orderDate;
   final List<OrderItem> items;
+  final String? fullName;
+  final String? email;
+  final String? address;
+  final String? city;
+  final String? postalCode;
+  final String? phoneNumber;
 
   Order({
     required this.orderId,
@@ -18,8 +24,14 @@ class Order {
     required this.orderStatus,
     required this.paymentMethod,
     required this.items,
+    this.fullName,
+    this.email,
+    this.address,
+    this.city,
+    this.postalCode,
     this.username,
     this.orderDate,
+    this.phoneNumber,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
