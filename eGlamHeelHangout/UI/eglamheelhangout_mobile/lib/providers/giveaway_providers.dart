@@ -1,6 +1,7 @@
 import 'package:eglamheelhangout_mobile/models/giveaway.dart';
 import 'package:eglamheelhangout_mobile/providers/base_providers.dart';
 import 'dart:convert';
+import 'package:eglamheelhangout_mobile/models/winner_notification_entity.dart';
 
 class GiveawayProvider extends BaseProvider<Giveaway> {
   GiveawayProvider() : super("Giveaway");
@@ -59,6 +60,21 @@ Future<void> participate(Map<String, dynamic> data) async {
     } catch (e) {
       throw Exception(" ${e.toString()}");
     }
+  }
+}
+Future<List<Giveaway>> getFinishedWithWinner() async {
+  final uri = Uri.parse("${baseUrl}${endpoint}/user/finished-with-winner");
+
+  final response = await http!.get(uri, headers: createHeaders());
+
+  if (response.statusCode == 200) {
+    final List data = jsonDecode(response.body);
+    return data.map((json) => Giveaway.fromJson(json)).toList();
+  } else if (response.statusCode == 404) {
+    
+    return [];
+  } else {
+    throw Exception("Failed to load finished giveaways with winners");
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/giveaway.dart';
 import '../models/giveawaydto.dart';
+import '../screens/past_giveaway_screen.dart';
 import '../providers/giveaway_providers.dart';
 import '../utils/utils.dart';
 import 'giveaway_participant_screen.dart';
@@ -68,10 +69,23 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Active Giveaways'),
-        backgroundColor: Colors.grey[800],
-        foregroundColor: Colors.white,
-      ),
+  title: const Text('Active Giveaways'),
+  backgroundColor: Colors.grey[800],
+  foregroundColor: Colors.white,
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.history),
+      tooltip: "Past Giveaways",
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PastGiveawaysScreen()),
+        );
+      },
+    ),
+  ],
+),
+
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _giveaways.isEmpty
@@ -112,6 +126,8 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
                                 Text(
                                     giveaway.title,
                                     style: const TextStyle(fontWeight: FontWeight.bold),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
                                 Text("Heel: ${giveaway.heelHeight.toStringAsFixed(1)} cm | ${giveaway.color}"),
@@ -123,7 +139,7 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
                             ),
                             ),
 
-                            // Desno: Dugme
+                            
                             ElevatedButton(
                             onPressed: giveaway.isClosed
                                 ? null
@@ -147,7 +163,10 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: giveaway.isClosed ? Colors.grey : Colors.blue,
                                 foregroundColor: Colors.white,
-                                minimumSize: const Size(60, 40),
+                                minimumSize: const Size(80, 36),
+                                 shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10), 
+                                ),
                             ),
                             child: Text(giveaway.isClosed ? "Joined" : "Participate"),
                             )

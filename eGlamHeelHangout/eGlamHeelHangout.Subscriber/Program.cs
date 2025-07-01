@@ -30,9 +30,16 @@ public class Program
                 "giveaway_subscriber",
                 async message => await HandleGiveawayMessage(message),
                 cfg => cfg.WithTopic("giveaway.*"));
+            await bus.PubSub.SubscribeAsync<ProductNotificationDTO>(
+                "product_subscriber",
+                async message => await HandleProductMessage(message),
+                cfg => cfg.WithTopic("product.*"));
+            Console.WriteLine("Subscribed to ProductNotificationDTO with topic product.*");
+
 
             Console.WriteLine("Waiting for messages... Press Enter.");
-            Console.ReadLine();
+            //Console.ReadLine();
+            await Task.Delay(Timeout.Infinite);
         }
     }
 
@@ -55,4 +62,14 @@ public class Program
         Console.WriteLine(await response.Content.ReadAsStringAsync());
 
     }
+    static async Task HandleProductMessage(ProductNotificationDTO message)
+    {
+        Console.WriteLine($"Received new product from RabbitMQ: {message.Name}");
+
+        using var client = new HttpClient();
+        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/product", message);
+
+        Console.WriteLine($"Product notify status: {response.StatusCode}");
+    }
+
 }

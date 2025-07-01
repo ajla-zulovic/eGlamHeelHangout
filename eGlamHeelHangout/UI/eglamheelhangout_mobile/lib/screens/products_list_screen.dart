@@ -25,7 +25,12 @@ import 'package:eglamheelhangout_mobile/screens/active_giveaway_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eglamheelhangout_mobile/models/giveaway.dart';
 import 'package:eglamheelhangout_mobile/models/giveawaydto.dart';
+import 'package:eglamheelhangout_mobile/models/notifications.dart';
 import 'package:signalr_core/signalr_core.dart';
+import 'package:eglamheelhangout_mobile/providers/notifications_providers.dart';
+import 'package:eglamheelhangout_mobile/screens/unread_notif_screen.dart';
+import 'package:badges/badges.dart' as badges;
+
 
 
 class ProductsListScreen extends StatefulWidget {
@@ -40,10 +45,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   late ProductProvider _productProvider;
 
   final List<Map<String, dynamic>> _pages = [
-    {'page': const HomeScreen(), 'title': 'Home Page'},
-    {'page': const ProfileScreen(), 'title': 'Profile Page'},
+    {'page': const HomeScreen(), 'title': 'Home '},
+    {'page': const ProfileScreen(), 'title': 'Profile'},
     {'page': const MyFavoritesScreen(), 'title': 'My Favorites'},
-    {'page': const UserOrdersListScreen(), 'title': 'History Orders List'},
+    {'page': const UserOrdersListScreen(), 'title': 'History Orders'},
   ];
 
   void _selectPage(int index) {
@@ -88,7 +93,37 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
         MaterialPageRoute(builder: (context) => CartScreen()),
       );
     },
-  ),
+  ),Consumer<NotificationProvider>(
+  builder: (context, notifProvider, _) {
+    final unreadCount = notifProvider.unreadCount;
+
+    return badges.Badge(
+      showBadge: unreadCount > 0,
+      badgeContent: Text(
+        unreadCount.toString(),
+        style: const TextStyle(color: Colors.white, fontSize: 10),
+      ),
+      position: badges.BadgePosition.topEnd(top: 0, end: 4),
+      badgeStyle: const badges.BadgeStyle(
+        badgeColor: Colors.red,
+        elevation: 0,
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.notifications, color: Colors.white),
+        tooltip: 'Notifications',
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NotificationListScreen()),
+          );
+          await context.read<NotificationProvider>().refreshUnreadCount(); 
+        },
+      ),
+    );
+  },
+),
+
+
 ],
 
       ),
@@ -102,11 +137,11 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
             ),
             ListTile(
                 leading: const Icon(Icons.home),
-                title: const Text('Home Page'),
+                title: const Text('Home'),
                 onTap: () => _selectPage(0)),
             ListTile(
                 leading: const Icon(Icons.person),
-                title: const Text('Profile Page'),
+                title: const Text('Profile'),
                 onTap: () => _selectPage(1)),
             ListTile(
                 leading: const Icon(Icons.favorite),
@@ -114,7 +149,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                 onTap: () => _selectPage(2)),
                  ListTile(
                 leading: const Icon(Icons.archive),
-                title: const Text('History Orders List'),
+                title: const Text('History Orders'),
                 onTap: () => _selectPage(3)),
             const Divider(),
             ListTile(
@@ -170,6 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
     _initialize();
     _initializeSignalR(); 
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+    context.read<NotificationProvider>().refreshUnreadCount();
+  });
   }
 Future<void> _initializeSignalR() async {
   _hubConnection = HubConnectionBuilder()
@@ -184,6 +222,7 @@ Future<void> _initializeSignalR() async {
 
   _hubConnection.on("ReceiveGiveaway", (arguments) {
     print("ReceiveGiveaway event triggered");
+    context.read<NotificationProvider>().refreshUnreadCount();
     final data = arguments?.first;
     if (data != null) {
       print("Data: ${data.toString()}");
@@ -215,6 +254,28 @@ Future<void> _initializeSignalR() async {
     }
   });
 
+
+_hubConnection.on("ReceiveProduct", (arguments) {
+  print("ReceiveProduct event triggered");
+  context.read<NotificationProvider>().refreshUnreadCount();
+  final data = arguments?.first;
+  if (data != null) {
+     print(">>> RAW PRODUCT DATA: $data");
+    final notificationId = data['notificationId'];
+    final productId = data['productId'];
+    final productName = data['name'];
+    final message = data['message'];
+
+    _fetchData(); 
+    if (context.mounted) {
+      _showProductDialog(
+        productName ?? "Unknown product",
+        notificationId: notificationId,
+        productId: productId,
+      );
+    }
+  }
+});
   try {
     await _hubConnection.start();
     print("SignalR connected to: $signalrUrl");
@@ -222,6 +283,9 @@ Future<void> _initializeSignalR() async {
     print("SignalR failed to connect: $e");
   }
 }
+
+
+
 
 
 void _showGiveawayDialog(GiveawayNotification giveaway) {
@@ -282,6 +346,46 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
     ),
   );
 }
+
+void _showProductDialog(String name, {int? notificationId, int? productId}) {
+  Future.delayed(const Duration(milliseconds: 200), () async {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("New Product!"),
+        content: Text("Do you want to view details for $name?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("No"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+
+              if (notificationId != null) {
+                await context.read<NotificationProvider>().markAsRead(notificationId);
+              }
+
+              if (productId != null) {
+                final product = await context.read<ProductProvider>().getById(productId);
+                if (!mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+                );
+              }
+            },
+            child: const Text("View"),
+          ),
+        ],
+      ),
+    );
+  });
+}
+
 
   @override
   void dispose() {
@@ -523,66 +627,91 @@ Widget build(BuildContext context) {
                         itemCount: _recommendedProducts!.length,
                         itemBuilder: (context, index) {
                           final product = _recommendedProducts![index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
-                              );
-                            },
-                            child: Container(
-                              width: 140,
-                              margin: const EdgeInsets.symmetric(horizontal: 8),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                         return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailScreen(product: product),
                               ),
-                              child: Column(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                    child: product.image != null
-                                        ? Image.memory(
-                                            base64Decode(product.image!),
-                                            height: 120,
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : const Icon(Icons.image_not_supported, size: 60),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          product.name ?? '',
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          formatNumber(product.price),
-                                          style: const TextStyle(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
+                            );
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 140,
+                                height: 240,
+                                margin: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
                                     ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: product.image != null
+                                              ? Image.memory(
+                                                  base64Decode(product.image!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : const Icon(Icons.image_not_supported, size: 50),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        product.name ?? '',
+                                        style: const TextStyle(fontSize: 14),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        formatNumber(product.price),
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 14,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          );
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: IconButton(
+                                  icon: Icon(
+                                    product.isFavorite == true ? Icons.favorite : Icons.favorite_border,
+                                    color: Colors.pink,
+                                  ),
+                                  onPressed: () async {
+                                    try {
+                                      final liked = await context.read<FavoriteProvider>().toggle(product.productID!);
+                                      setState(() => product.isFavorite = liked);
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Error: ${e.toString()}')),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
                         },
                       ),
                     ),

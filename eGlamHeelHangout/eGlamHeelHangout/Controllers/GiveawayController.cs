@@ -2,8 +2,10 @@ using eGlamHeelHangout.Model;
 using eGlamHeelHangout.Model.Requests;
 using eGlamHeelHangout.Model.Utilities;
 using eGlamHeelHangout.Service;
+using eGlamHeelHangout.Service.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace eGlamHeelHangout.Controllers
 {
@@ -14,10 +16,12 @@ namespace eGlamHeelHangout.Controllers
     public class GiveawayController : BaseController<Model.Giveaways, Model.SearchObjects.GiveawaySearchObject>
     {
         private readonly IGiveawayService _giveawayService;
+  
 
         public GiveawayController(ILogger<BaseController<Giveaways, Model.SearchObjects.GiveawaySearchObject>> logger, IGiveawayService service) : base(logger, service)
         {
             _giveawayService = service;
+            
         }
 
         [HttpPost]
@@ -117,6 +121,30 @@ namespace eGlamHeelHangout.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet("user/winner-notifications")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetWinnerNotifications()
+        {
+            var username = HttpContext.User.Identity?.Name;
+            if (string.IsNullOrEmpty(username)) return Unauthorized();
+
+            var result = await _giveawayService.GetWinnerNotificationsForUser(username);
+            return Ok(result);
+        }
+
+        [HttpGet("user/finished-with-winner")]
+        public async Task<IActionResult> GetFinishedWithWinner()
+        {
+            var list = await _giveawayService.GetFinishedWithWinner();
+            if (list == null || !list.Any())
+                return NotFound("There are no finished giveaway with winner.");
+
+            return Ok(list);
+        }
+
+
+
 
     }
 

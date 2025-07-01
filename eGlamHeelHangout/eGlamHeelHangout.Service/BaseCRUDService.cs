@@ -25,6 +25,7 @@ namespace eGlamHeelHangout.Service
       set.Add(entity);
       await BeforeInsert(entity, insert);
       await _context.SaveChangesAsync();
+      await _context.Entry(entity).ReloadAsync();
       return _mapper.Map<T>(entity);
     }
 

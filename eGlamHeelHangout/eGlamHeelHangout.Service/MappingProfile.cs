@@ -29,6 +29,15 @@ namespace eGlamHeelHangout.Service
                 .ForMember(dest => dest.Orders, opt => opt.Ignore())
                 .ForMember(dest => dest.Reviews, opt => opt.Ignore());
 
+            //NOTIFICATION
+            CreateMap<Notification, NotificationDTO>()
+            .ForMember(dest => dest.ProductName,
+                opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : string.Empty))
+            .ForMember(dest => dest.GiveawayTitle,
+                opt => opt.MapFrom(src => src.Giveaway != null ? src.Giveaway.Title : string.Empty));
+
+
+
             CreateMap<UserUpdateRequest, User>()
                 .ForMember(dest => dest.UserId, opt => opt.Ignore())
                 .ForMember(dest => dest.Username, opt => opt.Ignore())

@@ -9,6 +9,22 @@ class GiveawayParticipationScreen extends StatefulWidget {
 
   const GiveawayParticipationScreen({super.key, required this.giveaway});
 
+factory GiveawayParticipationScreen.fromNotification({
+  required int giveawayId,
+  required String giveawayTitle,
+}) {
+  final dummyGiveaway = GiveawayNotification(
+    giveawayId: giveawayId,
+    title: giveawayTitle,
+    description: '',
+    heelHeight: 0.0,
+    color: '',
+    giveawayProductImage: null,
+  );
+
+  return GiveawayParticipationScreen(giveaway: dummyGiveaway);
+}
+
   @override
   State<GiveawayParticipationScreen> createState() =>
       _GiveawayParticipationScreenState();
@@ -189,7 +205,7 @@ class _GiveawayParticipationScreenState
           Align(
             alignment: Alignment.bottomRight,
             child: SizedBox(
-              width: 100,
+              width: 80,
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitParticipation,
                 style: ElevatedButton.styleFrom(
@@ -197,7 +213,7 @@ class _GiveawayParticipationScreenState
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 child: _isSubmitting

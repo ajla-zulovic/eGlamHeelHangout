@@ -33,5 +33,17 @@ namespace eGlamHeelHangout.Controllers
             await _hubContext.Clients.All.SendAsync("ReceiveWinner", dto);
             return Ok();
         }
+
+        [HttpPost("product")]
+        public async Task<IActionResult> NotifyProduct([FromBody] ProductNotificationDTO dto)
+        {
+            await _hubContext.Clients.All.SendAsync("ReceiveProduct", dto);
+            Console.WriteLine("Notifikacija stigla u ProductNotificationController: " + dto.Name);
+
+            return Ok();
+        }
+
+     
+
     }
 }

@@ -71,10 +71,9 @@ namespace eGlamHeelHangout.Service
 
         public async Task<GiveawayParticipants?> PickWinner(int giveawayId)
         {
-
             var existingWinner = await _context.GiveawayParticipants
-         .Where(e => e.GiveawayId == giveawayId && e.IsWinner)
-         .FirstOrDefaultAsync();
+                .Where(e => e.GiveawayId == giveawayId && e.IsWinner)
+                .FirstOrDefaultAsync();
 
             if (existingWinner != null)
                 throw new Exception("Winner already picked for this giveaway.");
@@ -86,10 +85,13 @@ namespace eGlamHeelHangout.Service
             if (!entries.Any())
                 throw new Exception("There are no participants, not able to generate a winner.");
 
+            var giveaway = await _context.Giveaways.FindAsync(giveawayId);
+
+            if (giveaway.EndDate > DateTime.Now)
+                throw new Exception("Giveaway is still active. You can pick a winner only after the giveaway ends.");
+
             var winner = entries[new Random().Next(entries.Count)];
             winner.IsWinner = true;
-
-            var giveaway = await _context.Giveaways.FindAsync(giveawayId);
             giveaway.IsClosed = true;
 
             await _context.SaveChangesAsync();
@@ -101,13 +103,11 @@ namespace eGlamHeelHangout.Service
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to send winner notification: {ex.Message}");
-            
             }
-
-           
 
             return _mapper.Map<GiveawayParticipants>(winner);
         }
+
 
 
         //overridana metoda inserta zbog slanja notif :
@@ -120,25 +120,38 @@ namespace eGlamHeelHangout.Service
 
             if (!string.IsNullOrWhiteSpace(insert.GiveawayProductImage))
             {
-                try
-                {
-                    var base64 = insert.GiveawayProductImage;
-
-                    
-                    if (base64.Contains(","))
-                        base64 = base64.Split(',')[1];
-
-                    entity.GiveawayProductImage = Convert.FromBase64String(base64);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Invalid image format. Cannot decode base64 string.", ex);
-                }
+                var base64 = insert.GiveawayProductImage;
+                if (base64.Contains(",")) base64 = base64.Split(',')[1];
+                entity.GiveawayProductImage = Convert.FromBase64String(base64);
             }
 
             _context.Giveaways.Add(entity);
             await _context.SaveChangesAsync();
 
+            var users = await _context.Users
+            .Where(u => u.UsersRoles.Any(ur => ur.Role.RoleName == "User"))
+            .ToListAsync();
+
+            var notifications = new List<Notification>();
+
+            foreach (var user in users)
+            {
+                var notif = new Notification
+                {
+                    UserId = user.UserId,
+                    Message = $"New giveaway '{entity.Title}' has started! Join now!",
+                    NotificationType = "NewGiveaway",
+                    GiveawayId = entity.GiveawayId,
+                    IsRead = false,
+                    DateSent = DateTime.Now
+                };
+                notifications.Add(notif);
+                _context.Notifications.Add(notif);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // RABBITMQ
             try
             {
                 using var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123");
@@ -153,34 +166,31 @@ namespace eGlamHeelHangout.Service
                         ? Convert.ToBase64String(entity.GiveawayProductImage)
                         : null
                 }, "giveaway.new");
-
-                Console.WriteLine("Giveaway published to RabbitMQ");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"RabbitMQ error: {ex.Message}");
             }
 
-            
-            if (_hubContext != null)
+            // SIGNALR
+            foreach (var notif in notifications)
             {
-                await _hubContext.Clients.All.SendAsync("ReceiveGiveaway", new
+                var user = users.FirstOrDefault(u => u.UserId == notif.UserId);
+                if (user != null)
                 {
-                    giveawayId = entity.GiveawayId,
-                    title = entity.Title,
-                    description = entity.Description,
-                    heelHeight = entity.HeelHeight,
-                    color = entity.Color,
-                    giveawayProductImage = entity.GiveawayProductImage != null
-                        ? Convert.ToBase64String(entity.GiveawayProductImage)
-                        : null
-                });
+                    await _hubContext.Clients.User(user.Username).SendAsync("ReceiveGiveaway", new
+                    {
+                        notificationId = notif.NotificationId,
+                        giveawayId = entity.GiveawayId,
+                        giveawayTitle = entity.Title,
+                        message = notif.Message,
+                        dateSent = notif.DateSent?.ToString("yyyy-MM-ddTHH:mm:ss")
+                    });
+                }
             }
 
             return _mapper.Map<Model.Giveaways>(entity);
         }
-
-
 
 
         public override async Task<PagedResult<Model.Giveaways>> Get(Model.SearchObjects.GiveawaySearchObject? search = null)
@@ -246,23 +256,30 @@ namespace eGlamHeelHangout.Service
             return mappedList;
         }
 
-
         public async Task NotifyWinner(int giveawayId, int winnerUserId)
         {
             var giveaway = await _context.Giveaways.FindAsync(giveawayId);
             var winner = await _context.Users.FindAsync(winnerUserId);
 
-            using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+            try
             {
-                await bus.PubSub.PublishAsync(new WinnerNotification
+                using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
                 {
-                    GiveawayId = giveawayId,
-                    GiveawayTitle = giveaway.Title,
-                    WinnerUserId = winnerUserId,
-                    WinnerUsername = winner.Username,
-                    NotificationDate = DateTime.Now
-                },"winner.notification");
-            } 
+                    await bus.PubSub.PublishAsync(new WinnerNotification
+                    {
+                        GiveawayId = giveawayId,
+                        GiveawayTitle = giveaway.Title,
+                        WinnerUserId = winnerUserId,
+                        WinnerUsername = winner.Username,
+                        NotificationDate = DateTime.Now
+                    }, "winner.notification");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RabbitMQ error: {ex.Message}");
+            }
+
             _context.WinnerNotifications.Add(new WinnerNotificationEntity
             {
                 GiveawayId = giveawayId,
@@ -273,7 +290,17 @@ namespace eGlamHeelHangout.Service
             });
 
             await _context.SaveChangesAsync();
+
+            if (_hubContext != null)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveWinner", new
+                {
+                    winnerUsername = winner.Username,
+                    giveawayTitle = giveaway.Title
+                });
+            }
         }
+
 
         public async Task<WinnerNotificationEntity?> GetLastWinnerNotification()
         {
@@ -300,6 +327,43 @@ namespace eGlamHeelHangout.Service
             _context.Giveaways.Remove(giveaway);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<WinnerNotificationEntity>> GetWinnerNotificationsForUser(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+                throw new Exception("User not found");
+
+            return await _context.WinnerNotifications
+                .Where(w => w.WinnerUserId == user.UserId)
+                .OrderByDescending(w => w.NotificationDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<Giveaways>> GetFinishedWithWinner()
+        {
+            var query = _context.Giveaways
+                .Include(g => g.GiveawayParticipants)
+                .Where(g => g.EndDate <= DateTime.Now && g.IsClosed);
+
+            var list = await query.ToListAsync();
+
+            var mappedList = _mapper.Map<List<Model.Giveaways>>(list);
+
+            foreach (var giveaway in mappedList)
+            {
+                var dbGiveaway = list.First(g => g.GiveawayId == giveaway.GiveawayId);
+                var winner = dbGiveaway.GiveawayParticipants.FirstOrDefault(p => p.IsWinner);
+
+                if (winner != null)
+                {
+                    var winnerUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == winner.UserId);
+                    giveaway.WinnerName = winnerUser?.Username;
+                }
+            }
+
+            return mappedList.Where(g => g.WinnerName != null).ToList();
         }
 
     }

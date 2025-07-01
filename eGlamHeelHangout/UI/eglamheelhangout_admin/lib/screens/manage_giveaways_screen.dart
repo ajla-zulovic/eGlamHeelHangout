@@ -48,6 +48,8 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
          ),
       );
     }
+    print(" [GiveawaysManageScreen] Loading counts...");
+
   }
 
   Future<void> _loadGiveaways() async {
@@ -80,6 +82,8 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
         _isLoading = false;
       });
     }
+    print("[GiveawaysManageScreen] Loading giveaways: filter = $_selectedFilter");
+
   }
 
   Future<void> _generateWinner(int giveawayId) async {

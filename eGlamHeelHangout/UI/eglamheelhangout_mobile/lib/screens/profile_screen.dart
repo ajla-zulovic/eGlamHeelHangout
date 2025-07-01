@@ -265,14 +265,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       [TextInputType keyboardType = TextInputType.text,
       FormFieldValidator<String>? validator]) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         enabled: _isEditing,
         controller: _controllers[key],
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          border: const OutlineInputBorder(), 
+          filled: true,
+          fillColor: Colors.white, 
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         validator: validator ?? (value) => value == null || value.isEmpty ? 'Required' : null,
       ),

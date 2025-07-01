@@ -20,6 +20,7 @@ using DotNetEnv;
 
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine(">>> ENVIRONMENT: " + builder.Environment.EnvironmentName);
 var envPath = Path.Combine(AppContext.BaseDirectory, "../../../../.env");
 Console.WriteLine("ENV FILE: " + envPath);
 Env.Load(envPath);
@@ -29,11 +30,12 @@ Console.WriteLine(" Loaded SecretKey: " + Environment.GetEnvironmentVariable("St
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddEnvironmentVariables() //da moze citati pub_key iz .env fajla
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-    
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 QuestPDF.Settings.License = LicenseType.Community;
 
-// Add services to the container.
 
 builder.Services.AddControllers(x => {
   x.Filters.Add<ErrorFilter>();
@@ -123,9 +125,13 @@ builder.Services.AddCors(options =>
 
 
 
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine(">>> KONEKCIJSKI STRING: " + connectionString);
 builder.Services.AddDbContext<_200199Context>(options =>
 options.UseSqlServer(connectionString));
+
+
 
 builder.Services.AddAutoMapper(typeof(IUserService));
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
@@ -143,7 +149,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (AutoMapper.AutoMapperConfigurationException ex)
     {
-        System.Diagnostics.Debug.WriteLine("AutoMapper greška u mapiranju:");
+        System.Diagnostics.Debug.WriteLine("AutoMapper greska u mapiranju:");
         System.Diagnostics.Debug.WriteLine(ex.Message);
 
         foreach (var error in ex.Errors)
@@ -164,17 +170,11 @@ using (var scope = app.Services.CreateScope())
         }
 
 
-        throw; 
+        throw;
     }
 }
-
-
-
-
-
-
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
 {
   app.UseSwagger();
   app.UseSwaggerUI();
@@ -199,16 +199,20 @@ app.UseEndpoints(endpoints =>
 //ovo je za nas kreirati vse tabele koje su nam potrebne za rad aplikacije 
 using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Context ima scoped lifetime, sto znaci da postoji samo u okviru jednog scope-a ili request-a
 {
-  var dataContext = scope.ServiceProvider.GetRequiredService<_200199Context>();
+    var dataContext = scope.ServiceProvider.GetRequiredService<_200199Context>();
     try
     {
+        Console.WriteLine(">>> Running DB migration...");
         dataContext.Database.Migrate();
+        Console.WriteLine(">>> Migration successful.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Migration failed: {ex.Message}");
+        Console.WriteLine(">>> Migration failed:");
+        Console.WriteLine(ex.ToString());
     }
 }
+
 
 
 

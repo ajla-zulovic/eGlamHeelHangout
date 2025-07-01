@@ -25,8 +25,8 @@ services:
     env_file:
     - .env
     environment:
-      - ConnectionStrings__DefaultConnection=Server=eglamheelhangout-sql,1433;Database=200199;User=sa;Password=QWElkj123!;ConnectRetryCount=0;TrustServerCertificate=True
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__DefaultConnection=Server=eglamheelhangout-sql,1433;Database=200199;User Id=sa;Password=QWElkj123!;TrustServerCertificate=True
       - ASPNETCORE_URLS=http://0.0.0.0:7277
       - StripeSettings__SecretKey=${Stripe__SecretKey}
       - StripeSettings__PublishableKey=${Stripe__PublishableKey}
@@ -67,6 +67,9 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      eglamheelhangout-api:
+        condition: service_started
+    restart: always
     networks:
       - eglamheelhangoutnet2025
 

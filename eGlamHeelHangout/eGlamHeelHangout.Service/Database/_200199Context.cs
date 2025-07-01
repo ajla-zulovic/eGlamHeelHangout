@@ -160,6 +160,16 @@ namespace eGlamHeelHangout.Service.Database
             .WithMany(p => p.Notifications)
             .HasForeignKey(d => d.UserId)
             .HasConstraintName("FK_Notifications_Users");
+
+        entity.HasOne(d => d.Giveaway)
+            .WithMany() 
+            .HasForeignKey(d => d.GiveawayId)
+            .HasConstraintName("FK_Notifications_Giveaways");
+
+        entity.HasOne(d => d.Product)
+              .WithMany() 
+              .HasForeignKey(d => d.ProductId)
+              .HasConstraintName("FK_Notifications_Products");
       });
 
       modelBuilder.Entity<Order>(entity =>

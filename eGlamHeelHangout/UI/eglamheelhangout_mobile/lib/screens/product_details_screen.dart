@@ -96,8 +96,6 @@ void _addToCart() {
       );
       return;
     }
-
-    // Provjera dostupnosti
     if (selectedProductSize.stockQuantity < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -142,82 +140,6 @@ void _addToCart() {
 }
 
 
-// void _addToCart() {
-//   if (selectedSize == null) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text("Please select a size before adding to cart."),
-//         backgroundColor: Colors.red,
-//       ),
-//     );
-//     return;
-//   }
-
-//   try {
-//     final cartProvider = context.read<CartProvider>();
-
-//     final selectedProductSize = _sizes.firstWhere(
-//       (s) => s.size.toString() == selectedSize.toString(),
-//       orElse: () => throw Exception("Selected size not found"),
-//     );
-
-//     // Provjeri da li je već u korpi
-//     final alreadyInCart = cartProvider.items.any((item) =>
-//       item.productId == widget.product?.productID &&
-//       item.size == selectedSize);
-
-//     if (alreadyInCart) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//           content: Text("This product (with selected size) is already in the cart."),
-//           backgroundColor: Colors.orange,
-//         ),
-//       );
-//       return;
-//     }
-
-//     // Dodavanje nove stavke s provjerenom količinom
-//     if (selectedProductSize.stockQuantity < 1) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text("This product is out of stock for size $selectedSize."),
-//           backgroundColor: Colors.red,
-//         ),
-//       );
-//       return;
-//     }
-//     print("Selected ProductSizeId: ${selectedProductSize.productSizeId}");
-
-//     cartProvider.addItem(
-//       CartItem(
-//         productId: widget.product?.productID ?? 0,
-//         productSizeId: selectedProductSize.productSizeId ?? 0,
-//         sizeId: selectedProductSize.productSizeId ?? 0,
-//         size: selectedSize!,
-//         name: widget.product?.name ?? "Unnamed",
-//         price: widget.product?.price ?? 0.0,
-//         image: widget.product?.image,
-//         quantity: 1,
-//         stockQuantity: selectedProductSize.stockQuantity,
-//       ),
-//     );
-
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text("Item added to cart!"),
-//         backgroundColor: Colors.green,
-//       ),
-//     );
-//   } catch (e) {
-//     print("Error in _addToCart: $e");
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text("Unexpected error occurred while adding to cart."),
-//         backgroundColor: Colors.red,
-//       ),
-//     );
-//   }
-// }
 
 
   void _showRatingDialog() {
@@ -326,11 +248,6 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
                     Container(
                       height: 250,
                       width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade500),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
                       child: imageFromBase64String(product.image!),
                     ),
                   const SizedBox(height: 20),

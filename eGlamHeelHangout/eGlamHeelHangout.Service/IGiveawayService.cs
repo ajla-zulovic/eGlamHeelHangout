@@ -20,6 +20,11 @@ namespace eGlamHeelHangout.Service
         Task<bool> Delete(int id);
         Task<WinnerNotificationEntity?> GetLastWinnerNotification();
         Task<bool> DeleteGiveawayIfFinishedAndHasWinner(int id);
+        Task<List<WinnerNotificationEntity>> GetWinnerNotificationsForUser(string username);
+  
+        Task<List<Giveaways>> GetFinishedWithWinner();
+
+
 
 
     }
