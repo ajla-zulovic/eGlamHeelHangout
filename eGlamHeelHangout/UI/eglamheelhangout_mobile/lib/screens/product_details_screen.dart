@@ -11,7 +11,8 @@ import 'package:eglamheelhangout_mobile/providers/cart_providers.dart';
 import 'package:eglamheelhangout_mobile/models/cartitem.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
-
+import 'package:eglamheelhangout_mobile/models/discount.dart';
+import 'package:eglamheelhangout_mobile/providers/discount_providers.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -44,6 +45,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<void> _loadSizes() async {
     final result = await _productProvider.getProductSizes(widget.product!.productID!);
+    result.sort((a, b) => a.size.compareTo(b.size)); 
     setState(() {
       _sizes = result;
       isLoading = false;
@@ -107,7 +109,9 @@ void _addToCart() {
     }
 
     print("Adding to cart with ProductSizeId: ${selectedProductSize.productSizeId}");
-
+    final cartPrice = widget.product?.discountedPrice != null && widget.product!.discountedPrice! > 0
+        ? widget.product!.discountedPrice!
+        : widget.product?.price ?? 0.0;
     cartProvider.addItem(
       CartItem(
         productId: widget.product?.productID ?? 0,
@@ -115,7 +119,8 @@ void _addToCart() {
         sizeId: selectedProductSize.productSizeId!,        
         size: selectedSize!,
         name: widget.product?.name ?? "Unnamed",
-        price: widget.product?.price ?? 0.0,
+        //price: widget.product?.price ?? 0.0,
+        price:cartPrice,
         image: widget.product?.image,
         quantity: 1,
         stockQuantity: selectedProductSize.stockQuantity,
@@ -277,7 +282,50 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
                   const SizedBox(height: 20),
                   Text(product?.name ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
-                  Text(formatNumber(product?.price), style: const TextStyle(fontSize: 18, color: Colors.green)),
+                  const SizedBox(height: 10),
+                  if (product?.discountedPrice != null &&
+                      product!.discountedPrice! > 0 &&
+                      product.discountPercentage != null &&
+                      product.discountPercentage! > 0)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          formatNumber(product.price),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          formatNumber(product.discountedPrice),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "(${product.discountPercentage!.toStringAsFixed(0)}% OFF)",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      formatNumber(product?.price),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.green,
+                      ),
+                    ),
+
                   const SizedBox(height: 20),
                   if (product?.description != null)
                     Text(product!.description!, style: const TextStyle(fontSize: 16)),

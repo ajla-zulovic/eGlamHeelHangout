@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Category> _categories = [];
   int? _selectedCategoryId;
   bool _isLoading = false;
-
+  List<Product> _products = [];
 
 
   @override
@@ -164,6 +164,16 @@ class _HomeScreenState extends State<HomeScreen> {
      _fetchCategories();
   }
 
+Future<void> _loadDiscountedProducts() async {
+  try {
+    final data = await context.read<ProductProvider>().getDiscountedProducts();
+    setState(() {
+      _products = data;
+    });
+  } catch (e) {
+    debugPrint("Error loading discounted products: $e");
+  }
+}
 
 Future<void> _fetchCategories() async {
   final categoryResult = await _categoryProvider!.get();
@@ -364,6 +374,8 @@ Future<void> _fetchData() async {
               ),
               itemBuilder: (context, index) {
                 final product = result!.result[index];
+                print('${product.name}: ${product.discountedPrice}, ${product.discountPercentage}');
+
                 return InkWell(
                   onTap: () async {
                     final updated = await Navigator.push(
@@ -392,23 +404,51 @@ Future<void> _fetchData() async {
                           padding: const EdgeInsets.all(12.0),
                           child: Center(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                              SizedBox(
-                                height: 180,
-                                width: 230,
-                                child: product.image != null && product.image!.isNotEmpty
-                                    ? imageFromBase64String(product.image!)
-                                    : const Icon(Icons.image_not_supported, size: 50),
-                              ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  product.name ?? "",
-                                  style: const TextStyle(fontSize: 14),
-                                  textAlign: TextAlign.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: product.image != null && product.image!.isNotEmpty
+                                      ? imageFromBase64String(product.image!)
+                                      : const Icon(Icons.image_not_supported, size: 50),
                                 ),
-                                const SizedBox(height: 4),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                product.name ?? "",
+                                style: const TextStyle(fontSize: 14),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 4),
+                              if (product.discountedPrice != null && product.discountedPrice! > 0 && product.discountPercentage != null && product.discountPercentage! > 0)
+                                Column(
+                                  children: [
+                                    Text(
+                                      formatNumber(product.price),
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 13,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      formatNumber(product.discountedPrice),
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      '(${product.discountPercentage!.toStringAsFixed(0)}% OFF)',
+                                      style: const TextStyle(color: Colors.green, fontSize: 12),
+                                    ),
+                                  ],
+                                )
+                              else
                                 Text(
                                   formatNumber(product.price),
                                   style: const TextStyle(
@@ -416,8 +456,9 @@ Future<void> _fetchData() async {
                                     fontSize: 14,
                                   ),
                                 ),
-                              ],
-                            ),
+                            ],
+                          )
+
                           ),
                         ),
                         Positioned(

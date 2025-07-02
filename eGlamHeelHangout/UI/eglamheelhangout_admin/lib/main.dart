@@ -8,6 +8,7 @@ import 'package:eglamheelhangout_admin/providers/user_providers.dart';
 import 'package:eglamheelhangout_admin/utils/current_user.dart';
 import 'package:eglamheelhangout_admin/providers/giveaway_providers.dart';
 import 'package:eglamheelhangout_admin/providers/order_providers.dart';
+import 'package:eglamheelhangout_admin/providers/discount_providers.dart';
 import 'package:eglamheelhangout_admin/providers/report_providers.dart';
 import 'package:eglamheelhangout_admin/screens/register_user_screen.dart';
 
@@ -20,6 +21,7 @@ void main() {
        ChangeNotifierProvider(create: (_) => GiveawayProvider()),
        ChangeNotifierProvider(create: (_) => OrderProvider()),
        ChangeNotifierProvider(create: (_) => ReportProvider()),
+      ChangeNotifierProvider(create: (_) => DiscountProvider()),
 
        
       ],

@@ -18,6 +18,8 @@ class Product {
   DateTime? updatedAt;
   bool? isActive;
   String? stateMachine;
+  double? discountedPrice;
+  int? discountPercentage;
 
   @JsonKey(name: 'isFavorite')
    bool? isFavorite;
@@ -37,6 +39,9 @@ class Product {
     this.updatedAt,
     this.isActive,
     this.stateMachine,
+    this.discountedPrice,
+    this.discountPercentage,
+
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);

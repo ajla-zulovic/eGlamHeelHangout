@@ -86,7 +86,9 @@ namespace eGlamHeelHangout.Service
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore())
                 .ForMember(dest => dest.Sizes, opt => opt.Ignore())
-                .ForMember(dest => dest.IsFavorite, opt => opt.Ignore());
+                .ForMember(dest => dest.IsFavorite, opt => opt.Ignore())
+                .ForMember(dest => dest.DiscountPercentage, opt => opt.Ignore())
+                .ForMember(dest => dest.DiscountedPrice, opt => opt.Ignore());
 
             // CATEGORY
             CreateMap<Category, Categories>();
@@ -142,6 +144,9 @@ namespace eGlamHeelHangout.Service
             CreateMap<Order, OrderDTO>()
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User != null ? src.User.Username : string.Empty))
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems));
+
+            //Discount  :
+            CreateMap<Discount, DiscountDTO>();
 
 
 

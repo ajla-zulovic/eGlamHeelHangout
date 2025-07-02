@@ -26,6 +26,8 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
           : DateTime.parse(json['updatedAt'] as String),
   isActive: json['isActive'] as bool?,
   stateMachine: json['stateMachine'] as String?,
+  discountedPrice: (json['discountedPrice'] as num?)?.toDouble(),
+  discountPercentage: (json['discountPercentage'] as num?)?.toInt(),
 )..isFavorite = json['isFavorite'] as bool?;
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
@@ -42,5 +44,7 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'isActive': instance.isActive,
   'stateMachine': instance.stateMachine,
+  'discountedPrice': instance.discountedPrice,
+  'discountPercentage': instance.discountPercentage,
   'isFavorite': instance.isFavorite,
 };

@@ -99,6 +99,8 @@ namespace eGlamHeelHangout.Service
                 })
                 .ToListAsync();
         }
+
+
         public override async Task<PagedResult<Model.Products>> Get(ProductsSearchObjects? search = null)
         {
             var query = AddFilter(_context.Products.Include(p => p.ProductSizes).AsQueryable(), search);
@@ -113,16 +115,32 @@ namespace eGlamHeelHangout.Service
                 .Select(f => f.ProductId)
                 .ToHashSet();
 
+            var currentDate = DateTime.Now;
+
             var mapped = toList.Select(p =>
             {
                 var mappedProduct = _mapper.Map<Model.Products>(p);
                 mappedProduct.IsFavorite = favoriteIds.Contains(p.ProductId);
+
+                // Traži aktivni popust
+                var discount = _context.Discounts
+                    .Where(d => d.ProductId == p.ProductId && d.StartDate <= currentDate && d.EndDate >= currentDate)
+                    .OrderByDescending(d => d.StartDate) 
+                    .FirstOrDefault();
+
+                if (discount != null)
+                {
+                    mappedProduct.DiscountPercentage = (int)discount.DiscountPercentage;
+                    mappedProduct.DiscountedPrice = Math.Round(p.Price * (1 - discount.DiscountPercentage / 100.0m), 2);
+                }
+
+
                 return mappedProduct;
             }).ToList();
 
             return new PagedResult<Model.Products>
             {
-                Count = mapped.Count,
+                Count = mapped.Count(),
                 Result = mapped
             };
         }
@@ -198,13 +216,67 @@ namespace eGlamHeelHangout.Service
             }
 
             return results
-                .Where(r => !_context.Favorites.Any(f => f.UserId == userId && f.ProductId == r.Item1.ProductId))
-                .OrderByDescending(r => r.Item2)
-                .Take(5)
-                .Select(r => _mapper.Map<Model.Products>(r.Item1))
-                .ToList();
+             .Where(r => !_context.Favorites.Any(f => f.UserId == userId && f.ProductId == r.Item1.ProductId))
+             .OrderByDescending(r => r.Item2)
+             .Take(5)
+             .Select(r =>
+             {
+                 var mapped = _mapper.Map<Model.Products>(r.Item1);
+
+                 
+                 var discount = _context.Discounts
+                     .Where(d => d.ProductId == r.Item1.ProductId && d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now)
+                     .OrderByDescending(d => d.StartDate)
+                     .FirstOrDefault();
+
+                 if (discount != null)
+                 {
+                     mapped.DiscountPercentage = (int)discount.DiscountPercentage;
+                     mapped.DiscountedPrice = Math.Round(mapped.Price * (1 - discount.DiscountPercentage / 100.0m), 2);
+                 }
+
+                 return mapped;
+             })
+             .ToList();
+
         }
 
+        public async Task<PagedResult<ProductDiscount>> GetWithDiscounts(ProductsSearchObjects? search = null)
+        {
+            var query = AddFilter(_context.Products.AsQueryable(), search);
+
+            int totalCount = await query.CountAsync();
+
+            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
+            {
+                query = query.Skip(search.Page.Value * search.PageSize.Value)
+                             .Take(search.PageSize.Value);
+            }
+
+            var list = await query.ToListAsync();
+
+            var mapped = list.Select(p => new ProductDiscount
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Price = p.Price,
+                DiscountedPrice = _context.Discounts
+                    .Where(d => d.ProductId == p.ProductId && d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now)
+                    .Select(d => p.Price * (1 - d.DiscountPercentage / 100))
+                    .FirstOrDefault(),
+
+                DiscountPercentage = _context.Discounts
+                    .Where(d => d.ProductId == p.ProductId && d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now)
+                    .Select(d => (int?)d.DiscountPercentage)
+                    .FirstOrDefault()
+            }).ToList();
+
+            return new PagedResult<ProductDiscount>
+            {
+                Count = totalCount,
+                Result = mapped
+            };
+        }
 
 
     }

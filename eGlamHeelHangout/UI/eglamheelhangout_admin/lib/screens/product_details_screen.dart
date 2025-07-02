@@ -5,6 +5,7 @@ import 'package:eglamheelhangout_admin/models/category.dart';
 import 'package:eglamheelhangout_admin/models/productsize.dart';
 import 'package:eglamheelhangout_admin/models/search_result.dart';
 import 'package:eglamheelhangout_admin/providers/product_providers.dart';
+import 'package:eglamheelhangout_admin/screens/set_discount_screen.dart';
 import 'package:eglamheelhangout_admin/providers/category_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:eglamheelhangout_admin/utils/utils.dart';
@@ -24,10 +25,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   PlatformFile? _selectedImage;
   String? _base64Image;
-
+  DateTime? _selectedStartDate;
   Map<String, dynamic> _initialValue = {};
   late ProductProvider _productProvider;
   late CategoryProvider _categoryProvider;
+
 
   bool isLoading = true;
   SearchResult<Category>? categoryResult;
@@ -157,6 +159,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         onPressed: _saveChanges,
                         child: const Text("Save"),
                       ),
+                      
                     ],
                   ),
                 ],
@@ -173,6 +176,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           _buildEditableField("name", "Name"),
           _buildEditableField("price", "Price", keyboardType: TextInputType.number),
+          if (widget.product?.discountedPrice != null &&
+    widget.product?.discountPercentage != null)
+  Padding(
+    padding: const EdgeInsets.only(top: 8.0),
+    child: Row(
+      children: [
+        Text(
+          "\$${widget.product!.price!.toStringAsFixed(2)}",
+          style: const TextStyle(
+            decoration: TextDecoration.lineThrough,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          "\$${widget.product!.discountedPrice!.toStringAsFixed(2)}",
+          style: const TextStyle(
+            color: Colors.red,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          "(${widget.product!.discountPercentage!.toStringAsFixed(0)}% OFF)",
+          style: const TextStyle(color: Colors.green),
+        ),
+      ],
+    ),
+  ),
+
+
           _buildEditableField("description", "Description", maxLines: 3),
           _buildEditableField("material", "Material"),
           _buildEditableField("color", "Color"),
@@ -189,6 +224,48 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 .toList(),
             validator: (value) => value == null ? 'Please select a category' : null,
           ),
+          const SizedBox(height: 20),
+          SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SetDiscountScreen(product: widget.product!),
+                ),
+              );
+
+              if (result == true) {
+                final refreshedProduct =
+                    await _productProvider.getById(widget.product!.productID!);
+
+                setState(() {
+                  widget.product!.discountedPrice = refreshedProduct.discountedPrice;
+                  widget.product!.discountPercentage = refreshedProduct.discountPercentage;
+                });
+              }
+            },
+            icon: const Icon(Icons.discount, color: Colors.white),
+            label: const Text(
+              "Set Discount",
+              style: TextStyle(color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4A90E2), 
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 3,
+              shadowColor: Colors.grey.shade200,
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
         ],
       ),
     );
@@ -341,4 +418,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       );
     }
   }
+
+
 }

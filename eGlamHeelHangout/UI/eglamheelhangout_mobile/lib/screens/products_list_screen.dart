@@ -24,6 +24,8 @@ import 'package:eglamheelhangout_mobile/screens/giveaway_participant_screen.dart
 import 'package:eglamheelhangout_mobile/screens/active_giveaway_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eglamheelhangout_mobile/models/giveaway.dart';
+import 'package:eglamheelhangout_mobile/models/discount.dart';
+import 'package:eglamheelhangout_mobile/providers/discount_providers.dart';
 import 'package:eglamheelhangout_mobile/models/giveawaydto.dart';
 import 'package:eglamheelhangout_mobile/models/notifications.dart';
 import 'package:signalr_core/signalr_core.dart';
@@ -40,7 +42,7 @@ class ProductsListScreen extends StatefulWidget {
   State<ProductsListScreen> createState() => _ProductsListScreenState();
 }
 
-class _ProductsListScreenState extends State<ProductsListScreen> {
+class _ProductsListScreenState extends State<ProductsListScreen>with RouteAware {
   int selectedIndex = 0;
   late ProductProvider _productProvider;
 
@@ -63,6 +65,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     super.didChangeDependencies();
     _productProvider = Provider.of<ProductProvider>(context, listen: false);
     context.read<FavoriteProvider>().getFavorites();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -177,7 +180,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with RouteAware{
   late ProductProvider _productProvider;
   late CategoryProvider _categoryProvider;
   SearchResult<Product>? result;
@@ -391,7 +394,14 @@ void _showProductDialog(String name, {int? notificationId, int? productId}) {
   void dispose() {
     _hubConnection.stop();
     _debounceTimer?.cancel();
+    routeObserver.unsubscribe(this);
     super.dispose();
+  }
+  
+
+  @override
+  void didPopNext() {
+    _fetchData();
   }
 
 Future<void> _initialize() async {
@@ -676,7 +686,41 @@ Widget build(BuildContext context) {
                                         textAlign: TextAlign.center,
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
+                                      if (product.discountedPrice != null &&
+                                      product.discountedPrice! > 0 &&
+                                      product.discountPercentage != null &&
+                                      product.discountPercentage! > 0)
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          formatNumber(product.price),
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 13,
+                                            decoration: TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          formatNumber(product.discountedPrice),
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '(${product.discountPercentage!.toStringAsFixed(0)}% OFF)',
+                                          style: const TextStyle(color: Colors.green, fontSize: 12),
+                                        ),
+                                      ],
+                                    )
+                                  else
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12.0),
+                                      child: Text(
                                         formatNumber(product.price),
                                         style: const TextStyle(
                                           color: Colors.green,
@@ -684,6 +728,8 @@ Widget build(BuildContext context) {
                                         ),
                                         textAlign: TextAlign.center,
                                       ),
+                                    ),
+
                                     ],
                                   ),
                                 ),
@@ -763,72 +809,113 @@ Widget build(BuildContext context) {
                 final product = result!.result[index];
                 final isFavorite = favoriteProvider.isFavorite(product.productID!);
                 return GestureDetector(
-                  onTap: () async {
-                    final updated = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(product: product),
+  onTap: () async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: product),
+      ),
+    );
+    if (updated == true) await _fetchData();
+  },
+  child: Card(
+    color: Colors.white,
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: product.image != null && product.image!.isNotEmpty
+                    ? imageFromBase64String(product.image!)
+                    : const Icon(Icons.image_not_supported, size: 50),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                product.name ?? '',
+                style: const TextStyle(fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              if (product.discountedPrice != null &&
+                  product.discountedPrice! > 0 &&
+                  product.discountPercentage != null &&
+                  product.discountPercentage! > 0)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      formatNumber(product.price),
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 13,
+                        decoration: TextDecoration.lineThrough,
                       ),
-                    );
-                    if (updated == true) await _fetchData();
-                  },
-                  child: Card(
-                    color: Colors.white,
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: product.image != null && product.image!.isNotEmpty
-                                    ? imageFromBase64String(product.image!)
-                                    : const Icon(Icons.image_not_supported, size: 50),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                product.name ?? '',
-                                style: const TextStyle(fontSize: 14),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                formatNumber(product.price),
-                                style: const TextStyle(color: Colors.green, fontSize: 14),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: IconButton(
-                            icon: Icon(
-                              isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: Colors.pink,
-                            ),
-                            onPressed: () async {
-                              try {
-                                final liked = await favoriteProvider.toggle(product.productID!);
-                                setState(() => product.isFavorite = liked);
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error: ${e.toString()}')),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      formatNumber(product.discountedPrice),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '(${product.discountPercentage!.toStringAsFixed(0)}% OFF)',
+                      style: const TextStyle(color: Colors.green, fontSize: 12),
+                    ),
+                  ],
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Text(
+                    formatNumber(product.price),
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
+                ),
+              const SizedBox(height: 4),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: Colors.pink,
+            ),
+            onPressed: () async {
+              try {
+                final liked = await favoriteProvider.toggle(product.productID!);
+                setState(() => product.isFavorite = liked);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
                 );
+              }
+            },
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+
               },
               childCount: result?.result.length ?? 0,
             ),

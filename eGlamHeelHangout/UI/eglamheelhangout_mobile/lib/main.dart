@@ -19,6 +19,9 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:eglamheelhangout_mobile/providers/discount_providers.dart';
+
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -52,9 +55,11 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => StripeProvider()),
         ChangeNotifierProvider(create: (_) => GiveawayProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => DiscountProvider()),
       ],
-      child: const flutter.MaterialApp(
+      child:  flutter.MaterialApp( //const
         debugShowCheckedModeBanner: false,
+        navigatorObservers: [routeObserver], 
         home: LoginPage(),
       ),
     ),

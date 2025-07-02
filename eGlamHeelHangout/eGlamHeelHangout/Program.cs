@@ -103,6 +103,7 @@ builder.Services.AddTransient<IReviewService, ReviewService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IReportService, ReportService>();
+builder.Services.AddTransient<IDiscountService, DiscountService>();
 
 builder.Services.AddSignalR();
 

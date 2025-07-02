@@ -31,6 +31,8 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       (json['sizes'] as List<dynamic>?)
           ?.map((e) => ProductSize.fromJson(e as Map<String, dynamic>))
           .toList(),
+  discountedPrice: (json['discountedPrice'] as num?)?.toDouble(),
+  discountPercentage: (json['discountPercentage'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
@@ -49,4 +51,6 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
   'stateMachine': instance.stateMachine,
   'isFavorite': instance.isFavorite,
   'sizes': instance.sizes,
+  'discountedPrice': instance.discountedPrice,
+  'discountPercentage': instance.discountPercentage,
 };

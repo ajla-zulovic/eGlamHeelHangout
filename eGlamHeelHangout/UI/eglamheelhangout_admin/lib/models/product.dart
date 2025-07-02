@@ -20,6 +20,9 @@ class Product {
   String? stateMachine;
   bool? isFavorite;
   List<ProductSize>? sizes;
+  double? discountedPrice;
+  int? discountPercentage;
+
 
   Product({
     this.productID,
@@ -36,7 +39,9 @@ class Product {
     this.isActive,
     this.stateMachine,
     this.isFavorite,
-    this.sizes
+    this.sizes,
+    this.discountedPrice,
+    this.discountPercentage,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);

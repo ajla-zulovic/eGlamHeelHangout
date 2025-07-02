@@ -61,6 +61,12 @@ namespace eGlamHeelHangout.Controllers
             return Ok(result);
         }
 
+        [HttpGet("discounts")]
+        public async Task<ActionResult<PagedResult<ProductDiscount>>> GetWithDiscounts([FromQuery] ProductsSearchObjects search = null)
+        {
+            var result = await _productService.GetWithDiscounts(search);
+            return Ok(result);
+        }
 
     }
 }

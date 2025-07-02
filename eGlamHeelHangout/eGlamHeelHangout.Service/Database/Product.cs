@@ -25,7 +25,6 @@ namespace eGlamHeelHangout.Service.Database
         public string? Description { get; set; }
         public DateTime? DateAdded { get; set; }
         public string? StateMachine { get; set; }
-
         public virtual Category Category { get; set; } = null!;
         public virtual ICollection<Discount> Discounts { get; set; }
        public virtual ICollection<ProductSize> ProductSizes { get; set; }
