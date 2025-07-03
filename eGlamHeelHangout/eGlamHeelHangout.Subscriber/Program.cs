@@ -35,6 +35,11 @@ public class Program
                 async message => await HandleProductMessage(message),
                 cfg => cfg.WithTopic("product.*"));
             Console.WriteLine("Subscribed to ProductNotificationDTO with topic product.*");
+            await bus.PubSub.SubscribeAsync<DiscountNotification>(
+            "discount_subscriber",
+            async message => await HandleDiscountMessage(message),
+            cfg => cfg.WithTopic("discount.*"));
+
 
 
             Console.WriteLine("Waiting for messages... Press Enter.");
@@ -71,5 +76,15 @@ public class Program
 
         Console.WriteLine($"Product notify status: {response.StatusCode}");
     }
+    static async Task HandleDiscountMessage(DiscountNotification message)
+    {
+        Console.WriteLine($"Received discount for product: {message.ProductName}");
+
+        using var client = new HttpClient();
+        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/discount", message);
+
+        Console.WriteLine($"Discount notify status: {response.StatusCode}");
+    }
+
 
 }

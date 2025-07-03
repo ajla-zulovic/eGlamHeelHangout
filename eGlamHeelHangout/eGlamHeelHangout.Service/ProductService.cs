@@ -145,6 +145,30 @@ namespace eGlamHeelHangout.Service
             };
         }
 
+        public override async Task<Products> GetById(int id)
+        {
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+
+            if (product == null)
+                throw new Exception("Product not found.");
+
+            var dto = _mapper.Map<Products>(product);
+
+         
+            var discount = await _context.Discounts
+                .Where(d => d.ProductId == id && d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now)
+                .FirstOrDefaultAsync();
+
+            if (discount != null)
+            {
+                dto.DiscountPercentage = (int)discount.DiscountPercentage;
+                dto.DiscountedPrice = Math.Round(product.Price - (product.Price * (discount.DiscountPercentage / 100)), 2);
+            }
+            return dto;
+        }
+
         static MLContext mlContext = null;
         static object isLocked = new object();
         static ITransformer model = null;

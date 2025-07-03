@@ -118,29 +118,40 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                             ),
                             child: const Text("Participate"),
                           ),
-                        if (notif.productId != null)
-                          ElevatedButton(
-                            onPressed: () async {
-                              await _markAsRead(notif.notificationId!);
-                              final product = await context.read<ProductProvider>().getById(notif.productId!);
-                              if (!mounted) return;
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProductDetailScreen(product: product),
-                                ),
+                       if (notif.productId != null)
+                        ElevatedButton(
+                          onPressed: () async {
+                            final product = await context.read<ProductProvider>().getById(notif.productId!);
+
+                            if (product == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Failed to load product details.")),
                               );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(110, 40),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                              return;
+                            }
+
+                            
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailScreen(product: product),
                               ),
+                            );
+
+                            
+                            await _markAsRead(notif.notificationId!);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(110, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Text("View"),
                           ),
+                          child: const Text("View"),
+                        ),
+
                       ],
                     ),
                   ),

@@ -3,6 +3,7 @@ using eGlamHeelHangout.Model;
 using eGlamHeelHangout.Service.Database;
 using eGlamHeelHangout.Service.ProductStateMachine;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,20 +44,18 @@ namespace eGlamHeelHangout.Service
             await _context.SaveChangesAsync();
             return true; // liked
         }
-
-        //dohvati sve favorite proizvode: 
-        public async Task<List<Products>> GetFavorites(int userId)
+      public async Task<List<Products>> GetFavorites(int userId)
         {
             if (userId <= 0)
                 throw new ArgumentException("Invalid user ID");
 
+            // Uključujemo i popuste (Discounts)
             var favoriteProducts = await _context.Favorites
                 .Include(f => f.Product)
-                 .Where(f => f.UserId == userId && f.Product != null)
-                 .Select(f => f.Product)
+                    .ThenInclude(p => p.Discounts)
+                .Where(f => f.UserId == userId && f.Product != null)
+                .Select(f => f.Product)
                 .ToListAsync();
-           
-
 
             if (favoriteProducts == null || favoriteProducts.Count == 0)
                 return new List<Model.Products>();
@@ -66,10 +65,25 @@ namespace eGlamHeelHangout.Service
             foreach (var item in result)
             {
                 item.IsFavorite = true;
+
+                
+                var dbProduct = favoriteProducts.FirstOrDefault(p => p.ProductId == item.ProductID);
+
+
+                var activeDiscount = dbProduct?.Discounts?
+                .FirstOrDefault(d => d.EndDate == null || d.EndDate > DateTime.Now);
+
+
+                if (activeDiscount != null)
+                {
+                    item.DiscountPercentage = (int)activeDiscount.DiscountPercentage;
+                    item.DiscountedPrice = item.Price * (1 - (activeDiscount.DiscountPercentage / 100m));
+                }
             }
 
             return result;
         }
+
 
 
     }

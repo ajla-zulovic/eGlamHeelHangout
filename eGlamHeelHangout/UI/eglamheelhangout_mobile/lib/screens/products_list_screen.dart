@@ -257,20 +257,24 @@ Future<void> _initializeSignalR() async {
     }
   });
 
-
 _hubConnection.on("ReceiveProduct", (arguments) {
-  print("ReceiveProduct event triggered");
+  print(" [SignalR] ReceiveProduct event triggered");
   context.read<NotificationProvider>().refreshUnreadCount();
   final data = arguments?.first;
   if (data != null) {
-     print(">>> RAW PRODUCT DATA: $data");
+    print(" RAW PRODUCT DATA: $data");
+
     final notificationId = data['notificationId'];
     final productId = data['productId'];
     final productName = data['name'];
     final message = data['message'];
 
-    _fetchData(); 
+    print("Parsed -> productId: $productId, name: $productName, message: $message");
+
+    _fetchData();
+
     if (context.mounted) {
+      print(" Calling _showProductDialog...");
       _showProductDialog(
         productName ?? "Unknown product",
         notificationId: notificationId,
@@ -279,6 +283,23 @@ _hubConnection.on("ReceiveProduct", (arguments) {
     }
   }
 });
+
+_hubConnection.on("ReceiveDiscount", (arguments) {
+  print("ReceiveDiscount event triggered");
+  context.read<NotificationProvider>().refreshUnreadCount();
+  final data = arguments?.first;
+  if (data != null) {
+    final notificationId = data['notificationId'];
+    final productId = data['productId'];
+    final message = data['message'];
+
+    _fetchData(); 
+    if (context.mounted) {
+      _showDiscountDialog(message ?? "Discount available!", notificationId: notificationId, productId: productId);
+    }
+  }
+});
+
   try {
     await _hubConnection.start();
     print("SignalR connected to: $signalrUrl");
@@ -287,6 +308,41 @@ _hubConnection.on("ReceiveProduct", (arguments) {
   }
 }
 
+
+
+void _showDiscountDialog(String message, {int? notificationId, int? productId}) {
+  Future.delayed(const Duration(milliseconds: 200), () async {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("New Sales!"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Close"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              if (productId != null) {
+                final product = await context.read<ProductProvider>().getById(productId);
+                if (!mounted) return;
+                Navigator.of(dialogContext).push(
+                  MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+                );
+
+              }
+            },
+            child: const Text("View"),
+          ),
+        ],
+      ),
+    );
+  });
+}
 
 
 
@@ -349,8 +405,9 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
     ),
   );
 }
-
 void _showProductDialog(String name, {int? notificationId, int? productId}) {
+  print(" Showing ProductDialog for: $name (productId: $productId)");
+
   Future.delayed(const Duration(milliseconds: 200), () async {
     if (!mounted) return;
 
@@ -361,24 +418,35 @@ void _showProductDialog(String name, {int? notificationId, int? productId}) {
         content: Text("Do you want to view details for $name?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              print(" User chose not to view product");
+              Navigator.of(context).pop();
+            },
             child: const Text("No"),
           ),
           TextButton(
             onPressed: () async {
+              print("View clicked! Getting product by ID...");
               Navigator.of(context).pop();
 
               if (notificationId != null) {
+                print("Marking notification $notificationId as read");
                 await context.read<NotificationProvider>().markAsRead(notificationId);
               }
 
               if (productId != null) {
                 final product = await context.read<ProductProvider>().getById(productId);
+                print("Product loaded: ${product.name}, price: ${product.price}, discount: ${product.discountPercentage}");
+
                 if (!mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
-                );
+
+                print(" Navigating to ProductDetailScreen...");
+               Navigator.of(dialogContext).push(
+                MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+              );
+
+              } else {
+                print(" productId is null, cannot open detail screen.");
               }
             },
             child: const Text("View"),
@@ -388,6 +456,7 @@ void _showProductDialog(String name, {int? notificationId, int? productId}) {
     );
   });
 }
+
 
 
   @override

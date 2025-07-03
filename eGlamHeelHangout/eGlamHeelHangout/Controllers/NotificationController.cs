@@ -2,6 +2,7 @@ using eGlamHeelHangout.Model;
 using Microsoft.AspNetCore.SignalR;
 using eGlamHeelHangout.Service.SignalR;
 using Microsoft.AspNetCore.Mvc;
+using eGlamHeelHangout.Service.Database;
 
 namespace eGlamHeelHangout.Controllers
 {
@@ -42,8 +43,27 @@ namespace eGlamHeelHangout.Controllers
 
             return Ok();
         }
+        [HttpPost("discount")]
+        public async Task<IActionResult> NotifyDiscount([FromBody] DiscountNotification dto)
+        {
+            Console.WriteLine($"Notifikacija stigla u DiscountNotificationController: {dto.ProductName} - {dto.DiscountPercentage}%");
 
-     
+
+            await _hubContext.Clients.All.SendAsync("ReceiveDiscount", new
+            {
+                notificationId = 0, 
+                productId = dto.ProductId,
+                productName = dto.ProductName,
+                discountPercentage = dto.DiscountPercentage,
+                image = dto.Image,
+                message = $"New Sales! {dto.DiscountPercentage}% OFF on {dto.ProductName}",
+                dateSent = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")
+            });
+
+            return Ok();
+        }
+
+
 
     }
 }

@@ -94,7 +94,7 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
                   itemCount: _giveaways.length,
                   itemBuilder: (context, index) {
                     final giveaway = _giveaways[index];
-                    final bool hasParticipated = giveaway.isClosed; // TEMP dok ne dodaš pravo polje
+                    final bool hasParticipated = giveaway.isClosed; 
 
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -104,7 +104,7 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
                         padding: const EdgeInsets.all(17.0),
                         child: Row(
                         children: [
-                            // Lijeva strana: Slika
+                            
                             ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: SizedBox(

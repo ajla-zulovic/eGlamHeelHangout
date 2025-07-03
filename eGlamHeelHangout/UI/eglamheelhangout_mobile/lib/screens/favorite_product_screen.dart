@@ -85,10 +85,33 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      formatNumber(product.price),
-                      style: const TextStyle(color: Colors.green, fontSize: 14),
-                    ),
+                    product.discountedPrice != null
+                      ? Column(
+                          children: [
+                            Text(
+                              formatNumber(product.price),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              formatNumber(product.discountedPrice!),
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          formatNumber(product.price),
+                          style: const TextStyle(color: Colors.green, fontSize: 14),
+                        )
+
                   ],
                 ),
               ),
