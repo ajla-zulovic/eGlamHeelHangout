@@ -102,14 +102,13 @@ Navigate to the appropriate folder based on role:
 
 eGlamHeelHangout\eGlamHeelHangout\UI\eglamheelhangout_admin
 
-### Install the necessary dependencies:
+### Install the necessary dependencies:  
+flutter pub get  
+Run the application:  
+flutter run --dart-define=BASE_URL=http://localhost:7277/ 
 
-flutter pub get
-Run the application:
- flutter run --dart-define=BASE_URL=http://localhost:7277/ 
 
-
-Running the Mobile App
+Running the Mobile App  
 Navigate to the mobile app folder: eGlamHeelHangout\eGlamHeelHangout\UI\eglamheelhangout_mobile
 
 Install dependencies:
