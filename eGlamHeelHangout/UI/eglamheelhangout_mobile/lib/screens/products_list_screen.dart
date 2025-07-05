@@ -695,8 +695,15 @@ Widget build(BuildContext context) {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  if (_showRecommendations)
+                   const SizedBox(height: 20),
+                    if (_recommendedProducts!.isEmpty)
+                      const Center(
+                        child: Text(
+                          "There are no recommendations available at this moment.",
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      )
+                  else if (_showRecommendations)
                     SizedBox(
                       height: 240,
                       child: ListView.builder(
@@ -737,17 +744,20 @@ Widget build(BuildContext context) {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      Expanded(
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: product.image != null
-                                              ? Image.memory(
-                                                  base64Decode(product.image!),
-                                                  fit: BoxFit.cover,
-                                                )
-                                              : const Icon(Icons.image_not_supported, size: 50),
-                                        ),
+                                      SizedBox(
+                                      height: 100,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: product.image != null
+                                            ? Image.memory(
+                                                base64Decode(product.image!),
+                                                fit: BoxFit.contain, 
+                                              )
+                                            : const Icon(Icons.image_not_supported, size: 50),
                                       ),
+                                    ),
+
+
                                       const SizedBox(height: 8),
                                       Text(
                                         product.name ?? '',
@@ -901,11 +911,19 @@ Widget build(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: product.image != null && product.image!.isNotEmpty
-                    ? imageFromBase64String(product.image!)
-                    : const Icon(Icons.image_not_supported, size: 50),
+              SizedBox(
+                height: 100, 
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: product.image != null
+                      ? Image.memory(
+                          base64Decode(product.image!),
+                          fit: BoxFit.contain, 
+                        )
+                      : const Icon(Icons.image_not_supported, size: 50),
+                ),
               ),
+
               const SizedBox(height: 8),
               Text(
                 product.name ?? '',

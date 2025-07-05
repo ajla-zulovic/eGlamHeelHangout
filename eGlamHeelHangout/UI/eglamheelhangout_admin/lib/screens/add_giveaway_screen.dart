@@ -23,6 +23,8 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
   PlatformFile? _selectedImage;
   String? _base64Image;
   DateTime? _selectedEndDate;
+  bool _imageValidationFailed = false;
+
 
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(
@@ -36,12 +38,14 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
         _selectedImage = result.files.first;
         _base64Image = base64Encode(_selectedImage!.bytes!);
         _selectedEndDate = null;
+        _imageValidationFailed = false;
       });
     }
   }
 
-  Widget _buildImagePreview() {
+Widget _buildImagePreview() {
   return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const SizedBox(height: 16),
       Container(
@@ -76,6 +80,7 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
                             setState(() {
                               _base64Image = null;
                               _selectedImage = null;
+                              _imageValidationFailed = true;
                             });
                           },
                           icon: const Icon(Icons.delete, color: Colors.red),
@@ -94,52 +99,81 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
                 ],
               ),
       ),
+      if (_imageValidationFailed)
+        const Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Image is required',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+        ),
     ],
   );
 }
 
 
-  Future<void> _submitForm() async {
-    if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
 
-    setState(() => _isSubmitting = true);
+ Future<void> _submitForm() async {
+  if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
 
-    try {
-      final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
-      formData['endDate'] = (formData['endDate'] as DateTime).toIso8601String();
+  if (_base64Image == null) {
+  setState(() {
+    _imageValidationFailed = true;
+  });
 
-      if (_base64Image != null) {
-        formData['giveawayProductImage'] = _base64Image;
-      } else {
-        throw Exception('Image is required');
-      }
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Image is required'),
+      backgroundColor: Colors.red,
+    ),
+  );
+  return;
+} else {
+  setState(() {
+    _imageValidationFailed = false;
+  });
+}
 
-      final provider = context.read<GiveawayProvider>();
-      await provider.insert(formData);
+  setState(() => _isSubmitting = true);
 
-      if (!mounted) return;
+  try {
+    final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
+    formData['endDate'] = (formData['endDate'] as DateTime).toIso8601String();
+    formData['giveawayProductImage'] = _base64Image;
 
-      _formKey.currentState?.reset();
-      setState(() {
-        _base64Image = null;
-        _selectedImage = null;
-      });
+    final provider = context.read<GiveawayProvider>();
+    await provider.insert(formData);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Giveaway successfully created! Ready to add another?'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
+    if (!mounted) return;
+
+    _formKey.currentState?.reset();
+    setState(() {
+      _base64Image = null;
+      _selectedImage = null;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Giveaway successfully created! Ready to add another?'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Something went wrong. Please try again.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    if (mounted) setState(() => _isSubmitting = false);
   }
+}
+
 
   Widget _buildForm() {
     return SingleChildScrollView(
@@ -266,34 +300,54 @@ class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    _formKey.currentState?.reset();
-                    setState(() {
-                      _base64Image = null;
-                      _selectedImage = null;
-                    });
-                  },
-                  style: TextButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white)),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-                        )
-                      : const Text('Save', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
+           Row(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    TextButton(
+      onPressed: () {
+        _formKey.currentState?.reset();
+        setState(() {
+          _base64Image = null;
+          _selectedImage = null;
+        });
+      },
+      style: TextButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.red,
+        side: const BorderSide(color: Colors.red),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+      child: const Text(
+        'Cancel',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+    ),
+
+    const SizedBox(width: 24), 
+
+    ElevatedButton(
+      onPressed: _isSubmitting ? null : _submitForm,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF2E7D32), 
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+      child: _isSubmitting
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+            )
+          : const Text('Save', style: TextStyle(color: Colors.white)),
+    ),
+  ],
+)
+
           ],
         ),
       ),

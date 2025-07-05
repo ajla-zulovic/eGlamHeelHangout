@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using eGlamHeelHangout.Service;
+using eGlamHeelHangout.Service.Database.SeedData;
 
 namespace eGlamHeelHangout.Service.Database
 {
@@ -31,19 +32,6 @@ namespace eGlamHeelHangout.Service.Database
       public virtual DbSet<UsersRole> UsersRoles { get; set; } = null!;
       public virtual DbSet<ProductSize> ProductSizes { get; set; } = null!;
      public virtual DbSet<WinnerNotificationEntity> WinnerNotifications { get; set; }
-
-
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //  if (!optionsBuilder.IsConfigured)
-        //  {
-        //    optionsBuilder.UseSqlServer( "Server=localhost;Database=200199;User=sa;Password=QWEasd123!;TrustServerCertificate=True");
-
-        //    //optionsBuilder.UseSqlServer("Server=localhost;Database=200199;Trusted_Connection=True;TrustServerCertificate=True;");
-
-        //  }
-        //}
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
       modelBuilder.Entity<User>(entity =>
@@ -267,6 +255,15 @@ namespace eGlamHeelHangout.Service.Database
                   .OnDelete(DeleteBehavior.Cascade)
                   .HasConstraintName("FK_ProductSizes_Products");
             });
+            modelBuilder.Entity<WinnerNotificationEntity>()
+                .HasOne(w => w.Giveaway)
+                .WithMany()
+                .HasForeignKey(w => w.GiveawayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+
+         
 
             OnModelCreatingPartial(modelBuilder);
         }

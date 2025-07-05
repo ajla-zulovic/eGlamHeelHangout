@@ -14,9 +14,6 @@ class StripeProvider with ChangeNotifier {
   Future<void> initializeStripe() async {
     try {
       print('>>> Stripe BASE_URL: $baseUrl');
-
-    // final response = await http.get(Uri.parse('$baseUrl/Stripe/config'));
-
       print('>>> Stripe BASE_URL: $baseUrl');
 
       final cleanUrl = baseUrl.endsWith('/')

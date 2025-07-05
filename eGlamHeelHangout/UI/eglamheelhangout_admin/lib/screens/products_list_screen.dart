@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:eglamheelhangout_admin/providers/product_providers.dart';
 import 'package:provider/provider.dart';
@@ -367,10 +368,10 @@ Future<void> _fetchData() async {
             child: GridView.builder(
               itemCount: result!.result.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 3/2,
+                childAspectRatio: 1.2,
               ),
               itemBuilder: (context, index) {
                 final product = result!.result[index];
@@ -407,14 +408,20 @@ Future<void> _fetchData() async {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: product.image != null && product.image!.isNotEmpty
-                                      ? imageFromBase64String(product.image!)
-                                      : const Icon(Icons.image_not_supported, size: 50),
-                                ),
+                             SizedBox(
+                              height: 120,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: product.image != null
+                                    ? Image.memory(
+                                        base64Decode(product.image!),
+                                        fit: BoxFit.contain,
+                                      )
+                                    : const Icon(Icons.image_not_supported, size: 50),
                               ),
+                            ),
+
+
                               const SizedBox(height: 4),
                               Text(
                                 product.name ?? "",

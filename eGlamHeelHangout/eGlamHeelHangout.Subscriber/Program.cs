@@ -2,13 +2,33 @@ using EasyNetQ;
 using Microsoft.AspNetCore.SignalR.Client;
 using eGlamHeelHangout.Model;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
+
 
 public class Program
 {
     private static HubConnection _hubConnection;
+    private static string? apiBaseUrl;
 
     public static async Task Main(string[] args)
     {
+
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+
+        
+        apiBaseUrl = config["ApiBaseUrl"]; 
+
+        var rabbitHost = config["RabbitMQ:HostName"];
+        var rabbitPort = config["RabbitMQ:Port"];
+        var rabbitUser = config["RabbitMQ:UserName"];
+        var rabbitPass = config["RabbitMQ:Password"];
+
+        var rabbitConnection = $"host={rabbitHost};port={rabbitPort};username={rabbitUser};password={rabbitPass}";
+
+
         Console.WriteLine("Giveaway Notification Listener aktivan...");
 
         _hubConnection = new HubConnectionBuilder()
@@ -19,7 +39,7 @@ public class Program
         await _hubConnection.StartAsync();
         Console.WriteLine("SignalR connection successfully established.");
 
-        using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+        using (var bus = RabbitHutch.CreateBus(rabbitConnection))
         {
             await bus.PubSub.SubscribeAsync<WinnerNotification>(
                 "winner_notifications",
@@ -53,7 +73,7 @@ public class Program
         Console.WriteLine($"Winner from RabbitMQ: {message.WinnerUsername}");
 
         using var client = new HttpClient();
-        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/winner", message);
+        var response = await client.PostAsJsonAsync($"{apiBaseUrl}/notifications/winner", message);
         Console.WriteLine($"Winner notify status: {response.StatusCode}");
     }
 
@@ -62,7 +82,8 @@ public class Program
         Console.WriteLine($"Received giveaway from RabbitMQ: {message.Title}");
 
         using var client = new HttpClient();
-        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/giveaway", message);
+        var response = await client.PostAsJsonAsync($"{apiBaseUrl}/notifications/giveaway", message);
+
         // Console.WriteLine($"Notification API status: {response.StatusCode}");
         Console.WriteLine(await response.Content.ReadAsStringAsync());
 
@@ -72,7 +93,7 @@ public class Program
         Console.WriteLine($"Received new product from RabbitMQ: {message.Name}");
 
         using var client = new HttpClient();
-        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/product", message);
+        var response = await client.PostAsJsonAsync($"{apiBaseUrl}/notifications/product", message);
 
         Console.WriteLine($"Product notify status: {response.StatusCode}");
     }
@@ -81,7 +102,7 @@ public class Program
         Console.WriteLine($"Received discount for product: {message.ProductName}");
 
         using var client = new HttpClient();
-        var response = await client.PostAsJsonAsync("http://eglamheelhangout-api:7277/notifications/discount", message);
+        var response = await client.PostAsJsonAsync($"{apiBaseUrl}/notifications/discount", message);
 
         Console.WriteLine($"Discount notify status: {response.StatusCode}");
     }

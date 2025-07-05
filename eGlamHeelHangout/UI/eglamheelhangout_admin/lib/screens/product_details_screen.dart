@@ -143,23 +143,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: _resetEntireForm,
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                     OutlinedButton(
+                      onPressed: _resetEntireForm,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        backgroundColor: Colors.white,
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
+                    ),
+
                       const SizedBox(width: 10),
                       ElevatedButton(
-                        onPressed: _saveChanges,
-                        child: const Text("Save"),
+                      onPressed: _saveChanges,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E7D32),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
-                      
+                      child: const Text(
+                        "Save",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+
                     ],
                   ),
                 ],

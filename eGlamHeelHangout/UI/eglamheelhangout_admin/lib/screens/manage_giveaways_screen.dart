@@ -203,9 +203,8 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
                           final now = DateTime.now();                     
                           final canGenerateWinner = giveaway.endDate.isBefore(now) &&
                             (giveaway.winnerName == null);
-                          final canDelete = giveaway.endDate.isBefore(now) &&
-                            (giveaway.winnerName != null);
-
+                          final canDelete = (giveaway.endDate.isBefore(now) && giveaway.winnerName != null)
+               || (giveaway.endDate.isAfter(now) && giveaway.winnerName == null);
                           return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           child: ExpansionTile(

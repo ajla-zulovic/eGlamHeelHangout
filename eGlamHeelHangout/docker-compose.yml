@@ -38,6 +38,9 @@ services:
         condition: service_healthy
     networks:
       - eglamheelhangoutnet2025
+    volumes:
+      - ./SeedImages:/app/SeedImages
+
 
   rabbitmq:
     image: rabbitmq:3-management

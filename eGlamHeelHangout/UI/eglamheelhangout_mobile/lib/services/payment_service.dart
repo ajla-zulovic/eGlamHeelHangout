@@ -6,15 +6,16 @@ import '../models/paymentcreate.dart';
 
 class PaymentService {
   Map<String, dynamic>? paymentIntentData;
-
+  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://10.0.2.2:7277');
   Future<void> makePayment(PaymentCreate paymentData) async {
     try {
       // 1. Poziv backendu da kreira PaymentIntent
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:7277/Stripe/create-intent'),
+    final response = await http.post(
+      Uri.parse('$baseUrl/Stripe/create-intent'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(paymentData.toJson()),
       );
+      
 
       if (response.statusCode != 200) {
         throw Exception('Greška pri kreiranju PaymentIntent-a');

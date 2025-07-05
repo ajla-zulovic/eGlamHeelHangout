@@ -12,17 +12,20 @@ using System.Threading.Tasks;
 using EasyNetQ;
 using eGlamHeelHangout.Service.SignalR;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 
 namespace eGlamHeelHangout.Service
 {
     public class GiveawayService:BaseCRUDService<Model.Giveaways,Database.Giveaway,Model.SearchObjects.GiveawaySearchObject,Model.Requests.GiveawayInsertRequest,object>,IGiveawayService
     {
         public BaseState _baseState { get; set; }
+        private readonly IConfiguration _config;
         private readonly IHubContext<GiveawayHub> _hubContext;
-        public GiveawayService(_200199Context context, IMapper mapper, BaseState baseState, IHubContext<GiveawayHub> hubContext) : base(context, mapper)
+        public GiveawayService(_200199Context context, IMapper mapper, BaseState baseState, IHubContext<GiveawayHub> hubContext, IConfiguration config) : base(context, mapper)
         {
             _baseState = baseState;
             _hubContext = hubContext;
+            _config = config;
         }
 
         public async Task<List<Giveaways>> GetActive()
@@ -154,7 +157,13 @@ namespace eGlamHeelHangout.Service
             // RABBITMQ
             try
             {
-                using var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123");
+                var rabbitHost = _config["RabbitMQ:HostName"];
+                var rabbitPort = _config["RabbitMQ:Port"];
+                var rabbitUser = _config["RabbitMQ:UserName"];
+                var rabbitPass = _config["RabbitMQ:Password"];
+
+                var rabbitConnection = $"host={rabbitHost};port={rabbitPort};username={rabbitUser};password={rabbitPass}";
+                using var bus = RabbitHutch.CreateBus(rabbitConnection);
                 await bus.PubSub.PublishAsync(new GiveawayNotificationDTO
                 {
                     GiveawayId = entity.GiveawayId,
@@ -263,7 +272,13 @@ namespace eGlamHeelHangout.Service
 
             try
             {
-                using (var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123"))
+                var rabbitHost = _config["RabbitMQ:HostName"];
+                var rabbitPort = _config["RabbitMQ:Port"];
+                var rabbitUser = _config["RabbitMQ:UserName"];
+                var rabbitPass = _config["RabbitMQ:Password"];
+
+                var rabbitConnection = $"host={rabbitHost};port={rabbitPort};username={rabbitUser};password={rabbitPass}";
+                using (var bus = RabbitHutch.CreateBus(rabbitConnection))
                 {
                     await bus.PubSub.PublishAsync(new WinnerNotification
                     {

@@ -6,6 +6,7 @@ using eGlamHeelHangout.Service.Database;
 using eGlamHeelHangout.Service.SignalR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,9 +20,11 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
   {
     public IServiceProvider _serviceProvider { get; set; }
     private readonly IHubContext<GiveawayHub> _hubContext;
-        public InitialProductStage(Database._200199Context context, IMapper mapper,IServiceProvider serviceProvider, IHubContext<GiveawayHub> hubContext) : base(context, mapper, serviceProvider)
+    private readonly IConfiguration _config;
+        public InitialProductStage(Database._200199Context context, IMapper mapper,IServiceProvider serviceProvider, IHubContext<GiveawayHub> hubContext, IConfiguration config) : base(context, mapper, serviceProvider)
     {
             _hubContext = hubContext;
+            _config = config;
     }
 
         public override async Task<Products> Insert(ProductsInsertRequest request)
@@ -56,7 +59,13 @@ namespace eGlamHeelHangout.Service.ProductStateMachine
             // RabbitMQ publish
             try
             {
-                using var bus = RabbitHutch.CreateBus("host=rabbitmq;username=admin;password=admin123");
+                var rabbitHost = _config["RabbitMQ:HostName"];
+                var rabbitPort = _config["RabbitMQ:Port"];
+                var rabbitUser = _config["RabbitMQ:UserName"];
+                var rabbitPass = _config["RabbitMQ:Password"];
+
+                var rabbitConnection = $"host={rabbitHost};port={rabbitPort};username={rabbitUser};password={rabbitPass}";
+                using var bus = RabbitHutch.CreateBus(rabbitConnection);
                 Console.WriteLine(">>> Preparing to publish ProductNotificationDTO");
                 Console.WriteLine($">>> Product: {entity.Name}, Price: {entity.Price}, ID: {entity.ProductId}");
 

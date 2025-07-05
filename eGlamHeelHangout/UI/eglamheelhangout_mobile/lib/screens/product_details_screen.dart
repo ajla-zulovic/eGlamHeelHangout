@@ -251,7 +251,7 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
                 children: [
                   if (product?.image != null && product!.image!.isNotEmpty)
                     Container(
-                      height: 250,
+                      height: 180,
                       width: double.infinity,
                       child: imageFromBase64String(product.image!),
                     ),

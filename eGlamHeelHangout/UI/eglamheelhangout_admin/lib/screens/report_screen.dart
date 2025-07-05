@@ -83,6 +83,16 @@ class _ReportScreenState extends State<ReportScreen> {
                 children: [
                   _buildOptionsRow(),
                   const SizedBox(height: 20),
+                  if ((_includeMonthlyRevenue && _monthlyData.isEmpty) &&
+                    (_includeAgeStats && _ageData.isEmpty))
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        "No reports available to display at this time.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ),
+                  ),
                   if (_includeMonthlyRevenue && _monthlyData.isNotEmpty) _buildMonthlyChart(),
                   if (_includeAgeStats && _ageData.isNotEmpty) _buildAgeChart(),
                 ],
@@ -106,11 +116,15 @@ class _ReportScreenState extends State<ReportScreen> {
         ),
         const Text("Include Age Group Stats"),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: _exportPdf,
-          icon: const Icon(Icons.picture_as_pdf),
-          label: const Text("Export PDF"),
-        ),
+       ElevatedButton.icon(
+        onPressed: (_includeMonthlyRevenue && _monthlyData.isNotEmpty) ||
+                    (_includeAgeStats && _ageData.isNotEmpty)
+            ? _exportPdf
+            : null, 
+        icon: const Icon(Icons.picture_as_pdf),
+        label: const Text("Export PDF"),
+      ),
+
       ],
     );
   }

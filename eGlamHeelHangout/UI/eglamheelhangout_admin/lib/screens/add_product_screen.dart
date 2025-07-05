@@ -30,7 +30,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String? _base64Image;
   final Map<int, TextEditingController> _stockControllers = {};
   final List<int> _sizes = List.generate(11, (index) => 36 + index);
-
+   bool _imageValidationFailed = false;
 
   @override
   void initState() {
@@ -83,11 +83,14 @@ void dispose() {
       setState(() {
         _selectedImage = result.files.first;
         _base64Image = base64Encode(_selectedImage!.bytes!);
+        _imageValidationFailed = false;
       });
     }
   }
-Widget _buildImagePreview() {
+
+  Widget _buildImagePreview() {
   return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const SizedBox(height: 16),
       Container(
@@ -140,9 +143,18 @@ Widget _buildImagePreview() {
                 ],
               ),
       ),
+      if (_imageValidationFailed)
+        const Padding(
+          padding: EdgeInsets.only(top: 8.0, left: 4),
+          child: Text(
+            'Image is required',
+            style: TextStyle(color: Colors.red, fontSize: 12),
+          ),
+        ),
     ],
   );
 }
+
 
 
   Widget _buildFormSection(String title, Widget child) {
@@ -358,24 +370,35 @@ Widget _buildImagePreview() {
                     _formKey.currentState?.reset();
                     _selectedImage = null;
                     _base64Image = null;
+                    _formKey.currentState?.fields['categoryID']?.didChange(null);
                     for (var controller in _stockControllers.values) {
-                        controller.text = '';
-                      }
-
+                      controller.text = '';
+                    }
                     setState(() {});
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 24),
                 ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                    backgroundColor: const Color(0xFF2E7D32),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   child: _isSubmitting
                       ? const SizedBox(
@@ -383,10 +406,14 @@ Widget _buildImagePreview() {
                           height: 24,
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
                         )
-                      : const Text('Save', style: TextStyle(fontSize: 16, color: Colors.white)),
+                      : const Text(
+                          'Save',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ],
             ),
+
           ],
         ),
       ),
@@ -416,17 +443,33 @@ Future<void> _submitForm() async {
         .whereType<Map<String, dynamic>>()
         .toList();
 
-    if (sizes.isEmpty) {
-      throw Exception('At least one size with quantity > 0 is required.');
+      if (sizes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('At least one size with quantity > 0 is required.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
+
 
     formData['sizes'] = sizes;
 
-    if (_base64Image != null) {
-      formData['image'] = _base64Image;
-    } else {
-      throw Exception('Product image is required');
-    }
+   if (_base64Image == null) {
+    setState(() => _imageValidationFailed = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Image is required'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  } else {
+    setState(() => _imageValidationFailed = false);
+    formData['image'] = _base64Image;
+  }
+
 
     await _productProvider.insert(formData);
 

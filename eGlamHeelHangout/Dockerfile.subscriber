@@ -9,7 +9,6 @@ RUN dotnet restore "eGlamHeelHangout.Subscriber/eGlamHeelHangout.Subscriber.cspr
 
 # Copy the rest of the source code
 COPY . .
-
 WORKDIR "/src/eGlamHeelHangout.Subscriber"
 RUN dotnet build "eGlamHeelHangout.Subscriber.csproj" -c Release -o /app/build
 
@@ -17,4 +16,5 @@ RUN dotnet build "eGlamHeelHangout.Subscriber.csproj" -c Release -o /app/build
 FROM mcr.microsoft.com/dotnet/runtime:6.0
 WORKDIR /app
 COPY --from=build /app/build .
+COPY eGlamHeelHangout.Subscriber/appsettings.json ./appsettings.json
 ENTRYPOINT ["dotnet", "eGlamHeelHangout.Subscriber.dll"]

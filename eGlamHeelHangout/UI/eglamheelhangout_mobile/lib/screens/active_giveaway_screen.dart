@@ -105,20 +105,24 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
                         child: Row(
                         children: [
                             
-                            ClipRRect(
+                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                                height: 100,
-                                width: 120,
-                                child: FittedBox(
-                                fit: BoxFit.cover,
-                                child: imageFromBase64String(giveaway.giveawayProductImage),
-                                ),
+                            child: Container(
+                              height: 80,
+                              width: 100,
+                              color: Colors.grey[200],
+                              child: giveaway.giveawayProductImage != null
+                                  ? Image.memory(
+                                      base64Decode(giveaway.giveawayProductImage!),
+                                      fit: BoxFit.contain, 
+                                    )
+                                  : const Icon(Icons.image_not_supported),
                             ),
-                            ),
+                          ),
+
                             const SizedBox(width: 12),
                             
-                            // Sredina: Tekst
+                          
                             Expanded(
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

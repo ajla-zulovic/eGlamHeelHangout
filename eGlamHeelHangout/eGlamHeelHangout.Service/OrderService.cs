@@ -74,16 +74,23 @@ namespace eGlamHeelHangout.Service
             }
         }
 
-
-        public override IQueryable<Order> AddFilter(IQueryable<Order> query, Model.SearchObjects.OrderSearchObject ? search)
+        public override IQueryable<Order> AddFilter(IQueryable<Order> query, OrderSearchObject? search)
         {
-            var orderSearch = search as OrderSearchObject;
+            if (search == null)
+                return base.AddFilter(query, search);
 
-            if (orderSearch?.UserId.HasValue == true)
-                query = query.Where(x => x.UserId == orderSearch.UserId.Value);
+            if (search.UserId.HasValue)
+                query = query.Where(x => x.UserId == search.UserId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search.OrderStatus))
+                query = query.Where(x => x.OrderStatus.ToLower().Contains(search.OrderStatus.ToLower()));
+
+            if (!string.IsNullOrWhiteSpace(search.Username))
+                query = query.Where(x => x.User.Username.ToLower().Contains(search.Username.ToLower()));
 
             return base.AddFilter(query, search);
         }
+
         public override IQueryable<Order> AddInclude(IQueryable<Order> query, Model.SearchObjects.OrderSearchObject? search = null)
         {
             return query

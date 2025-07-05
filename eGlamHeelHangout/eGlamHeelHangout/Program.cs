@@ -17,6 +17,7 @@ using eGlamHeelHangout.Services;
 using eGlamHeelHangout.Service.SignalR;
 using QuestPDF.Infrastructure;
 using DotNetEnv;
+using eGlamHeelHangout.Service.Database.SeedData;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -206,6 +207,22 @@ using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Co
         Console.WriteLine(">>> Running DB migration...");
         dataContext.Database.Migrate();
         Console.WriteLine(">>> Migration successful.");
+        RoleSeed.Seed(dataContext);
+        UserSeed.Seed(dataContext);
+        UsersRoleSeed.Seed(dataContext);
+        CategorySeed.Seed(dataContext);
+        ProductSeed.Seed(dataContext);
+        ProductSizeSeed.Seed(dataContext);
+        DiscountSeed.Seed(dataContext);
+        FavoriteSeed.Seed(dataContext);
+        ReviewSeed.Seed(dataContext);
+        GiveawaySeed.Seed(dataContext);
+        GiveawayParticipantSeed.Seed(dataContext);
+        OrderSeed.Seed(dataContext);
+        OrderItemSeed.Seed(dataContext);
+
+
+
     }
     catch (Exception ex)
     {

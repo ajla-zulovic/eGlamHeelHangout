@@ -9,5 +9,7 @@ namespace eGlamHeelHangout.Model.SearchObjects
     public class OrderSearchObject : BaseSearchObject
     {
         public int? UserId { get; set; }
+        public string? Username { get; set; }
+        public string? OrderStatus { get; set; }
     }
 }
