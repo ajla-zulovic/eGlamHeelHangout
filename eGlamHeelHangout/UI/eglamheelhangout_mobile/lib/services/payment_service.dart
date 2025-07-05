@@ -6,32 +6,44 @@ import '../models/paymentcreate.dart';
 
 class PaymentService {
   Map<String, dynamic>? paymentIntentData;
-  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://10.0.2.2:7277');
+
+
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'http://10.0.2.2:7277',
+  );
+
   Future<void> makePayment(PaymentCreate paymentData) async {
     try {
-      // 1. Poziv backendu da kreira PaymentIntent
-    final response = await http.post(
-      Uri.parse('$baseUrl/Stripe/create-intent'),
+     
+      final cleanBase = baseUrl.endsWith('/')
+          ? baseUrl.substring(0, baseUrl.length - 1)
+          : baseUrl;
+      final url = Uri.parse('$cleanBase/Stripe/create-intent');
+      print(">>> Payment URL: $url");
+
+    
+      final response = await http.post(
+        url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(paymentData.toJson()),
       );
-      
+
+      print("STATUS CODE: ${response.statusCode}");
+      print("RESPONSE BODY: ${response.body}");
 
       if (response.statusCode != 200) {
         throw Exception('Greška pri kreiranju PaymentIntent-a');
       }
 
+    
       final jsonResponse = jsonDecode(response.body);
-      print('Stripe create-intent response: $jsonResponse');
-
-      paymentIntentData = jsonResponse;
-      final clientSecret = paymentIntentData?['clientSecret'];
+      final clientSecret = jsonResponse['clientSecret'];
 
       if (clientSecret == null || clientSecret.toString().isEmpty) {
         throw Exception("Stripe clientSecret je null ili prazan.");
       }
 
-      // 2. Inicijalizuj Stripe PaymentSheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -44,7 +56,6 @@ class PaymentService {
         ),
       );
 
-      // 3. Prikazivanje plaćanja
       await Stripe.instance.presentPaymentSheet();
 
       print('Payment successful!');

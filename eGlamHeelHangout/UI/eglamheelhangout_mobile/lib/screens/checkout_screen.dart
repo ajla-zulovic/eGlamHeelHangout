@@ -9,6 +9,7 @@ import '../models/order.dart';
 import '../models/orderitem.dart';
 import '../utils/current_user.dart';
 
+
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
 
@@ -24,8 +25,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _cityController = TextEditingController();
   final _postalCodeController = TextEditingController();
   final _phoneController = TextEditingController();
-
-  CardFieldInputDetails? _card;
   bool _isProcessing = false;
 
   @override
@@ -63,65 +62,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   children: [
                     const Text("Billing Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _fullNameController,
-                      decoration: const InputDecoration(labelText: 'Full Name'),
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
-                    ),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Required';
-                       final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-                        if (!emailRegex.hasMatch(value)) return 'Invalid email format';
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(labelText: 'Phone Number'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Required';
-                        final phoneRegex = RegExp(r'^\d{6,15}$');
-                        if (!phoneRegex.hasMatch(value)) return 'Invalid phone number format';
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      controller: _addressController,
-                      decoration: const InputDecoration(labelText: 'Address'),
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
-                    ),
-                    TextFormField(
-                      controller: _cityController,
-                      decoration: const InputDecoration(labelText: 'City'),
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
-                    ),
-                    TextFormField(
-                      controller: _postalCodeController,
-                      decoration: const InputDecoration(labelText: 'Postal Code'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Required';
-                        final postalRegex = RegExp(r'^[A-Za-z0-9 \-]{3,10}$');
-                        if (!postalRegex.hasMatch(value)) return 'Invalid postal code format';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text("Card Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    CardField(
-                      onCardChanged: (card) => setState(() => _card = card),
-                    ),
+                    _buildTextField(_fullNameController, 'Full Name'),
+                    _buildTextField(_emailController, 'Email', isEmail: true),
+                    _buildTextField(_phoneController, 'Phone Number', isPhone: true),
+                    _buildTextField(_addressController, 'Address'),
+                    _buildTextField(_cityController, 'City'),
+                    _buildTextField(_postalCodeController, 'Postal Code', isPostal: true),
                     const SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: _isProcessing
                           ? null
                           : () async {
-                              if (!_formKey.currentState!.validate() || _card == null || !_card!.complete) {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text("Confirm Payment"),
+                                  content: const Text("Are you sure you want to proceed with the payment?"),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text("No")),
+                                    TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text("Yes")),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmed != true) return;
+
+                              if (!_formKey.currentState!.validate()) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Complete all fields and card info.")),
+                                  const SnackBar(content: Text("Please complete all fields.")),
                                 );
                                 return;
                               }
@@ -129,27 +97,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               setState(() => _isProcessing = true);
 
                               try {
-                                final billingDetails = BillingDetails(
-                                  name: _fullNameController.text,
-                                  email: _emailController.text,
-                                  address: Address(
-                                    city: _cityController.text,
-                                    country: 'BA',
-                                    line1: _addressController.text,
-                                    line2: '',
-                                    postalCode: _postalCodeController.text,
-                                    state: '',
-                                  ),
-                                );
-
-                                final paymentMethod = await Stripe.instance.createPaymentMethod(
-                                  params: PaymentMethodParams.card(
-                                    paymentMethodData: PaymentMethodData(
-                                      billingDetails: billingDetails,
-                                    ),
-                                  ),
-                                );
-
                                 final orderProvider = context.read<OrderProvider>();
                                 final newOrder = Order(
                                   orderId: 0,
@@ -175,15 +122,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 );
 
                                 final createdOrder = await orderProvider.createOrder(newOrder);
-
-                                if (createdOrder == null) {
-                                  throw Exception("Order creation failed");
-                                }
+                                if (createdOrder == null) throw Exception("Order creation failed");
 
                                 final payment = PaymentCreate(
                                   orderId: createdOrder.orderId!,
                                   totalAmount: (createdOrder.totalPrice * 100).toInt(),
-                                  paymentMethodId: paymentMethod.id!,
+                                  paymentMethodId: "", // Not needed with PaymentSheet
                                   username: CurrentUser.username ?? '',
                                 );
 
@@ -200,8 +144,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 }
                               } catch (e) {
                                 if (context.mounted) {
+                                  String errorMessage = "Payment failed. Please try again.";
+                                  if (e is StripeException) {
+                                    errorMessage = e.error.localizedMessage ?? "Stripe error occurred.";
+                                  } else {
+                                    errorMessage = e.toString();
+                                  }
+
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Payment error: $e"), backgroundColor: Colors.red),
+                                    SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
                                   );
                                 }
                               } finally {
@@ -217,6 +168,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {bool isEmail = false, bool isPhone = false, bool isPostal = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(labelText: label),
+        validator: (value) {
+          if (value == null || value.isEmpty) return 'Required';
+          if (isEmail && !RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Invalid email format';
+          if (isPhone && !RegExp(r'^\d{6,15}$').hasMatch(value)) return 'Invalid phone number';
+          if (isPostal && !RegExp(r'^[A-Za-z0-9 \-]{3,10}$').hasMatch(value)) return 'Invalid postal code';
+          return null;
+        },
+      ),
     );
   }
 }

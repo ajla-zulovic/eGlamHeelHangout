@@ -474,30 +474,16 @@ void _showProductDialog(String name, {int? notificationId, int? productId}) {
   }
 
 Future<void> _initialize() async {
-  print(">>> [_initialize] START");
-
   try {
-    print(">>> refreshing favorites");
     await context.read<FavoriteProvider>().refreshFavorites();
-
-    print(">>> fetching categories");
     await _fetchCategories();
-
-    print(">>> fetching main products");
     await _fetchData();
-
-    print(">>> getting userId from SharedPreferences");
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt("userId");
-
     print(">>> userId = $userId");
-
     if (userId != null) {
       try {
-        print(">>> fetching recommended products for user $userId");
         final recommended = await _productProvider.getRecommendedProducts(userId);
-        print(">>> recommended count = ${recommended.length}");
-
         if (mounted) {
           setState(() {
             _recommendedProducts = recommended;
@@ -505,8 +491,6 @@ Future<void> _initialize() async {
           });
         }
       } catch (e) {
-        print(">>> error while fetching recommended: $e");
-
         if (mounted) {
           setState(() {
             _recommendedProducts = [];
@@ -516,23 +500,17 @@ Future<void> _initialize() async {
       }
     }
   } catch (e) {
-    print(">>> error in _initialize(): $e");
-
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading data: $e')),
       );
     }
   } finally {
-    print(">>> [_initialize] END");
     if (mounted) {
       setState(() => _isLoading = false);
     }
   }
 }
-
-
-
 
   Future<void> _fetchCategories() async {
     final categoryResult = await _categoryProvider.get();
@@ -571,7 +549,10 @@ Future<void> _initialize() async {
   }
 
   Widget _buildProductShimmer() {
-    return GridView.builder(
+    return SizedBox(
+    height: 500,
+    child: GridView.builder(
+      physics: const NeverScrollableScrollPhysics(), 
       itemCount: 6,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -591,8 +572,9 @@ Future<void> _initialize() async {
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   VoidCallback _handleCategoryChange(int? categoryId) {
     return () {
@@ -750,9 +732,12 @@ Widget build(BuildContext context) {
                                         borderRadius: BorderRadius.circular(8),
                                         child: product.image != null
                                             ? Image.memory(
-                                                base64Decode(product.image!),
-                                                fit: BoxFit.contain, 
-                                              )
+                                                  base64Decode(product.image!),
+                                                  fit: BoxFit.contain,
+                                                  gaplessPlayback: true,
+                                                  filterQuality: FilterQuality.medium,
+                                                )
+
                                             : const Icon(Icons.image_not_supported, size: 50),
                                       ),
                                     ),
@@ -885,7 +870,9 @@ Widget build(BuildContext context) {
           sliver: SliverGrid(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final product = result!.result[index];
+               final product = result?.result[index];
+              if (product == null) return const SizedBox(); 
+
                 final isFavorite = favoriteProvider.isFavorite(product.productID!);
                 return GestureDetector(
   onTap: () async {
@@ -916,10 +903,13 @@ Widget build(BuildContext context) {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: product.image != null
-                      ? Image.memory(
-                          base64Decode(product.image!),
-                          fit: BoxFit.contain, 
-                        )
+                      ?Image.memory(
+                      base64Decode(product.image!),
+                      fit: BoxFit.contain,
+                      gaplessPlayback: true,
+                      filterQuality: FilterQuality.medium,
+                    )
+
                       : const Icon(Icons.image_not_supported, size: 50),
                 ),
               ),

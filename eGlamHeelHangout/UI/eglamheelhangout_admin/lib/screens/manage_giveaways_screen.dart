@@ -140,6 +140,7 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
     }
   }
 
+
   Widget _buildFilterButton(String label, int count) {
     final isSelected = _selectedFilter == label;
 
@@ -225,8 +226,8 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: imageFromBase64StringFormat(
                                   giveaway.giveawayProductImage,
-                                  width: 200,
-                                  height: 200,
+                                  width: 120,
+                                  height: 120,
                                   radius: 10,
                                 ),
                               ),

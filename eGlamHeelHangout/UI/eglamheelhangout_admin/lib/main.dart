@@ -183,6 +183,12 @@ class _LoginPageState extends State<LoginPage> {
 
                                   final loggedInUser = await userProvider.getCurrentUser();
                                   CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
+                                   ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Login successful!"),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
 
                                   Navigator.of(context).push(
                                     MaterialPageRoute(

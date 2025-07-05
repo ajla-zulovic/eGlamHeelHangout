@@ -224,6 +224,12 @@ class _LoginPageState extends flutter.State<LoginPage> {
                                 loggedInUser.username!,
                                 fullUser: loggedInUser,
                               );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Login successful!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
 
                                 Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
