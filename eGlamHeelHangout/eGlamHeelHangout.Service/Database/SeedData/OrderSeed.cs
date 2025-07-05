@@ -17,13 +17,15 @@ namespace eGlamHeelHangout.Service.Database.SeedData
 
             context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Orders ON");
 
-            context.Orders.Add(
+
+            var orders = new List<Order>
+{
                 new Order
                 {
                     OrderId = 1,
                     UserId = 2,
                     OrderStatus = "Pending",
-                    TotalPrice = 80,
+                    TotalPrice = 99.99m,
                     PaymentMethod = "Card",
                     OrderDate = new DateTime(2025, 5, 29),
                     FullName = "UserF UserL",
@@ -32,9 +34,25 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                     City = "Sarajevo",
                     PostalCode = "71000",
                     PhoneNumber = "+38761234567"
+                },
+                new Order
+                {
+                    OrderId = 2,
+                    UserId = 2,
+                    OrderStatus = "Delivered",
+                    TotalPrice = 79.50m,
+                    PaymentMethod = "Card",
+                    OrderDate = new DateTime(2025, 6, 15),
+                    FullName = "UserF UserL",
+                    Email = "user@example.com",
+                    Address = "Main Street 12",
+                    City = "Sarajevo",
+                    PostalCode = "71000",
+                    PhoneNumber = "+38761234567"
                 }
-            );
+            };
 
+            context.Orders.AddRange(orders);
             context.SaveChanges();
 
             context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Orders OFF");

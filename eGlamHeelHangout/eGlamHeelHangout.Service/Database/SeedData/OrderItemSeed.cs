@@ -17,17 +17,26 @@ namespace eGlamHeelHangout.Service.Database.SeedData
 
             context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT OrderItems ON");
 
-            context.OrderItems.Add(
-                new OrderItem
-                {
-                    OrderItemId = 1,
-                    OrderId = 1,
-                    ProductId = 1,
-                    Quantity = 1,
-                    PricePerUnit = 80,
-                    ProductSizeId = 1
-                }
-            );
+            context.OrderItems.AddRange(
+                 new OrderItem
+                 {
+                     OrderItemId = 1,
+                     OrderId = 1,           
+                     ProductId = 1,
+                     Quantity = 1,
+                     PricePerUnit = 99.99m,
+                     ProductSizeId = 1
+                 },
+                 new OrderItem
+                 {
+                     OrderItemId = 2,
+                     OrderId = 2,           
+                     ProductId = 2,         
+                     Quantity = 2,
+                     PricePerUnit = 79.50m,
+                     ProductSizeId = 2
+                 }
+             );
 
             context.SaveChanges();
 
