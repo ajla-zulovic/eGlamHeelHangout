@@ -90,6 +90,8 @@ public class ReportService : IReportService
         var grouped = data
             .GroupBy(x =>
             {
+                if (x.Age == 0)
+                    return "Unknown";
                 var age = x.Age;
                 return age switch
                 {
