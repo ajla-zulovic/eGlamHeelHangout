@@ -41,7 +41,7 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.HasIndex("CategoryName")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Discount", b =>
@@ -70,7 +70,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Discounts");
+                    b.ToTable("Discounts", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Favorite", b =>
@@ -101,7 +101,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favorites");
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Giveaway", b =>
@@ -143,7 +143,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasKey("GiveawayId");
 
-                    b.ToTable("Giveaways");
+                    b.ToTable("Giveaways", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.GiveawayParticipant", b =>
@@ -188,7 +188,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("GiveawayParticipants");
+                    b.ToTable("GiveawayParticipants", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Notification", b =>
@@ -238,7 +238,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Order", b =>
@@ -294,7 +294,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.OrderItem", b =>
@@ -331,7 +331,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("ProductSizeId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Product", b =>
@@ -385,7 +385,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Review", b =>
@@ -417,7 +417,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Role", b =>
@@ -436,7 +436,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.User", b =>
@@ -502,7 +502,7 @@ namespace eGlamHeelHangout.Service.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.UsersRole", b =>
@@ -522,7 +522,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UsersRoles");
+                    b.ToTable("UsersRoles", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.WinnerNotificationEntity", b =>
@@ -556,7 +556,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("WinnerUserId");
 
-                    b.ToTable("WinnerNotifications");
+                    b.ToTable("WinnerNotifications", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.ProductSize", b =>
@@ -585,7 +585,7 @@ namespace eGlamHeelHangout.Service.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductSizes");
+                    b.ToTable("ProductSizes", (string)null);
                 });
 
             modelBuilder.Entity("eGlamHeelHangout.Service.Database.Discount", b =>
