@@ -551,7 +551,16 @@ Future<void> _initialize() async {
   Widget _buildProductShimmer() {
     return SizedBox(
     height: 500,
-    child: GridView.builder(
+    child: result == null
+      ? const SizedBox.shrink()
+      : result!.result.isEmpty
+          ? const Center(
+              child: Text(
+                'No products found for your search.',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            )
+          :  GridView.builder(
       physics: const NeverScrollableScrollPhysics(), 
       itemCount: 6,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
