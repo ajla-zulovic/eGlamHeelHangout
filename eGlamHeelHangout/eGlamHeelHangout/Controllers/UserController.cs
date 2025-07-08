@@ -67,7 +67,13 @@ namespace eGlamHeelHangout.Controllers
             }
         }
 
-
+        [HttpPost("{id}/promote")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PromoteToAdmin(int id)
+        {
+            var result = await _userService.PromoteToAdmin(id);
+            return Ok(result);
+        }
 
 
     }

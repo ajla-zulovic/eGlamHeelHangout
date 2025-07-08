@@ -15,7 +15,7 @@ namespace eGlamHeelHangout.Service
     public int GetCurrentUserId(string username);
     Task ChangePassword(ChangePasswordRequest request);
 
-
-
+    Task<bool> PromoteToAdmin(int userId);
+ 
     }
 }

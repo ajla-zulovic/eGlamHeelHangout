@@ -171,6 +171,66 @@ namespace eGlamHeelHangout.Service
             await _context.SaveChangesAsync();
         }
 
+        public override IQueryable<Database.User> AddFilter(IQueryable<Database.User> query, UserSearchObjects? search = null)
+        {
+            if (!string.IsNullOrWhiteSpace(search?.SearchText))
+            {
+                var searchText = search.SearchText.ToLower();
+
+                query = query.Where(x =>
+                    x.FirstName.ToLower().Contains(searchText) ||
+                    x.LastName.ToLower().Contains(searchText) ||
+                    x.Email.ToLower().Contains(searchText));
+            }
+
+            return base.AddFilter(query, search);
+        }
+        public override async Task<PagedResult<Model.Users>> Get(UserSearchObjects? search = null)
+        {
+            var result = await base.Get(search);
+
+            var userIds = result.Result.Select(x => x.UserId).ToList();
+
+            var dbUsers = await _context.Users
+                .Include(u => u.UsersRoles)
+                .ThenInclude(ur => ur.Role)
+                .Where(u => userIds.Contains(u.UserId))
+                .ToListAsync();
+
+            foreach (var user in result.Result)
+            {
+                var dbUser = dbUsers.FirstOrDefault(u => u.UserId == user.UserId);
+
+                if (dbUser != null)
+                {
+                    user.RoleName = string.Join(", ",
+                        dbUser.UsersRoles.Select(ur => ur.Role.RoleName));
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<bool> PromoteToAdmin(int userId)
+        {
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
+            if (adminRole == null)
+                throw new Exception("Admin role not found.");
+
+            var hasRole = await _context.UsersRoles.AnyAsync(x => x.UserId == userId && x.RoleId == adminRole.RoleId);
+            if (hasRole)
+                return false;
+
+            _context.UsersRoles.Add(new UsersRole
+            {
+                UserId = userId,
+                RoleId = adminRole.RoleId,
+                DateChange = DateTime.Now
+            });
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
     }
 }

@@ -9,5 +9,6 @@ namespace eGlamHeelHangout.Model.SearchObjects
   public class UserSearchObjects:BaseSearchObject
   {
     public bool? IsRolseIncluded { get; set; }
-  }
+    public string? SearchText { get; set; }
+    }
 }

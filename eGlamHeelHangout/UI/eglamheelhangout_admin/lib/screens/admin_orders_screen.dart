@@ -123,67 +123,66 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: const Text("Manage Orders"),
       automaticallyImplyLeading: false,
     ),
     body: Column(
       children: [
         Padding(
-  padding: const EdgeInsets.all(12.0),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                labelText: "Search by Username",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: "Search by Username",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
 
-          
-          DropdownButton<String>(
-            value: _selectedStatus,
-            hint: const Text("Filter by Status"),
-            style: const TextStyle(fontSize: 16, color: Colors.black),
-            underline: Container(height: 1, color: Colors.grey),
-            items: ['Pending', 'Delivered', 'Canceled']
-                .map((status) => DropdownMenuItem(
-                      value: status,
-                      child: Text(status),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              setState(() => _selectedStatus = value);
-            },
-          ),
-          const SizedBox(width: 12),
+                
+                DropdownButton<String>(
+                  value: _selectedStatus,
+                  hint: const Text("Filter by Status"),
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  underline: Container(height: 1, color: Colors.grey),
+                  items: ['Pending', 'Delivered', 'Canceled']
+                      .map((status) => DropdownMenuItem(
+                            value: status,
+                            child: Text(status),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() => _selectedStatus = value);
+                  },
+                ),
+                const SizedBox(width: 12),
 
-        
-          ElevatedButton.icon(
-            onPressed: () {
-              _loadOrders(
-                username: _usernameController.text,
-                status: _selectedStatus,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              
+                ElevatedButton.icon(
+                  onPressed: () {
+                    _loadOrders(
+                      username: _usernameController.text,
+                      status: _selectedStatus,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.search),
+                  label: const Text("Filter"),
+                ),
+              ],
             ),
-            icon: const Icon(Icons.search),
-            label: const Text("Filter"),
-          ),
-        ],
-      ),
 
       const SizedBox(height: 10),
 

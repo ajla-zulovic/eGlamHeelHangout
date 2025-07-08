@@ -19,6 +19,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       json['dateOfBirth'] == null
           ? null
           : DateTime.parse(json['dateOfBirth'] as String),
+  roleName: json['roleName'] as String?,
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -31,4 +32,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'address': instance.address,
   'profileImage': instance.profileImage,
   'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
+  'roleName': instance.roleName,
 };

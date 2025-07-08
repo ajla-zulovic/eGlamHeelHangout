@@ -56,6 +56,19 @@ Future<void> changePassword(Map<String, dynamic> data) async {
   }
 }
 
+Future<void> promoteToAdmin(int userId) async {
+  var url = "$baseUrl$endpoint/$userId/promote";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http_package.post(uri, headers: headers);
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception("Failed to promote user: ${response.body}");
+  }
+}
+
+
 
  
 }

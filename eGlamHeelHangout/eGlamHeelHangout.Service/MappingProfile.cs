@@ -51,7 +51,11 @@ namespace eGlamHeelHangout.Service
                 .ForMember(dest => dest.Orders, opt => opt.Ignore())
                 .ForMember(dest => dest.Reviews, opt => opt.Ignore());
 
-            CreateMap<User, Users>();
+            CreateMap<User, Users>()
+            .ForMember(dest => dest.RoleName,
+                opt => opt.MapFrom(src =>
+                    string.Join(", ", src.UsersRoles.Select(ur => ur.Role.RoleName))));
+
 
             // PRODUCTS
             CreateMap<ProductsInsertRequest, Product>()

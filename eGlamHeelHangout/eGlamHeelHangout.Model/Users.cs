@@ -18,9 +18,10 @@ namespace eGlamHeelHangout.Model
     public string? Address { get; set; }
     public byte[]? ProfileImage { get; set; }
     public DateTime? DateOfBirth { get; set; }
+    public string? RoleName { get; set; }
+    public virtual ICollection<UsersRoles> UsersRoles { get; } = new List<UsersRoles>();
 
-        public virtual ICollection<UsersRoles> UsersRoles { get; } = new List<UsersRoles>();
 
-    
-  }
+
+    }
 }
