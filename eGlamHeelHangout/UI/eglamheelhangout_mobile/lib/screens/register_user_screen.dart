@@ -122,6 +122,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                 Navigator.of(context).pushReplacement(
                                   MaterialPageRoute(builder: (context) => const ProductsListScreen()),
                                 );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Registration successful!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+
                               } catch (e) {
                                 _showErrorDialog(e.toString());
                               }

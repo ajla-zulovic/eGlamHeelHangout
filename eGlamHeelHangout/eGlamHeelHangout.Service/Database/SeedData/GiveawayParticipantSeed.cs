@@ -27,7 +27,7 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                     Address = "Grbavička 25",
                     PostalCode = "71000",
                     City = "Sarajevo",
-                    IsWinner = false
+                    IsWinner = true
                 }
             );
 

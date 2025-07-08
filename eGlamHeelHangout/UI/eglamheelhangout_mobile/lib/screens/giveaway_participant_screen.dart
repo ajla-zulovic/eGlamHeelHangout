@@ -191,8 +191,18 @@ class _GiveawayParticipationScreenState
           TextFormField(
             controller: _postalCodeController,
             decoration: const InputDecoration(labelText: 'Postal Code'),
-            validator: (value) =>
-                value!.isEmpty ? 'Postal Code is required' : null,
+           validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Postal Code is required';
+            }
+
+            final regex = RegExp(r'^[A-Za-z0-9 \-]{3,10}$');
+            if (!regex.hasMatch(value)) {
+              return 'Invalid postal code';
+            }
+
+            return null;
+          },
           ),
           const SizedBox(height: 12),
           TextFormField(

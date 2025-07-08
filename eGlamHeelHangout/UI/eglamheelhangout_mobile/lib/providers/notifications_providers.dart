@@ -34,19 +34,6 @@ class NotificationProvider extends BaseProvider<Notifications> {
     }
   }
 
-  
-
-// Future<void> markAsRead(int id) async {
-//    print("Pozivam markAsRead za notification id = $id");
-//   var uri = Uri.parse('$baseUrl$endpoint/mark-read/$id');
-//    var headers = createHeaders();
-//   headers['Content-Type'] = 'application/json';
-//   var response = await http!.put(uri, headers: headers);
-
-//   if (response.statusCode != 200 && response.statusCode != 204) {
-//     throw Exception('Failed to mark notification as read');
-//   }
-// }
 
 Future<void> markAsRead(int id) async {
   print("Pozivam markAsRead za notification id = $id");

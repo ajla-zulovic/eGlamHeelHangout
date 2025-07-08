@@ -9,7 +9,7 @@ class StripeProvider with ChangeNotifier {
 
   bool get isInitialized => _initialized;
   String? get publishableKey => _publishableKey;
-  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://localhost:7277/');
+  static const String baseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'http://10.0.2.2:7277/');
  
   Future<void> initializeStripe() async {
     try {

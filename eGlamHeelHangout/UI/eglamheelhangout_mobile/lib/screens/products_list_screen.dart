@@ -47,7 +47,7 @@ class _ProductsListScreenState extends State<ProductsListScreen>with RouteAware 
   late ProductProvider _productProvider;
 
   final List<Map<String, dynamic>> _pages = [
-    {'page': const HomeScreen(), 'title': 'Home '},
+    {'page': const HomeScreen(), 'title': 'Home'},
     {'page': const ProfileScreen(), 'title': 'Profile'},
     {'page': const MyFavoritesScreen(), 'title': 'My Favorites'},
     {'page': const UserOrdersListScreen(), 'title': 'History Orders'},
@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware{
   @override
   void initState() {
     super.initState();
-    signalrUrl = const String.fromEnvironment("SIGNALR_URL", defaultValue: "http://localhost:7277/giveawayHub");
+    signalrUrl = const String.fromEnvironment("SIGNALR_URL", defaultValue: "http://10.0.2.2:7277/giveawayHub");
     _productProvider = Provider.of<ProductProvider>(context, listen: false);
     _categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
     _initialize();
@@ -547,43 +547,38 @@ Future<void> _initialize() async {
       }
     }
   }
-
-  Widget _buildProductShimmer() {
-    return SizedBox(
+Widget _buildProductShimmer() {
+  return SizedBox(
     height: 500,
     child: result == null
-      ? const SizedBox.shrink()
-      : result!.result.isEmpty
-          ? const Center(
-              child: Text(
-                'No products found for your search.',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-            )
-          :  GridView.builder(
-      physics: const NeverScrollableScrollPhysics(), 
-      itemCount: 6,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 3 / 4,
-      ),
-      itemBuilder: (context, index) {
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.grey[200],
+        ? const SizedBox.shrink()
+        : GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 6,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 3 / 4,
             ),
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[200],
+                  ),
+                ),
+              );
+            },
           ),
-        );
-      },
-    ),
   );
 }
+
 
   VoidCallback _handleCategoryChange(int? categoryId) {
     return () {
@@ -884,15 +879,15 @@ Widget build(BuildContext context) {
 
                 final isFavorite = favoriteProvider.isFavorite(product.productID!);
                 return GestureDetector(
-  onTap: () async {
-    final updated = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailScreen(product: product),
-      ),
-    );
-    if (updated == true) await _fetchData();
-  },
+            onTap: () async {
+              final updated = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailScreen(product: product),
+                ),
+              );
+              if (updated == true) await _fetchData();
+            },
   child: Card(
     color: Colors.white,
     elevation: 4,
@@ -1013,6 +1008,18 @@ Widget build(BuildContext context) {
             ),
           ),
         ),
+        if (!_isCategoryLoading && (result?.result.isEmpty ?? false))
+  SliverToBoxAdapter(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 50),
+      child: Center(
+        child: Text(
+          'No products found for your search.',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      ),
+    ),
+  ),
     ],
   ),
 );

@@ -220,6 +220,7 @@ using (var scope = app.Services.CreateScope()) // kreira scope jer moj _200199Co
         GiveawayParticipantSeed.Seed(dataContext);
         OrderSeed.Seed(dataContext);
         OrderItemSeed.Seed(dataContext);
+        NotificationSeed.Seed(dataContext);
 
 
 
