@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../models/user.dart';
 import 'base_providers.dart';
 
+
 class UserProvider extends BaseProvider<User> {
   UserProvider() : super("User");
 
@@ -67,6 +68,31 @@ Future<void> promoteToAdmin(int userId) async {
     throw Exception("Failed to promote user: ${response.body}");
   }
 }
+
+Future<void> demoteFromAdmin(int userId) async {
+  var url = "$baseUrl$endpoint/$userId/demote";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http_package.put(uri, headers: headers);
+
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    throw Exception("Failed to demote user: ${response.body}");
+  }
+}
+
+Future<void> deleteUser(int userId) async {
+  var url = "$baseUrl$endpoint/$userId";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  final response = await http_package.delete(uri, headers: headers);
+
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    throw Exception("Failed to delete user: ${response.body}");
+  }
+}
+
 
 
 

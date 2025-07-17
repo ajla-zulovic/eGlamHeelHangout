@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../providers/user_providers.dart';
 
+
+
 class ManageUsersScreen extends StatefulWidget {
   const ManageUsersScreen({super.key});
 
@@ -71,7 +73,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     );
   }
 
-
   void _confirmPromote(User user) async {
     final shouldPromote = await showDialog<bool>(
       context: context,
@@ -89,9 +90,88 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       try {
         await _userProvider.promoteToAdmin(user.userId!);
         _fetchUsers();
-        showSuccessDialog(context, "User promoted to admin.");
+        ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User promoted to admin.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+
       } catch (e) {
-        showErrorDialog(context, "Failed to promote user: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('You cannot demote yourself.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      }
+    }
+  }
+
+  void _confirmDemote(User user) async {
+    final shouldDemote = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Confirm Demotion"),
+        content: Text("Are you sure you want to remove Admin role from ${user.firstName}?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
+        ],
+      ),
+    );
+
+    if (shouldDemote == true) {
+     try {
+      await _userProvider.demoteFromAdmin(user.userId!);
+      _fetchUsers();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User demoted to regular user.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to demote user: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+    }
+  }
+
+  void _confirmDelete(User user) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Confirm Deletion"),
+        content: Text("Are you sure you want to delete ${user.firstName} ${user.lastName}?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        await _userProvider.deleteUser(user.userId!);
+        _fetchUsers();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User successfully deleted.'),
+           backgroundColor: Colors.green,),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete user: $e'),
+           backgroundColor: Colors.red,
+           ),
+        );
       }
     }
   }
@@ -123,6 +203,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                       elevation: 3,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: Container(
+                        width: 950, 
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -154,15 +235,28 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                                     DataCell(Row(
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.visibility),
-                                          onPressed: () => _showUserDetails(user),
+                                        icon: const Icon(Icons.visibility),
+                                        onPressed: () => _showUserDetails(user),
+                                      ),
+                                      if (!isAdmin)
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_circle_up_outlined, color: Colors.blue),
+                                          tooltip: "Promote to Admin",
+                                          onPressed: () => _confirmPromote(user),
                                         ),
-                                        if (!isAdmin)
-                                          IconButton(
-                                            icon: const Icon(Icons.upgrade, color: Colors.blue),
-                                            tooltip: "Promote to Admin",
-                                            onPressed: () => _confirmPromote(user),
-                                          ),
+                                      if (isAdmin)
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_circle_down_outlined, color: Colors.orange),
+                                          tooltip: "Demote from Admin",
+                                          onPressed: () => _confirmDemote(user),
+                                        ),
+                                      IconButton(
+                                        iconSize: 24,
+                                        padding: const EdgeInsets.all(0),
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () => _confirmDelete(user),
+                                      ),
+
                                       ],
                                     )),
                                   ]);

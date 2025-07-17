@@ -217,6 +217,15 @@ class _LoginPageState extends flutter.State<LoginPage> {
                                 }
 
                                 final loggedInUser = await userProvider.getCurrentUser();
+                                 if (!loggedInUser.roleName!.toLowerCase().contains('user')) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Access denied. User role is required.'),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                  return; 
+                                }
                                 final prefs = await SharedPreferences.getInstance();
                                 prefs.setInt("userId", loggedInUser.userId!);
                                 CurrentUser.set(
@@ -225,32 +234,27 @@ class _LoginPageState extends flutter.State<LoginPage> {
                                 fullUser: loggedInUser,
                               );
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Login successful!"),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-
+                              const SnackBar(
+                                content: Text("Login successful!"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
                                 Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) => const ProductsListScreen(),
                                 ),
                               );
                               } catch (e) {
-                                flutter.showDialog(
-                                  context: context,
-                                  builder: (_) => flutter.AlertDialog(
-                                    title: const flutter.Text("Login failed"),
-                                    content: flutter.Text(e.toString()),
-                                    actions: [
-                                      flutter.ElevatedButton(
-                                        onPressed: () => flutter.Navigator.of(context).pop(),
-                                        child: const flutter.Text("Close"),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
+                            String errorMessage = e.toString().toLowerCase().contains('unauthorized')
+                                ? 'Invalid username or password.'
+                                : 'Login failed. Please try again.';
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(errorMessage),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                             }
                           },
                           child: const flutter.Text(

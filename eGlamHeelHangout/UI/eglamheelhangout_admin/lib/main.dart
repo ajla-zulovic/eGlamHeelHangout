@@ -182,13 +182,25 @@ class _LoginPageState extends State<LoginPage> {
                                   }
 
                                   final loggedInUser = await userProvider.getCurrentUser();
-                                  CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
-                                   ScaffoldMessenger.of(context).showSnackBar(
+                                if (!loggedInUser.roleName!.toLowerCase().contains('admin')) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text("Login successful!"),
-                                      backgroundColor: Colors.green,
+                                      content: Text('Access denied. Admin role is required.'),
+                                      backgroundColor: Colors.orange,
                                     ),
                                   );
+                                  return;
+                                }
+
+
+                                CurrentUser.set(loggedInUser.userId!, loggedInUser.username!);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Login successful!"),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
 
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -196,23 +208,17 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 );
                               } catch (e) {
-                                showDialog(
-                                  context: context,
-                                  builder:
-                                      (_) => AlertDialog(
-                                        title: Text("Login failed"),
-                                        content: Text(e.toString()),
-                                        actions: [
-                                          ElevatedButton(
-                                            onPressed:
-                                                () =>
-                                                    Navigator.of(context).pop(),
-                                            child: Text("Close"),
-                                          ),
-                                        ],
-                                      ),
-                                );
-                              }
+                            String errorMessage = e.toString().toLowerCase().contains('unauthorized')
+                                ? 'Invalid username or password.'
+                                : 'Login failed. Please try again.';
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(errorMessage),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+
                             }
                           },
                           child: const Text(

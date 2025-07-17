@@ -231,6 +231,54 @@ namespace eGlamHeelHangout.Service
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> Delete(int id, int currentUserId)
+        {
+            if (id == currentUserId)
+                throw new Exception("You cannot delete yourself.");
+
+            return await base.Delete(id);
+        }
+
+        public async Task<bool> DemoteFromAdmin(int userId, int currentUserId)
+        {
+            if (userId == currentUserId)
+                throw new Exception("You cannot demote yourself.");
+
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
+            if (adminRole == null)
+                throw new Exception("Admin role not found.");
+
+            var userRole = await _context.UsersRoles
+                .FirstOrDefaultAsync(x => x.UserId == userId && x.RoleId == adminRole.RoleId);
+
+            if (userRole == null)
+                return false; 
+
+            
+            _context.UsersRoles.Remove(userRole);
+            await _context.SaveChangesAsync();
+
+            bool hasOtherRoles = await _context.UsersRoles.AnyAsync(x => x.UserId == userId);
+
+            if (!hasOtherRoles)
+            {
+                var userDefaultRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
+                if (userDefaultRole == null)
+                    throw new Exception("Role 'User' not found.");
+
+                _context.UsersRoles.Add(new UsersRole
+                {
+                    UserId = userId,
+                    RoleId = userDefaultRole.RoleId,
+                    DateChange = DateTime.Now
+                });
+
+                await _context.SaveChangesAsync();
+            }
+
+            return true;
+        }
+
 
     }
 }

@@ -120,15 +120,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 final currentUser = await userProvider.getCurrentUser();
                                 CurrentUser.set(currentUser.userId!, currentUser.username!);
 
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(builder: (context) => const ProductsListScreen()),
-                                );
-                                 ScaffoldMessenger.of(context).showSnackBar(
+                                ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Registration successful!"),
+                                  content: Text("Registration successful! Please log in."),
                                   backgroundColor: Colors.green,
                                 ),
                               );
+
+                             
+                              Navigator.of(context).pop();
+
 
                               } catch (e) {
                                 _showErrorDialog(e.toString());

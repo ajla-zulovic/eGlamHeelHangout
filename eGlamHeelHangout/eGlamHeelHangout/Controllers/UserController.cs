@@ -75,6 +75,41 @@ namespace eGlamHeelHangout.Controllers
             return Ok(result);
         }
 
+        [HttpPut("{id}/demote")]
+        public async Task<IActionResult> DemoteFromAdmin(int id)
+        {
+            var currentUserId = _userService.GetCurrentUserId(User.Identity.Name);
+            try
+            {
+                var result = await _userService.DemoteFromAdmin(id, currentUserId);
+                if (!result)
+                    return NotFound();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public override async Task<IActionResult> Delete(int id)
+        {
+            var currentUserId = _userService.GetCurrentUserId(User.Identity.Name);
+            try
+            {
+                var result = await _userService.Delete(id, currentUserId);
+                if (!result)
+                    return NotFound();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
 
     }
 }

@@ -16,6 +16,7 @@ namespace eGlamHeelHangout.Service
     Task ChangePassword(ChangePasswordRequest request);
 
     Task<bool> PromoteToAdmin(int userId);
- 
+    Task<bool> Delete(int id, int currentUserId);
+     Task<bool> DemoteFromAdmin(int userId, int currentUserId);
     }
 }
