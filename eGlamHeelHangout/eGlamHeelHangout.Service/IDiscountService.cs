@@ -12,6 +12,8 @@ namespace eGlamHeelHangout.Service
         Task AddDiscountAsync(DiscountInsertRequest request);
         Task<DiscountDTO?> GetByProductAsync(int productId);
         Task RemoveDiscountAsync(int productId);
+        Task<List<Products>> GetDiscountedProductsAsync();
+
 
     }
 }

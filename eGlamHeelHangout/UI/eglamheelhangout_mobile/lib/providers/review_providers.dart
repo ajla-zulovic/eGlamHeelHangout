@@ -13,23 +13,18 @@ Review fromJson(Map<String, dynamic> json) {
 }
 
 Future<double> fetchAverageRating(int productId) async {
-    var url = "$baseUrl$endpoint/product/$productId";
-    var uri = Uri.parse(url);
-    var headers = createHeaders();
+  var url = "$baseUrl$endpoint/average/$productId";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
 
-    final response = await http.get(uri, headers: headers); //!
+  final response = await http.get(uri, headers: headers);
 
-    if (response.statusCode == 200) {
-      List<dynamic> list = json.decode(response.body);
-      if (list.isEmpty) return 0;
-
-      final total = list.fold<double>(0, (sum, item) => sum + item['rating']);
-      return total / list.length;
-    } else {
-      throw Exception('Failed to load ratings');
-    }
+  if (response.statusCode == 200) {
+    return double.tryParse(response.body) ?? 0;
+  } else {
+    throw Exception('Failed to load average rating');
   }
-
+}
 
  
 }

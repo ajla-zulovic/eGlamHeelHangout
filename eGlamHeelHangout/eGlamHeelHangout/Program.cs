@@ -136,6 +136,8 @@ options.UseSqlServer(connectionString));
 
 
 builder.Services.AddAutoMapper(typeof(IUserService));
+//builder.Services.AddAutoMapper(typeof(MappingProfile));
+
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
 

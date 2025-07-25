@@ -67,6 +67,7 @@ namespace eGlamHeelHangout.Service
                 .ForMember(dest => dest.ProductSizes, opt => opt.Ignore())
                 .ForMember(dest => dest.Favorites, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderItems, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
                 .ForMember(dest => dest.Reviews, opt => opt.Ignore());
 
             CreateMap<ProductsUpdateRequest, Product>()
@@ -83,6 +84,7 @@ namespace eGlamHeelHangout.Service
                 .ForMember(dest => dest.Favorites, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderItems, opt => opt.Ignore())
                 .ForMember(dest => dest.Reviews, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Product, Products>()
@@ -92,10 +94,28 @@ namespace eGlamHeelHangout.Service
                 .ForMember(dest => dest.Sizes, opt => opt.Ignore())
                 .ForMember(dest => dest.IsFavorite, opt => opt.Ignore())
                 .ForMember(dest => dest.DiscountPercentage, opt => opt.Ignore())
-                .ForMember(dest => dest.DiscountedPrice, opt => opt.Ignore());
+                .ForMember(dest => dest.DiscountedPrice, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.IsDeleted));
+
 
             // CATEGORY
             CreateMap<Category, Categories>();
+
+            CreateMap<CategoryInsertRequest, Category>()
+            .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
+            .ForMember(dest => dest.Products, opt => opt.Ignore())
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
+
+
+            CreateMap<CategoryUpdateRequest, Category>()
+             .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
+             .ForMember(dest => dest.Products, opt => opt.Ignore())
+             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
+             .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+
+
+
 
             // ROLES
             CreateMap<Role, Roles>();

@@ -20,7 +20,8 @@ import 'package:eglamheelhangout_admin/screens/admin_orders_screen.dart';
 import 'package:eglamheelhangout_admin/screens/manage_giveaways_screen.dart';
 import 'package:eglamheelhangout_admin/screens/report_screen.dart';
 import 'package:eglamheelhangout_admin/screens/manage_users_screen.dart';
-
+import 'package:eglamheelhangout_admin/screens/manage_categories_screen.dart';
+import 'package:eglamheelhangout_admin/providers/discount_providers.dart';
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({super.key});
@@ -42,6 +43,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     {'page': const AdminOrdersScreen(), 'title': 'Manage Orders'},
     {'page': const GiveawaysManageScreen(), 'title': 'Manage Giveaways'},
     {'page': const ManageUsersScreen(), 'title': 'Manage Users'},
+    {'page': const ManageCategoriesScreen(), 'title': 'Manage Categories'},
 
   ];
 
@@ -84,51 +86,89 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey[800]),
-              child: const Text(
-                'Menu',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(color: Colors.grey[800]),
+            child: const Text(
+              'Menu',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-            ListTile(leading: const Icon(Icons.home), title: const Text('Home Page'), onTap: () => _selectPage(0)),
-            ListTile(leading: const Icon(Icons.person), title: const Text('Profile Page'), onTap: () => _selectPage(1)),
-            ListTile(leading: const Icon(Icons.bar_chart), title: const Text('Report Page'), onTap: () => _selectPage(2)),
-          ListTile(
-            leading: const Icon(Icons.card_giftcard),
-            title: const Text('Add Giveaway'),
-            onTap: () => _selectPage(3),
           ),
           ListTile(
-            leading: const Icon(Icons.add_circle_outline),
-            title: const Text('Add New Product'),
-            onTap: () => _selectPage(4), 
+              leading: const Icon(Icons.home),
+              title: const Text('Home Page'),
+              onTap: () => _selectPage(0)),
+          ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profile Page'),
+              onTap: () => _selectPage(1)),
+          ListTile(
+              leading: const Icon(Icons.bar_chart),
+              title: const Text('Report Page'),
+              onTap: () => _selectPage(2)),
+          ExpansionTile(
+            leading: const Icon(Icons.add),
+            title: const Text('Add'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline),
+                title: const Text('Product'),
+                onTap: () => _selectPage(4),
+              ),
+              ListTile(
+                leading: const Icon(Icons.card_giftcard),
+                title: const Text('Giveaway'),
+                onTap: () => _selectPage(3),
+              ),
+            ],
           ),
-          ListTile(leading: const Icon(Icons.assignment), title: const Text('Manage Orders'), onTap: () => _selectPage(5)),
-          ListTile(leading: const Icon(Icons.assignment), title: const Text('Manage Giveaways'), onTap: () => _selectPage(6)),
-          ListTile(leading: const Icon(Icons.assignment), title: const Text('Manage Users'), onTap: () => _selectPage(7)),
-
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          ],
-        ),
+          ExpansionTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Manage'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.assignment),
+                title: const Text('Orders'),
+                onTap: () => _selectPage(5),
+              ),
+              ListTile(
+                leading: const Icon(Icons.assignment),
+                title: const Text('Giveaways'),
+                onTap: () => _selectPage(6),
+              ),
+              ListTile(
+                leading: const Icon(Icons.assignment),
+                title: const Text('Users'),
+                onTap: () => _selectPage(7),
+              ),
+              ListTile(
+                leading: const Icon(Icons.assignment),
+                title: const Text('Categories'),
+                onTap: () => _selectPage(8),
+              ),
+            ],
+          ),
+          
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Logout'),
+            onTap: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (Route<dynamic> route) => false,
+              );
+            },
+          ),
+        ],
       ),
+    ),
+
       body: _pages[selectedIndex]['page'],
     );
   }
@@ -151,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _selectedCategoryId;
   bool _isLoading = false;
   List<Product> _products = [];
-
+  bool _showDiscountsOnly = false;
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
@@ -169,20 +209,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 Future<void> _loadDiscountedProducts() async {
+  setState(() {
+    _isLoading = true;
+  });
+
   try {
-    final data = await context.read<ProductProvider>().getDiscountedProducts();
+    final data = await _productProvider.getActiveDiscountedProducts(); 
+
     setState(() {
-      _products = data;
+      result = SearchResult<Product>()
+        ..result = data
+        ..count = data.length;
+
+      _isLoading = false;
     });
   } catch (e) {
     debugPrint("Error loading discounted products: $e");
+    setState(() {
+      _isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Failed to load discounted products")),
+    );
   }
 }
 
+
 Future<void> _fetchCategories() async {
-  final categoryResult = await _categoryProvider!.get();
+ final categoryResult = await _categoryProvider!.get();
   setState(() {
-    _categories = categoryResult.result;
+    _categories = categoryResult.result.where((x) => x.isActive == true).toList();
   });
 }
 Future<void> _fetchData() async {
@@ -257,26 +313,26 @@ Future<void> _fetchData() async {
           Center(
             child: Image.asset(
               "assets/images/logologo.png",
-              height: 150,
-              width: 150,
+              height: 180,
+              width: 180,
             ),
           ),
-         if (_categories.isNotEmpty)
+          if (_categories.isNotEmpty)
           Wrap(
             spacing: 10,
             runSpacing: 10,
             children: [
-              // ALL button
               OutlinedButton(
                 onPressed: () {
                   setState(() {
                     _selectedCategoryId = null;
                     _ftsController.clear();
+                    _showDiscountsOnly = false; 
                   });
                   _fetchData();
                 },
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: _selectedCategoryId == null ? Colors.black : Colors.white,
+                  backgroundColor: (_selectedCategoryId == null && !_showDiscountsOnly) ? Colors.black : Colors.white,
                   side: const BorderSide(color: Colors.black),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -288,7 +344,8 @@ Future<void> _fetchData() async {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: _selectedCategoryId == null ? Colors.white : Colors.black,
+                    color: (_selectedCategoryId == null && !_showDiscountsOnly) ? Colors.white : Colors.black,
+
                   ),
                 ),
               ),
@@ -299,6 +356,7 @@ Future<void> _fetchData() async {
                     setState(() {
                       _selectedCategoryId = isSelected ? null : category.categoryID;
                       _ftsController.clear();
+                      _showDiscountsOnly = false; 
                     });
                     _fetchData();
                   },
@@ -320,11 +378,39 @@ Future<void> _fetchData() async {
                   ),
                 );
               }).toList(),
+              OutlinedButton.icon(
+               onPressed: () async {
+                setState(() {
+                  _selectedCategoryId = null;
+                  _ftsController.clear();
+                  _showDiscountsOnly = true; // SET
+                });
+                await _loadDiscountedProducts();
+              },
+              style: OutlinedButton.styleFrom(
+                backgroundColor: _showDiscountsOnly ? Colors.red : Colors.red[50],
+                side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              icon: Icon(Icons.local_offer, color: _showDiscountsOnly ? Colors.white : Colors.red),
+              label: Text(
+                "Discounts",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _showDiscountsOnly ? Colors.white : Colors.red,
+                ),
+              ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
           SizedBox(
             width: 700,
+            height:40,
             child: TextField(
               controller: _ftsController,
               decoration: InputDecoration(
@@ -366,7 +452,7 @@ Future<void> _fetchData() async {
             }
             ),
           ),
-          const SizedBox(height: 120),
+          const SizedBox(height: 90),
           Expanded(
             child: result == null
             ? const SizedBox.shrink()
@@ -481,14 +567,31 @@ Future<void> _fetchData() async {
                           ),
                         ),
                         Positioned(
-                          top: 4,
-                          right: 4,
-                          child: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red, size: 22),
-                            tooltip: 'Delete product',
-                            onPressed: () => _confirmDelete(context, product),
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => _confirmDelete(context, product),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.red[50],
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(Icons.delete_forever, color: Colors.red[300], size: 20),
+                            ),
                           ),
                         ),
+                      ),
+
                       ],
                     ),
                   ),

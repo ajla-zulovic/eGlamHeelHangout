@@ -108,5 +108,36 @@ namespace eGlamHeelHangout.Service
             }
         }
 
+        public async Task<List<Products>> GetDiscountedProductsAsync()
+        {
+            var now = DateTime.Now;
+
+            var products = await _context.Products
+                .Where(p => !p.IsDeleted &&
+                            p.Discounts.Any(d => d.StartDate <= now && d.EndDate >= now))
+                .Include(p => p.Discounts)
+                .ToListAsync();
+
+            var result = products.Select(p =>
+            {
+                var dto = _mapper.Map<Products>(p);
+                var discount = p.Discounts
+                    .Where(d => d.StartDate <= now && d.EndDate >= now)
+                    .OrderByDescending(d => d.StartDate)
+                    .FirstOrDefault();
+
+                if (discount != null)
+                {
+                    dto.DiscountPercentage = (int)discount.DiscountPercentage;
+                    dto.DiscountedPrice = Math.Round(p.Price * (1 - discount.DiscountPercentage / 100.0m), 2);
+                }
+
+                return dto;
+            }).ToList();
+
+            return result;
+        }
+
+
     }
 }

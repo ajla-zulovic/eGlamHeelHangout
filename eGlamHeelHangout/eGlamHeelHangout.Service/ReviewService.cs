@@ -30,17 +30,29 @@ namespace eGlamHeelHangout.Service
             return await _context.Reviews.AnyAsync(r => r.UserId == userId && r.ProductId == productId);
         }
 
-        public async Task AddReviewAsync(int userId, ReviewInsertRequest request)
+        public async Task AddOrUpdateReviewAsync(int userId, ReviewInsertRequest request)
         {
-            var review = new Review
-            {
-                ProductId = request.ProductId,
-                UserId = userId,
-                Rating = request.Rating,
-                ReviewDate = DateTime.UtcNow
-            };
+            var existingReview = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == request.ProductId);
 
-            _context.Reviews.Add(review);
+            if (existingReview != null)
+            {
+                existingReview.Rating = request.Rating;
+                existingReview.ReviewDate = DateTime.UtcNow;
+                _context.Reviews.Update(existingReview);
+            }
+            else
+            {
+                var review = new Review
+                {
+                    ProductId = request.ProductId,
+                    UserId = userId,
+                    Rating = request.Rating,
+                    ReviewDate = DateTime.UtcNow
+                };
+                _context.Reviews.Add(review);
+            }
+
             await _context.SaveChangesAsync();
         }
 

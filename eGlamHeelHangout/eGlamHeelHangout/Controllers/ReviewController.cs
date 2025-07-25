@@ -22,25 +22,29 @@ namespace eGlamHeelHangout.Controllers
 
         [HttpPost]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> AddReview([FromBody] ReviewInsertRequest request)
+        public async Task<IActionResult> AddOrUpdateReview([FromBody] ReviewInsertRequest request)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out int userId))
                 return Unauthorized("User not authenticated.");
 
-            var alreadyReviewed = await _reviewService.HasUserAlreadyReviewed(userId, request.ProductId);
-            if (alreadyReviewed)
-                return BadRequest("You have already reviewed this product.");
-
-            await _reviewService.AddReviewAsync(userId, request);
-            return Ok("Review submitted successfully.");
+            await _reviewService.AddOrUpdateReviewAsync(userId, request);
+            return Ok("Review saved successfully.");
         }
+
         [HttpGet("product/{productId}")]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> GetReviewsForProduct(int productId)
         {
             var reviews = await _reviewService.GetReviewsForProductAsync(productId);
             return Ok(reviews);
+        }
+        [HttpGet("average/{productId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAverageRating(int productId)
+        {
+            var average = await _reviewService.GetAverageRatingAsync(productId);
+            return Ok(average);
         }
 
     }

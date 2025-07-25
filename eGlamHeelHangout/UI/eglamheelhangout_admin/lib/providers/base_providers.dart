@@ -103,20 +103,32 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return query;
   }
 
-Future<T> insert (dynamic request) async
-{
-    var url = "$baseUrl$_endpoint"; //treba nam putanja do naseg servera i endpoint
-    var uri = Uri.parse(url);
-    var headers = createHeaders(); //vazno jer ovo mogu samo uraditi korisnci/admini koji su prosli autentifikaciju
+  Future<T> insert(dynamic request) async {
+  var url = "$baseUrl$_endpoint";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+  var jsonRequest = jsonEncode(request);
+  var response = await http.post(uri, headers: headers, body: jsonRequest);
 
-    var jsonRequest=jsonEncode(request); //moramo request koji saljemo enkodirati u json
-    var response= await http.post(uri,headers:headers,body:jsonRequest);
-    print('INSERT status: ${response.statusCode}');
-    print('INSERT body: ${response.body}');
+  debugPrint('INSERT status: ${response.statusCode}');
+  debugPrint('INSERT body: ${response.body}');
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    try {
+      final errorData = jsonDecode(response.body);
+      if (errorData is Map<String, dynamic> && errorData.containsKey("errors")) {
+        throw errorData; 
+      } else {
+        throw Exception("Insert failed: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Insert error parsing failed: $e");
+      rethrow; 
+    }
+  }
 
   try {
     final decoded = jsonDecode(response.body);
-
     if (decoded is Map<String, dynamic>) {
       return fromJson(decoded);
     } else {
@@ -129,6 +141,7 @@ Future<T> insert (dynamic request) async
     throw Exception("Invalid response format");
   }
 }
+
 
 Future<T> update(int id, [dynamic request]) async {
   var url = "$baseUrl$_endpoint/$id";

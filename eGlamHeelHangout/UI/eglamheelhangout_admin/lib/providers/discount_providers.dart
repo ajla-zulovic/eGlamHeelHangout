@@ -51,6 +51,28 @@ Future<void> remove(int productId) async {
   if (response.statusCode != 200) throw Exception("Failed to remove discount");
 }
 
+// Future<List<Product>> getDiscountedProducts() async {
+//   var url = "$baseUrl$endpoint/active"; 
+//   var uri = Uri.parse(url);
+//   var headers = createHeaders();
+
+//   var response = await http.get(uri, headers: headers);
+
+//   debugPrint("DISCOUNT STATUS CODE: ${response.statusCode}");
+//   debugPrint("DISCOUNT RESPONSE BODY: ${response.body}");
+
+//   if (isValidResponse(response)) {
+//     var data = jsonDecode(response.body);
+//     return (data as List).map((e) => Product.fromJson(e)).toList(); 
+//   } else {
+//     debugPrint("DiscountProvider error body: ${response.body}");
+//     throw Exception("Failed to load discounted products");
+//   }
+// }
+
+
+
+
 
 
 }

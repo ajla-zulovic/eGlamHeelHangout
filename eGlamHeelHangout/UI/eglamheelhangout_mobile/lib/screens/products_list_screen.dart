@@ -125,10 +125,7 @@ class _ProductsListScreenState extends State<ProductsListScreen>with RouteAware 
     );
   },
 ),
-
-
 ],
-
       ),
       drawer: Drawer(
         child: ListView(
@@ -197,15 +194,14 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware{
   List<Product>? _recommendedProducts;
   bool _isLoadingRecommendations = true;
   bool _showRecommendations = true;
-
-
-
+  bool _showDiscountsOnly = false;
   @override
   void initState() {
     super.initState();
     signalrUrl = const String.fromEnvironment("SIGNALR_URL", defaultValue: "http://10.0.2.2:7277/giveawayHub");
     _productProvider = Provider.of<ProductProvider>(context, listen: false);
     _categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+    _isCategoryLoading = false;
     _initialize();
     _initializeSignalR(); 
      WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -224,31 +220,22 @@ Future<void> _initializeSignalR() async {
       .build();
 
   _hubConnection.on("ReceiveGiveaway", (arguments) {
-    print("ReceiveGiveaway event triggered");
     context.read<NotificationProvider>().refreshUnreadCount();
     final data = arguments?.first;
     if (data != null) {
-      print("Data: ${data.toString()}");
-
       try {
         final giveaway = GiveawayNotification.fromJson(Map<String, dynamic>.from(data));
-        print("MAPIRANJE ?...");
-
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
-            print("Prikazujem dialog...");
             _showGiveawayDialog(giveaway);
           }
         });
       } catch (e, stackTrace) {
-        print(" Greška prilikom mapiranja giveaway objekta: $e");
-        print(" StackTrace: $stackTrace");
       }
     }
   });
 
   _hubConnection.on("ReceiveWinner", (arguments) {
-    print("Received 'ReceiveWinner' event");
     final data = arguments?.first;
     if (data != null) {
       final winner = data["winnerUsername"];
@@ -258,23 +245,20 @@ Future<void> _initializeSignalR() async {
   });
 
 _hubConnection.on("ReceiveProduct", (arguments) {
-  print(" [SignalR] ReceiveProduct event triggered");
   context.read<NotificationProvider>().refreshUnreadCount();
   final data = arguments?.first;
   if (data != null) {
-    print(" RAW PRODUCT DATA: $data");
 
     final notificationId = data['notificationId'];
     final productId = data['productId'];
     final productName = data['name'];
     final message = data['message'];
 
-    print("Parsed -> productId: $productId, name: $productName, message: $message");
-
     _fetchData();
+    _reloadRecommendations();
+
 
     if (context.mounted) {
-      print(" Calling _showProductDialog...");
       _showProductDialog(
         productName ?? "Unknown product",
         notificationId: notificationId,
@@ -285,7 +269,6 @@ _hubConnection.on("ReceiveProduct", (arguments) {
 });
 
 _hubConnection.on("ReceiveDiscount", (arguments) {
-  print("ReceiveDiscount event triggered");
   context.read<NotificationProvider>().refreshUnreadCount();
   final data = arguments?.first;
   if (data != null) {
@@ -294,6 +277,8 @@ _hubConnection.on("ReceiveDiscount", (arguments) {
     final message = data['message'];
 
     _fetchData(); 
+    _reloadRecommendations();
+
     if (context.mounted) {
       _showDiscountDialog(message ?? "Discount available!", notificationId: notificationId, productId: productId);
     }
@@ -302,57 +287,109 @@ _hubConnection.on("ReceiveDiscount", (arguments) {
 
   try {
     await _hubConnection.start();
-    print("SignalR connected to: $signalrUrl");
   } catch (e) {
-    print("SignalR failed to connect: $e");
+  }
+}
+
+Future<void> _reloadRecommendations() async {
+  final prefs = await SharedPreferences.getInstance();
+  final userId = prefs.getInt("userId");
+  if (userId != null) {
+    final recommended = await _productProvider.getRecommendedProducts(userId);
+    final favoritesProvider = context.read<FavoriteProvider>();
+    final filtered = recommended
+        .where((p) => !favoritesProvider.isFavorite(p.productID!))
+        .toList();
+    if (mounted) {
+      setState(() {
+        _recommendedProducts = filtered;
+        _isLoadingRecommendations = false;
+      });
+    }
   }
 }
 
 
+Future<void> _loadDiscountedProducts() async {
+  setState(() => _isCategoryLoading = true);
 
-void _showDiscountDialog(String message, {int? notificationId, int? productId}) {
+  try {
+    final discounted = await _productProvider.getActiveDiscountedProducts();
+    if (mounted) {
+      setState(() {
+        result = SearchResult<Product>()
+          ..result = discounted
+          ..count = discounted.length;
+      });
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading discounts: $e')),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _isCategoryLoading = false);
+    }
+  }
+}
+
+void _showDiscountDialog(String message, {int? notificationId, int? productId}) async {
   Future.delayed(const Duration(milliseconds: 200), () async {
-    if (!mounted) return;
+    if (!mounted || productId == null) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("New Sales!"),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Close"),
+    final product = await context.read<ProductProvider>().getById(productId);
+    final discount = await context.read<DiscountProvider>().getByProduct(productId);
+
+    final now = DateTime.now();
+
+    if (discount != null && discount.startDate.isAfter(now)) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Upcoming Sale"),
+          content: Text(
+            "A discount for '${product.name}' will start on ${DateFormat('dd.MM.yyyy').format(discount.startDate)}."
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              if (productId != null) {
-                final product = await context.read<ProductProvider>().getById(productId);
-                if (!mounted) return;
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Close"),
+            ),
+          ],
+        ),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("New Sales!"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Close"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
                 Navigator.of(dialogContext).push(
                   MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
                 );
-
-              }
-            },
-            child: const Text("View"),
-          ),
-        ],
-      ),
-    );
+              },
+              child: const Text("View"),
+            ),
+          ],
+        ),
+      );
+    }
   });
 }
 
-
-
-
 void _showGiveawayDialog(GiveawayNotification giveaway) {
-  print(">> Pokrećem _showGiveawayDialog za: ${giveaway.title}");
   Future.delayed(Duration(milliseconds: 200), () {
     if (!mounted) return;
-
-    print("Prikazujem giveaway dialog");
 try {
   showDialog(
     context: context,
@@ -385,7 +422,6 @@ try {
     ),
   );
 } catch (e, stack) {
-  print(" Dijalog nije prikazan: $e");
 }
   });
 }
@@ -406,8 +442,6 @@ void _showWinnerDialog(String winner, String giveawayTitle) {
   );
 }
 void _showProductDialog(String name, {int? notificationId, int? productId}) {
-  print(" Showing ProductDialog for: $name (productId: $productId)");
-
   Future.delayed(const Duration(milliseconds: 200), () async {
     if (!mounted) return;
 
@@ -419,34 +453,26 @@ void _showProductDialog(String name, {int? notificationId, int? productId}) {
         actions: [
           TextButton(
             onPressed: () {
-              print(" User chose not to view product");
               Navigator.of(context).pop();
             },
             child: const Text("No"),
           ),
           TextButton(
             onPressed: () async {
-              print("View clicked! Getting product by ID...");
               Navigator.of(context).pop();
 
               if (notificationId != null) {
-                print("Marking notification $notificationId as read");
                 await context.read<NotificationProvider>().markAsRead(notificationId);
               }
 
               if (productId != null) {
                 final product = await context.read<ProductProvider>().getById(productId);
-                print("Product loaded: ${product.name}, price: ${product.price}, discount: ${product.discountPercentage}");
-
                 if (!mounted) return;
-
-                print(" Navigating to ProductDetailScreen...");
                Navigator.of(dialogContext).push(
                 MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
               );
 
               } else {
-                print(" productId is null, cannot open detail screen.");
               }
             },
             child: const Text("View"),
@@ -456,9 +482,6 @@ void _showProductDialog(String name, {int? notificationId, int? productId}) {
     );
   });
 }
-
-
-
   @override
   void dispose() {
     _hubConnection.stop();
@@ -480,13 +503,16 @@ Future<void> _initialize() async {
     await _fetchData();
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt("userId");
-    print(">>> userId = $userId");
     if (userId != null) {
       try {
         final recommended = await _productProvider.getRecommendedProducts(userId);
+        final favoritesProvider = context.read<FavoriteProvider>();
+        final filteredRecommended = recommended
+        .where((p) => !favoritesProvider.isFavorite(p.productID!))
+        .toList();
         if (mounted) {
           setState(() {
-            _recommendedProducts = recommended;
+            _recommendedProducts = filteredRecommended;
             _isLoadingRecommendations = false;
           });
         }
@@ -516,7 +542,7 @@ Future<void> _initialize() async {
     final categoryResult = await _categoryProvider.get();
     if (mounted) {
       setState(() {
-        _categories = categoryResult.result;
+        _categories = categoryResult.result.where((x) => x.isActive == true).toList();
       });
     }
   }
@@ -617,8 +643,6 @@ Widget _buildProductShimmer() {
       ),
     );
   }
-
-
   @override
 Widget build(BuildContext context) {
   dialogContext = context;
@@ -639,17 +663,103 @@ Widget build(BuildContext context) {
           children: [
             const SizedBox(height: 20),
             Center(
-              child: Image.asset("assets/images/logologo.png", height: 120),
+              child: Image.asset("assets/images/logologo.png", height: 180),
             ),
             const SizedBox(height: 20),
+            if (_categories.isNotEmpty)
             Center(
               child: Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 4,
+                spacing: 10,
                 runSpacing: 15,
                 children: [
-                  _buildFilterButton(null, 'All'),
-                  ..._categories.map((cat) => _buildFilterButton(cat.categoryID, cat.categoryName ?? '')),
+                  OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedCategoryId = null;
+                        _ftsController.clear();
+                        _showDiscountsOnly = false;
+                      });
+                      _fetchData();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: (_selectedCategoryId == null && !_showDiscountsOnly)
+                          ? Colors.black
+                          : Colors.white,
+                      side: const BorderSide(color: Colors.black),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                    child: Text(
+                      'All',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: (_selectedCategoryId == null && !_showDiscountsOnly)
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                    ),
+                  ),
+                  ..._categories.map((category) {
+                    final isSelected = _selectedCategoryId == category.categoryID;
+                    return OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedCategoryId = isSelected ? null : category.categoryID;
+                          _ftsController.clear();
+                          _showDiscountsOnly = false;
+                        });
+                        _fetchData();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: isSelected ? Colors.black : Colors.white,
+                        side: const BorderSide(color: Colors.black),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                      child: Text(
+                        category.categoryName ?? '',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      setState(() {
+                        _selectedCategoryId = null;
+                        _ftsController.clear();
+                        _showDiscountsOnly = true;
+                      });
+                      await _loadDiscountedProducts();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: _showDiscountsOnly ? Colors.red : Colors.red[50],
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                    icon: Icon(Icons.local_offer,
+                        color: _showDiscountsOnly ? Colors.white : Colors.red),
+                    label: Text(
+                      "Discounts",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: _showDiscountsOnly ? Colors.white : Colors.red,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -832,13 +942,14 @@ Widget build(BuildContext context) {
                   const SizedBox(height: 20),
                 ],
               ),
+          
             TextField(
               controller: _ftsController,
               decoration: InputDecoration(
                 hintText: 'Search products...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
+                  borderRadius: BorderRadius.circular(25.0),
                 ),
               ),
               onChanged: (value) {
@@ -862,6 +973,7 @@ Widget build(BuildContext context) {
                 });
               },
             ),
+            
             const SizedBox(height: 20),
           ],
         ),
@@ -887,124 +999,126 @@ Widget build(BuildContext context) {
                 ),
               );
               if (updated == true) await _fetchData();
-            },
-  child: Card(
-    color: Colors.white,
-    elevation: 4,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Stack(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                height: 100, 
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: product.image != null
-                      ?Image.memory(
-                      base64Decode(product.image!),
-                      fit: BoxFit.contain,
-                      gaplessPlayback: true,
-                      filterQuality: FilterQuality.medium,
-                    )
-
-                      : const Icon(Icons.image_not_supported, size: 50),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-              Text(
-                product.name ?? '',
-                style: const TextStyle(fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              if (product.discountedPrice != null &&
-                  product.discountedPrice! > 0 &&
-                  product.discountPercentage != null &&
-                  product.discountPercentage! > 0)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      formatNumber(product.price),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 13,
-                        decoration: TextDecoration.lineThrough,
+            }, child: SizedBox(
+                height: 270, 
+                child: Card(
+                  color: Colors.white,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              height: 100,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: product.image != null
+                                    ? Image.memory(
+                                        base64Decode(product.image!),
+                                        fit: BoxFit.contain,
+                                        gaplessPlayback: true,
+                                        filterQuality: FilterQuality.medium,
+                                      )
+                                    : const Icon(Icons.image_not_supported, size: 50),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              product.name ?? '',
+                              style: const TextStyle(fontSize: 14),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            if (product.discountedPrice != null &&
+                                product.discountedPrice! > 0 &&
+                                product.discountPercentage != null &&
+                                product.discountPercentage! > 0)
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    formatNumber(product.price),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 13,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    formatNumber(product.discountedPrice),
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '(${product.discountPercentage!.toStringAsFixed(0)}% OFF)',
+                                    style: const TextStyle(color: Colors.green, fontSize: 12),
+                                  ),
+                                ],
+                              )
+                            else
+                              Padding(
+                                padding: const EdgeInsets.only(top: 12.0),
+                                child: Text(
+                                  formatNumber(product.price),
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            const SizedBox(height: 4),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formatNumber(product.discountedPrice),
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: Colors.pink,
+                          ),
+                          onPressed: () async {
+                            try {
+                              final liked = await favoriteProvider.toggle(product.productID!);
+                              setState(() => product.isFavorite = liked);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: ${e.toString()}')),
+                              );
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '(${product.discountPercentage!.toStringAsFixed(0)}% OFF)',
-                      style: const TextStyle(color: Colors.green, fontSize: 12),
-                    ),
-                  ],
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: Text(
-                    formatNumber(product.price),
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
+                    ],
                   ),
                 ),
-              const SizedBox(height: 4),
-            ],
-          ),
-        ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: Colors.pink,
-            ),
-            onPressed: () async {
-              try {
-                final liked = await favoriteProvider.toggle(product.productID!);
-                setState(() => product.isFavorite = liked);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              }
-            },
-          ),
-        ),
-      ],
-    ),
-  ),
-);
+              ),
 
-              },
+            );
+            },
               childCount: result?.result.length ?? 0,
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: isWide ? 4 : 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 3 / 4,
+              childAspectRatio: 2/3,
             ),
           ),
         ),
@@ -1023,7 +1137,5 @@ Widget build(BuildContext context) {
     ],
   ),
 );
-
 }
-
 }

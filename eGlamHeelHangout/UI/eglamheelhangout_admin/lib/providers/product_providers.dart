@@ -30,4 +30,20 @@ Future<List<Product>> getDiscountedProducts() async {
   throw Exception("Failed to load discounted products");
 }
 
+Future<List<Product>> getActiveDiscountedProducts() async {
+  var url = "${baseUrl}Discount/active";
+  var uri = Uri.parse(url);
+  var headers = createHeaders();
+
+  var response = await http.get(uri, headers: headers);
+if (response.statusCode == 200) {
+  var data = jsonDecode(response.body);
+  return (data as List).map((e) => Product.fromJson(e)).toList();
+} else {
+  throw Exception("Request failed with status ${response.statusCode}");
+}
+
+}
+
+
 }

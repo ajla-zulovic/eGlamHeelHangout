@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../providers/user_providers.dart';
 
-
-
 class ManageUsersScreen extends StatefulWidget {
   const ManageUsersScreen({super.key});
 
@@ -15,30 +13,22 @@ class ManageUsersScreen extends StatefulWidget {
 class _ManageUsersScreenState extends State<ManageUsersScreen> {
   late UserProvider _userProvider;
   List<User> _users = [];
-  TextEditingController _searchController = TextEditingController();
-  String _searchText = "";
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _userProvider = context.read<UserProvider>();
     _fetchUsers();
-    _searchController.addListener(() {
-      setState(() {
-        _searchText = _searchController.text;
-      });
-      _fetchUsers();
-    });
+    _searchController.addListener(() => _fetchUsers());
   }
 
   Future<void> _fetchUsers() async {
     try {
       var result = await _userProvider.get(filter: {
-        "SearchText": _searchText,
+        "SearchText": _searchController.text,
       });
-      setState(() {
-        _users = result.result;
-      });
+      setState(() => _users = result.result);
     } catch (e) {
       showErrorDialog(context, "Failed to fetch users: $e");
     }
@@ -78,7 +68,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Confirm Promotion"),
-        content: Text("Are you sure you want to promote ${user.firstName} to Administrator?"),
+        content: Text("Promote ${user.firstName} to Admin?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
@@ -90,22 +80,9 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       try {
         await _userProvider.promoteToAdmin(user.userId!);
         _fetchUsers();
-        ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User promoted to admin.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-
+        _showSnackBar('User promoted to admin.', Colors.green);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('You cannot demote yourself.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-
+        _showSnackBar('You cannot demote yourself.', Colors.red);
       }
     }
   }
@@ -115,7 +92,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Confirm Demotion"),
-        content: Text("Are you sure you want to remove Admin role from ${user.firstName}?"),
+        content: Text("Remove Admin from ${user.firstName}?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
@@ -124,24 +101,13 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     );
 
     if (shouldDemote == true) {
-     try {
-      await _userProvider.demoteFromAdmin(user.userId!);
-      _fetchUsers();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User demoted to regular user.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to demote user: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-
+      try {
+        await _userProvider.demoteFromAdmin(user.userId!);
+        _fetchUsers();
+        _showSnackBar('User demoted to user.', Colors.green);
+      } catch (e) {
+        _showSnackBar('Failed to demote user: ${e.toString()}', Colors.red);
+      }
     }
   }
 
@@ -150,7 +116,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Confirm Deletion"),
-        content: Text("Are you sure you want to delete ${user.firstName} ${user.lastName}?"),
+        content: Text("Delete ${user.firstName} ${user.lastName}?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
@@ -162,117 +128,137 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       try {
         await _userProvider.deleteUser(user.userId!);
         _fetchUsers();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User successfully deleted.'),
-           backgroundColor: Colors.green,),
-        );
+        _showSnackBar('User deleted.', Colors.green);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete user: $e'),
-           backgroundColor: Colors.red,
-           ),
-        );
+        _showSnackBar('Failed to delete user: $e', Colors.red);
       }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: "Search by name or email...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _users.isEmpty
-                  ? const Center(child: Text("No users found."))
-                  : Card(
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Container(
-                        width: 950, 
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              columns: const [
-                                DataColumn(label: Text("First Name")),
-                                DataColumn(label: Text("Last Name")),
-                                DataColumn(label: Text("Email")),
-                                DataColumn(label: Text("Phone")),
-                                DataColumn(label: Text("Role")),
-                                DataColumn(label: Text("Actions")),
-                              ],
-                              rows: _users.map(
-                                (user) {
-                                  final isAdmin = user.roleName?.toLowerCase().contains("admin") ?? false;
-
-                                  return DataRow(cells: [
-                                    DataCell(Text(user.firstName ?? "")),
-                                    DataCell(Text(user.lastName ?? "")),
-                                    DataCell(Text(user.email ?? "")),
-                                    DataCell(Text(user.phoneNumber ?? "")),
-                                    DataCell(Text(user.roleName ?? "")),
-                                    DataCell(Row(
-                                      children: [
-                                        IconButton(
-                                        icon: const Icon(Icons.visibility),
-                                        onPressed: () => _showUserDetails(user),
-                                      ),
-                                      if (!isAdmin)
-                                        IconButton(
-                                          icon: const Icon(Icons.arrow_circle_up_outlined, color: Colors.blue),
-                                          tooltip: "Promote to Admin",
-                                          onPressed: () => _confirmPromote(user),
-                                        ),
-                                      if (isAdmin)
-                                        IconButton(
-                                          icon: const Icon(Icons.arrow_circle_down_outlined, color: Colors.orange),
-                                          tooltip: "Demote from Admin",
-                                          onPressed: () => _confirmDemote(user),
-                                        ),
-                                      IconButton(
-                                        iconSize: 24,
-                                        padding: const EdgeInsets.all(0),
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => _confirmDelete(user),
-                                      ),
-
-                                      ],
-                                    )),
-                                  ]);
-                                },
-                              ).toList(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color),
     );
   }
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(centerTitle: true, automaticallyImplyLeading: false),
+    body: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Search Users", style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: SizedBox(
+              width: double.infinity,
+              height: 40,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: "Search by name or email...",
+                  prefixIcon: const Icon(Icons.search),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+  child: _users.isEmpty
+      ? const Center(child: Text("No users found."))
+      : Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SingleChildScrollView(
+  scrollDirection: Axis.vertical,
+  child: Align(
+    alignment: Alignment.centerLeft,
+    child: SizedBox(
+      width: double.infinity,
+      child: DataTable(
+        columnSpacing: 32,
+        dataRowHeight: 56,
+        columns: const [
+          DataColumn(label: Expanded(child: Text("First Name"))),
+          DataColumn(label: Expanded(child: Text("Last Name"))),
+          DataColumn(label: Expanded(child: Text("Email"))),
+          DataColumn(label: Expanded(child: Text("Phone"))),
+          DataColumn(label: Expanded(child: Text("Role"))),
+          DataColumn(label: Expanded(child: Text("Actions"))),
+        ],
+        rows: _users.map((user) {
+          final isAdmin = user.roleName?.toLowerCase().contains("admin") ?? false;
+          return DataRow(cells: [
+            DataCell(Text(user.firstName ?? "")),
+            DataCell(Text(user.lastName ?? "")),
+            DataCell(Text(user.email ?? "")),
+            DataCell(Text(user.phoneNumber ?? "")),
+            DataCell(Text(user.roleName ?? "")),
+            DataCell(Row(
+              children: [
+                Tooltip(
+                  message: 'View user details',
+                  child: IconButton(
+                    icon: const Icon(Icons.visibility, color: Colors.grey),
+                    onPressed: () => _showUserDetails(user),
+                  ),
+                ),
+                if (!isAdmin)
+                  Tooltip(
+                    message: 'Promote to Admin',
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_upward, color: Colors.grey),
+                      onPressed: () => _confirmPromote(user),
+                    ),
+                  ),
+                if (isAdmin)
+                  Tooltip(
+                    message: 'Demote from Admin',
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_downward, color: Colors.grey),
+                      onPressed: () => _confirmDemote(user),
+                    ),
+                  ),
+                Tooltip(
+                  message: 'Delete user',
+                  child: IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                    onPressed: () => _confirmDelete(user),
+                  ),
+                ),
+              ],
+            )),
+          ]);
+        }).toList(),
+      ),
+    ),
+  ),
+),
+
+          ),
+        ),
+)
+
+        ],
+      ),
+    ),
+  );
+}
+
 }
 
 void showErrorDialog(BuildContext context, String message) {
@@ -280,22 +266,6 @@ void showErrorDialog(BuildContext context, String message) {
     context: context,
     builder: (_) => AlertDialog(
       title: const Text("Error"),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("OK"),
-        ),
-      ],
-    ),
-  );
-}
-
-void showSuccessDialog(BuildContext context, String message) {
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Success"),
       content: Text(message),
       actions: [
         TextButton(

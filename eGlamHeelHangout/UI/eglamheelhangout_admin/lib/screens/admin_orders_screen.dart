@@ -127,65 +127,85 @@ Widget build(BuildContext context) {
     ),
     body: Column(
       children: [
-        Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      labelText: "Search by Username",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
+       Padding(
+  padding: const EdgeInsets.all(12.0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+  
+    Row(
+  children: [
+  Expanded(
+  flex: 3,
+  child: SizedBox(
+    height: 40,
+    child: TextField(
+      controller: _usernameController,
+      decoration: InputDecoration(
+        hintText: "Search for username...",
+        prefixIcon: const Icon(Icons.search, size: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+    ),
+  ),
+),
 
-                
-                DropdownButton<String>(
-                  value: _selectedStatus,
-                  hint: const Text("Filter by Status"),
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                  underline: Container(height: 1, color: Colors.grey),
-                  items: ['Pending', 'Delivered', 'Canceled']
-                      .map((status) => DropdownMenuItem(
-                            value: status,
-                            child: Text(status),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedStatus = value);
-                  },
-                ),
-                const SizedBox(width: 12),
+    const SizedBox(width: 12),
 
-              
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _loadOrders(
-                      username: _usernameController.text,
-                      status: _selectedStatus,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  icon: const Icon(Icons.search),
-                  label: const Text("Filter"),
-                ),
-              ],
-            ),
+    Expanded(
+  flex: 2,
+  child: SizedBox(
+    height: 40,
+    child: DropdownButtonFormField<String>(
+      value: _selectedStatus,
+      decoration: InputDecoration(
+        hintText: "Select Status",
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      items: ['Pending', 'Delivered', 'Canceled']
+          .map((status) => DropdownMenuItem(
+                value: status,
+                child: Text(status),
+              ))
+          .toList(),
+      onChanged: (value) => setState(() => _selectedStatus = value),
+    ),
+  ),
+),
+
+    const SizedBox(width: 12),
+
+    // BUTTON
+    SizedBox(
+      height: 32,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          _loadOrders(
+            username: _usernameController.text,
+            status: _selectedStatus,
+          );
+        },
+        icon: const Icon(Icons.search, size: 18),
+        label: const Text("Search", style: TextStyle(fontSize: 14)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 10), // Visina 36px
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+      ),
+    ),
+  ],
+),
 
       const SizedBox(height: 10),
-
       Align(
         alignment: Alignment.centerRight,
         child: TextButton(
@@ -199,7 +219,6 @@ Widget build(BuildContext context) {
     ],
   ),
 ),
-
         const Divider(),
         Expanded(
           child: _isLoading

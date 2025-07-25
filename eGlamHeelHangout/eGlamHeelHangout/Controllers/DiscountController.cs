@@ -47,5 +47,13 @@ public class DiscountController : ControllerBase
         await _discountService.RemoveDiscountAsync(productId);
         return Ok("Discount removed.");
     }
+    [HttpGet("active")]
+    [Authorize]
+    public async Task<IActionResult> GetAllActiveDiscounts()
+    {
+        var result = await _discountService.GetDiscountedProductsAsync();
+        return Ok(result);
+    }
+
 
 }

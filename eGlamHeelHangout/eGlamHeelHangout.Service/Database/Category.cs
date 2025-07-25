@@ -14,5 +14,7 @@ namespace eGlamHeelHangout.Service.Database
         public string CategoryName { get; set; } = null!;
 
         public virtual ICollection<Product> Products { get; set; }
+        public bool IsActive { get; set; } = true;
+
     }
 }

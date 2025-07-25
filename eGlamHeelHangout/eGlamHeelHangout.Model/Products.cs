@@ -25,7 +25,7 @@ namespace eGlamHeelHangout.Model
     public bool IsFavorite { get; set; } = false;
      public int? DiscountPercentage { get; set; }
      public decimal? DiscountedPrice { get; set; }
-
+      public bool IsDeleted { get; set; } = false;
 
     }
 }

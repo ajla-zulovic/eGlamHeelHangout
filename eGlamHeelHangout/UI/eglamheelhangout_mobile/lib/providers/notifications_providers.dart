@@ -36,7 +36,6 @@ class NotificationProvider extends BaseProvider<Notifications> {
 
 
 Future<void> markAsRead(int id) async {
-  print("Pozivam markAsRead za notification id = $id");
   var uri = Uri.parse('$baseUrl$endpoint/mark-read/$id');
   var headers = createHeaders();
   headers['Content-Type'] = 'application/json';
@@ -52,7 +51,7 @@ Future<void> markAsRead(int id) async {
 Future<List<WinnerNotificationEntity>> getWinnerNotifications() async {
   var url = "$baseUrl/Giveaway/user/winner-notifications";
   var uri = Uri.parse(url);
-  var headers = createHeaders(); // Osiguraj da se ispravno postavlja Auth header
+  var headers = createHeaders(); 
 
   final response = await http!.get(uri, headers: headers);
 
@@ -62,7 +61,6 @@ Future<List<WinnerNotificationEntity>> getWinnerNotifications() async {
         .map((e) => WinnerNotificationEntity.fromJson(e))
         .toList();
   } else {
-    debugPrint(">>> [getWinnerNotifications] failed: ${response.body}");
     throw Exception("Failed to fetch winner notifications");
   }
 }
@@ -85,7 +83,6 @@ Future<void> refreshUnreadCount() async {
     _unreadCount = unread.length;
     notifyListeners(); 
   } catch (e) {
-    debugPrint("Failed to refresh unread count: $e");
   }
 }
 

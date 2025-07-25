@@ -13,8 +13,6 @@ class FavoriteProvider extends BaseProvider<Product> {
     var body = jsonEncode({"productId": productId});
 
     final response = await http!.post(uri, headers: headers, body: body);
-    print('TOGGLE response: ${response.statusCode}');
-    print('BODY: ${response.body}');
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       await refreshFavorites();

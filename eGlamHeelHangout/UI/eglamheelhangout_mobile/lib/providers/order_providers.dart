@@ -16,24 +16,14 @@ class OrderProvider extends BaseProvider<Order> {
   final url = "$baseUrl$endpoint/custom-create";
   final uri = Uri.parse(url);
   final headers = createHeaders();
-
   final jsonBody = jsonEncode(order.toJson());
-
-  print("Order payload: $jsonBody");
-
   final response = await http!.post(uri, headers: headers, body: jsonBody);
-
-  print("status: ${response.statusCode}");
-  print("body: ${response.body}");
-
   if (response.statusCode == 200) {
     try {
       final data = jsonDecode(response.body);
       final parsed = fromJson(data);
       return parsed;
     } catch (e, stacktrace) {
-      print("Error parsing order response: $e");
-      print("Stacktrace: $stacktrace");
       return null;
     }
   } else if (response.statusCode == 403) {
@@ -42,8 +32,6 @@ class OrderProvider extends BaseProvider<Order> {
     throw Exception("Failed to create order. (${response.statusCode})");
   }
 }
-
-
 Future<List<Order>> getMyOrders() async {
   var url = "$baseUrl$endpoint/my-orders";
   var uri = Uri.parse(url);

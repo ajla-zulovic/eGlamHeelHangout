@@ -13,6 +13,8 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
 import 'package:eglamheelhangout_mobile/models/discount.dart';
 import 'package:eglamheelhangout_mobile/providers/discount_providers.dart';
+import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
+
 import 'package:http/http.dart' as http;
 
 
@@ -32,6 +34,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   double? averageRating;
   int? selectedSize;
   int quantity = 1;
+  bool isFavorite = false;
+
 
 
   @override
@@ -39,6 +43,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     super.initState();
     _productProvider = context.read<ProductProvider>();
     _reviewProvider = context.read<ReviewProvider>();
+    final favoriteProvider = context.read<FavoriteProvider>();
+    isFavorite = favoriteProvider.isFavorite(widget.product!.productID!);
     _loadSizes();
     _loadAverageRating();
   }
@@ -52,6 +58,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
   }
 
+Future<void> _toggleFavorite() async {
+  try {
+    final favoriteProvider = context.read<FavoriteProvider>();
+    final result = await favoriteProvider.toggle(widget.product!.productID!);
+    setState(() {
+      isFavorite = result;
+    });
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${e.toString()}')),
+    );
+  }
+}
   Future<void> _loadAverageRating() async {
     try {
       final result = await _reviewProvider.fetchAverageRating(widget.product!.productID!);
@@ -119,7 +138,6 @@ void _addToCart() {
         sizeId: selectedProductSize.productSizeId!,        
         size: selectedSize!,
         name: widget.product?.name ?? "Unnamed",
-        //price: widget.product?.price ?? 0.0,
         price:cartPrice,
         image: widget.product?.image,
         quantity: 1,
@@ -143,10 +161,6 @@ void _addToCart() {
     );
   }
 }
-
-
-
-
   void _showRatingDialog() {
     double selectedRating = 3.0;
 
@@ -249,12 +263,30 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (product?.image != null && product!.image!.isNotEmpty)
+                if (product?.image != null && product!.image!.isNotEmpty)
+                Stack(
+                  children: [
                     Container(
                       height: 180,
                       width: double.infinity,
+                      alignment: Alignment.center,
                       child: imageFromBase64String(product.image!),
                     ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.pink,
+                          size: 28,
+                        ),
+                        onPressed: _toggleFavorite,
+                      ),
+                    ),
+                  ],
+                ),
+
                   const SizedBox(height: 20),
                 Center(
                   child: ElevatedButton.icon(
@@ -264,6 +296,7 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedSize == null ? Colors.grey : Colors.black,
                       foregroundColor: Colors.white,
+                      fixedSize: const Size(180, 50),
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),

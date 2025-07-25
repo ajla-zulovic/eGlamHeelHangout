@@ -53,7 +53,9 @@ void dispose() {
 
   Future<void> _initForm() async {
     try {
-      _categoryResult = await _categoryProvider.get();
+     _categoryResult = await _categoryProvider.get(filter: {
+      'IsActive': 'true',
+    });
       debugPrint("Učitano kategorija: ${_categoryResult?.result.length}");
   for (var k in _categoryResult!.result) {
     debugPrint("Kategorija: ${k.categoryID} - ${k.categoryName}");

@@ -29,6 +29,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Map<String, dynamic> _initialValue = {};
   late ProductProvider _productProvider;
   late CategoryProvider _categoryProvider;
+  bool _isChanged = false;
 
 
   bool isLoading = true;
@@ -97,7 +98,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _selectedImage = null;
     _base64Image = null;
 
-    setState(() {});
+    setState(() {
+        _isChanged = false;
+    });
   }
 
   Future<void> _pickImage() async {
@@ -111,6 +114,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       setState(() {
         _selectedImage = result.files.first;
         _base64Image = base64Encode(_selectedImage!.bytes!);
+        _isChanged = true;
       });
     }
   }
@@ -165,7 +169,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                       const SizedBox(width: 10),
                       ElevatedButton(
-                      onPressed: _saveChanges,
+                      onPressed: _isChanged ? _saveChanges : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2E7D32),
                         shape: RoundedRectangleBorder(
@@ -191,6 +195,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return FormBuilder(
       key: _formKey,
       initialValue: _initialValue,
+      onChanged: () {
+      setState(() {
+        _isChanged = true;
+      });
+    },
       child: Column(
         children: [
           _buildEditableField("name", "Name"),
@@ -248,23 +257,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SetDiscountScreen(product: widget.product!),
-                ),
-              );
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SetDiscountScreen(product: widget.product!),
+              ),
+            );
 
-              if (result == true) {
-                final refreshedProduct =
-                    await _productProvider.getById(widget.product!.productID!);
+            if (result == true) {
+              final refreshedProduct =
+                  await _productProvider.getById(widget.product!.productID!);
 
-                setState(() {
-                  widget.product!.discountedPrice = refreshedProduct.discountedPrice;
-                  widget.product!.discountPercentage = refreshedProduct.discountPercentage;
-                });
-              }
-            },
+              setState(() {
+                widget.product!.discountedPrice = refreshedProduct.discountedPrice;
+                widget.product!.discountPercentage = refreshedProduct.discountPercentage;
+              });
+
+              await _saveChanges(); 
+            }
+          },
+
             icon: const Icon(Icons.discount, color: Colors.white),
             label: const Text(
               "Set Discount",

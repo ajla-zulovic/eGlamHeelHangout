@@ -83,6 +83,9 @@ namespace eGlamHeelHangout.Service
                 filteredQuery = filteredQuery.Where(x => x.CategoryId == search.CategoryId);
             }
 
+    
+            filteredQuery = filteredQuery.Where(x => !x.IsDeleted);
+
             return filteredQuery;
         }
 
@@ -116,6 +119,7 @@ namespace eGlamHeelHangout.Service
                 .ToHashSet();
 
             var currentDate = DateTime.Now;
+
 
             var mapped = toList.Select(p =>
             {
@@ -181,11 +185,20 @@ namespace eGlamHeelHangout.Service
                 {
                     mlContext = new MLContext();
 
-                    var data = _context.Favorites.Select(f => new ProductEntry
+                    var data = _context.Favorites
+                        .Where(f => !f.Product.IsDeleted)
+                        .Select(f => new ProductEntry
+                        {
+                            UserId = (uint)f.UserId,
+                            ProductId = (uint)f.ProductId,
+                            Label = 1f
+                        })
+                        .ToList();
+
+                    if (!data.Any() || data.DistinctBy(d => new { d.UserId, d.ProductId }).Count() < 2)
                     {
-                        UserId = (uint)f.UserId,
-                        ProductId = (uint)f.ProductId
-                    }).ToList();
+                        return FallbackProducts();
+                    }
 
                     var trainData = mlContext.Data.LoadFromEnumerable(data);
 
@@ -199,32 +212,31 @@ namespace eGlamHeelHangout.Service
                     };
 
                     var est = mlContext.Recommendation().Trainers.MatrixFactorization(options);
-                    model = est.Fit(trainData);
+
+                    try
+                    {
+                        model = est.Fit(trainData);
+                    }
+                    catch
+                    {
+                        return FallbackProducts();
+                    }
                 }
             }
 
             var userHasFavorites = _context.Favorites.Any(f => f.UserId == userId);
 
             if (!userHasFavorites)
-            {
-                var fallback = _context.Products
-                    .Select(p => new
-                    {
-                        Product = p,
-                        AvgRating = _context.Reviews
-                            .Where(r => r.ProductId == p.ProductId)
-                            .Average(r => (double?)r.Rating) ?? 0
-                    })
-                    .OrderByDescending(p => p.AvgRating)
-                    .Take(5)
-                    .Select(p => p.Product)
-                    .ToList();
+                return FallbackProducts();
 
-                return fallback.Select(p => _mapper.Map<Model.Products>(p)).ToList();
-            }
+            var allProducts = _context.Products
+                .Where(p => !p.IsDeleted)
+                .ToList();
 
-            var allProducts = _context.Products.ToList();
             var results = new List<Tuple<Product, float>>();
+
+            if (model == null)
+                return FallbackProducts();
 
             var predictionEngine = mlContext.Model.CreatePredictionEngine<ProductEntry, ProductScore>(model);
 
@@ -240,29 +252,72 @@ namespace eGlamHeelHangout.Service
             }
 
             return results
-             .Where(r => !_context.Favorites.Any(f => f.UserId == userId && f.ProductId == r.Item1.ProductId))
-             .OrderByDescending(r => r.Item2)
-             .Take(5)
-             .Select(r =>
-             {
-                 var mapped = _mapper.Map<Model.Products>(r.Item1);
+                .Where(r => !_context.Favorites.Any(f => f.UserId == userId && f.ProductId == r.Item1.ProductId))
+                .OrderByDescending(r => r.Item2)
+                .Take(5)
+                .Select(r =>
+                {
+                    var mapped = _mapper.Map<Model.Products>(r.Item1);
 
-                 
-                 var discount = _context.Discounts
-                     .Where(d => d.ProductId == r.Item1.ProductId && d.StartDate <= DateTime.Now && d.EndDate >= DateTime.Now)
-                     .OrderByDescending(d => d.StartDate)
-                     .FirstOrDefault();
+                    mapped.IsFavorite = _context.Favorites
+                        .Any(f => f.UserId == userId && f.ProductId == r.Item1.ProductId);
+                    var now = DateTime.Now.Date;
+                    var discount = _context.Discounts
+                        .Where(d => d.ProductId == r.Item1.ProductId &&
+                                    d.StartDate.Date <= now &&
+                                    d.EndDate.Date >= now)
+                        .OrderByDescending(d => d.StartDate)
+                        .FirstOrDefault();
 
-                 if (discount != null)
-                 {
-                     mapped.DiscountPercentage = (int)discount.DiscountPercentage;
-                     mapped.DiscountedPrice = Math.Round(mapped.Price * (1 - discount.DiscountPercentage / 100.0m), 2);
-                 }
 
-                 return mapped;
-             })
-             .ToList();
+                    if (discount != null)
+                    {
+                        mapped.DiscountPercentage = (int)discount.DiscountPercentage;
+                        mapped.DiscountedPrice = Math.Round(mapped.Price * (1 - discount.DiscountPercentage / 100.0m), 2);
+                    }
 
+                    return mapped;
+                })
+                .ToList();
+        }
+        private List<Model.Products> FallbackProducts()
+        {
+            var now = DateTime.Now.Date;
+
+            var topRated = _context.Products
+                .Where(p => !p.IsDeleted)
+                .Select(p => new
+                {
+                    Product = p,
+                    AvgRating = _context.Reviews
+                        .Where(r => r.ProductId == p.ProductId)
+                        .Average(r => (double?)r.Rating) ?? 0
+                })
+                .OrderByDescending(p => p.AvgRating)
+                .Take(5)
+                .ToList(); 
+
+            var result = topRated.Select(p =>
+            {
+                var mapped = _mapper.Map<Model.Products>(p.Product);
+
+                var discount = _context.Discounts
+                    .Where(d => d.ProductId == p.Product.ProductId &&
+                                d.StartDate.Date <= now &&
+                                d.EndDate.Date >= now)
+                    .OrderByDescending(d => d.StartDate)
+                    .FirstOrDefault();
+
+                if (discount != null)
+                {
+                    mapped.DiscountPercentage = (int)discount.DiscountPercentage;
+                    mapped.DiscountedPrice = Math.Round(mapped.Price * (1 - discount.DiscountPercentage / 100.0m), 2);
+                }
+
+                return mapped;
+            }).ToList();
+
+            return result;
         }
 
         public async Task<PagedResult<ProductDiscount>> GetWithDiscounts(ProductsSearchObjects? search = null)
@@ -302,6 +357,18 @@ namespace eGlamHeelHangout.Service
             };
         }
 
+        public override async Task<bool> Delete(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product == null)
+                return false;
+
+            product.IsDeleted = true;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
 
     }
 

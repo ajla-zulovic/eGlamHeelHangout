@@ -30,6 +30,7 @@ services:
       - ASPNETCORE_URLS=http://0.0.0.0:7277
       - StripeSettings__SecretKey=${Stripe__SecretKey}
       - StripeSettings__PublishableKey=${Stripe__PublishableKey}
+      - TZ=Europe/Sarajevo 
 
     ports:
       - 7277:7277

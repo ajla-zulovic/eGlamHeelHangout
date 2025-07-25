@@ -7,10 +7,13 @@ class Category {
    @JsonKey(name: 'categoryId') // <--- koristi se 'categoryId' iz JSON-a
     int? categoryID;
     String? categoryName;
+    bool? isActive;
+    
 
     Category(
       this.categoryID,
       this.categoryName,
+      this.isActive,
      
     );
 

@@ -8,5 +8,7 @@ namespace eGlamHeelHangout.Model.SearchObjects
 {
     public class CategorySearchObject : BaseSearchObject
     {
+        public bool? IsActive { get; set; }
+
     }
 }
