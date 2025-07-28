@@ -80,7 +80,7 @@ https://github.com/ajla-zulovic/eGlamHeelHangout.git
 ###  Environment Variables
 
 - Note on .env File Configuration
-After cloning the project, it is required to manually create a .env file in the root (eGlamHeelHangout\eGlamHeelHangout) of the project (where docker-compose.yml file is located).
+After cloning the project, it is required to manually create a .env file in the root (eGlamHeelHangout\eGlamHeelHangout) of the project (where docker-compose.yml file is located) as well as in the UI project located in eGlamHeelHangout_mobile folder. Both parts of the application rely on environment variables for proper configuration. 
 
 In this .env file, you must define the following environment variables exactly as shown:
 
