@@ -383,8 +383,8 @@ void dispose() {
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
+                    foregroundColor: Colors.black54,
+                    side: const BorderSide(color: Colors.black54),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

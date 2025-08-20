@@ -30,8 +30,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late ProductProvider _productProvider;
   late CategoryProvider _categoryProvider;
   bool _isChanged = false;
-
-
   bool isLoading = true;
   SearchResult<Category>? categoryResult;
   Map<int, TextEditingController> _stockControllers = {};
@@ -119,6 +117,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,7 +149,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                      OutlinedButton(
                       onPressed: _resetEntireForm,
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red),
+                        side: const BorderSide(color: Colors.black54),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -160,7 +159,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       child: const Text(
                         'Cancel',
                         style: TextStyle(
-                          color: Colors.red,
+                          color: Colors.black54,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -361,6 +360,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     ),
                     style: const TextStyle(fontSize: 13),
+                    onChanged: (_) {
+                    if (!_isChanged) setState(() => _isChanged = true);
+                  },
                   ),
                 ],
               ),

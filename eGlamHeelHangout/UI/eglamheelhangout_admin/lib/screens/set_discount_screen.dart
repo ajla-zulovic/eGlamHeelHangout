@@ -181,7 +181,7 @@ void _confirmRemoveDiscount(BuildContext context) async {
                             icon: const Icon(Icons.delete),
                             label: const Text("Remove Discount"),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey.shade600,
+                              backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
