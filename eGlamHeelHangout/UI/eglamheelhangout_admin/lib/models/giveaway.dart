@@ -14,6 +14,10 @@ class Giveaway {
     String giveawayProductImage;
     String? winnerName; 
     bool isClosed;
+    int? participantsCount;           
+    bool? canGenerateWinner;          
+    bool? canDelete;                 
+
 
 
 
@@ -27,6 +31,10 @@ class Giveaway {
     required this.giveawayProductImage,
     this.winnerName,
     required this.isClosed,
+    this.participantsCount,
+    this.canGenerateWinner,
+    this.canDelete,
+
      
 });
 

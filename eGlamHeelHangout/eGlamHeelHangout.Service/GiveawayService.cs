@@ -110,9 +110,6 @@ namespace eGlamHeelHangout.Service
 
             return _mapper.Map<GiveawayParticipants>(winner);
         }
-
-
-
         //overridana metoda inserta zbog slanja notif :
         public override async Task<Model.Giveaways> Insert(GiveawayInsertRequest insert)
         {
@@ -201,7 +198,6 @@ namespace eGlamHeelHangout.Service
             return _mapper.Map<Model.Giveaways>(entity);
         }
 
-
         public override async Task<PagedResult<Model.Giveaways>> Get(Model.SearchObjects.GiveawaySearchObject? search = null)
         {
             var query = _context.Giveaways
@@ -209,20 +205,26 @@ namespace eGlamHeelHangout.Service
                 .AsQueryable();
 
             var list = await query.ToListAsync();
-
             var mappedList = _mapper.Map<List<Model.Giveaways>>(list);
 
             foreach (var giveaway in mappedList)
             {
                 var dbGiveaway = list.First(g => g.GiveawayId == giveaway.GiveawayId);
 
+             
                 var winner = dbGiveaway.GiveawayParticipants.FirstOrDefault(p => p.IsWinner);
-
                 if (winner != null)
                 {
                     var winnerUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == winner.UserId);
                     giveaway.WinnerName = winnerUser?.Username;
                 }
+
+                giveaway.ParticipantsCount = dbGiveaway.GiveawayParticipants.Count;
+                var isFinished = dbGiveaway.EndDate <= DateTime.Now;
+                var hasWinner = dbGiveaway.GiveawayParticipants.Any(p => p.IsWinner);
+
+                giveaway.CanGenerateWinner = isFinished && !hasWinner && giveaway.ParticipantsCount > 0;
+                giveaway.CanDelete = !isFinished || hasWinner || giveaway.ParticipantsCount == 0;
             }
 
             return new PagedResult<Model.Giveaways>
@@ -245,25 +247,32 @@ namespace eGlamHeelHangout.Service
             }
 
             var list = await query.ToListAsync();
-
             var mappedList = _mapper.Map<List<Model.Giveaways>>(list);
 
-            
             foreach (var giveaway in mappedList)
             {
                 var dbGiveaway = list.First(g => g.GiveawayId == giveaway.GiveawayId);
 
+                // WinnerName (postojeće)
                 var winner = dbGiveaway.GiveawayParticipants.FirstOrDefault(p => p.IsWinner);
-
                 if (winner != null)
                 {
                     var winnerUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == winner.UserId);
                     giveaway.WinnerName = winnerUser?.Username;
                 }
+
+                // NOVO
+                giveaway.ParticipantsCount = dbGiveaway.GiveawayParticipants.Count;
+                var isFinished = dbGiveaway.EndDate <= DateTime.Now;
+                var hasWinner = dbGiveaway.GiveawayParticipants.Any(p => p.IsWinner);
+
+                giveaway.CanGenerateWinner = isFinished && !hasWinner && giveaway.ParticipantsCount > 0;
+                giveaway.CanDelete = !isFinished || hasWinner || giveaway.ParticipantsCount == 0;
             }
 
             return mappedList;
         }
+
 
         public async Task NotifyWinner(int giveawayId, int winnerUserId)
         {
@@ -324,25 +333,27 @@ namespace eGlamHeelHangout.Service
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<bool> DeleteGiveawayIfFinishedAndHasWinner(int id)
+   
+        public async Task<bool> DeleteIfAllowed(int id)
         {
             var giveaway = await _context.Giveaways
                 .Include(g => g.GiveawayParticipants)
-                .FirstOrDefaultAsync(g => g.GiveawayId == id);
+                .FirstOrDefaultAsync(g => g.GiveawayId == id)
+                ?? throw new Exception("Giveaway not found.");
 
-            if (giveaway == null)
-                throw new Exception("Giveaway not found.");
-
-            var hasWinner = giveaway.GiveawayParticipants.Any(p => p.IsWinner);
             var isFinished = giveaway.EndDate <= DateTime.Now;
+            var participantsCount = giveaway.GiveawayParticipants.Count;
+            var hasWinner = giveaway.GiveawayParticipants.Any(p => p.IsWinner);
 
-            if (!isFinished || !hasWinner)
-                throw new Exception("Only giveaways that are finished and have a winner can be deleted.");
-
+          
+            var canDelete = !isFinished || hasWinner || participantsCount == 0;
+            if (!canDelete)
+                throw new Exception("Cannot delete: giveaway finished and has participants without a winner.");
             _context.Giveaways.Remove(giveaway);
             await _context.SaveChangesAsync();
             return true;
         }
+
 
         public async Task<List<WinnerNotificationEntity>> GetWinnerNotificationsForUser(string username)
         {

@@ -86,26 +86,33 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
 
   }
 
-  Future<void> _generateWinner(int giveawayId) async {
-    try {
-      await _giveawayProvider.pickWinner(giveawayId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Winner generated successfully!"),
-         backgroundColor: Colors.green,
-         ),
-      );
-      
-      await _loadAllCounts();
-      await _loadGiveaways();
-    } catch (e) {
-  final errorMessage = e.toString().contains("There are no participants")
-      ? "There are no participants, not able to generate winner."
-      : "Error generating winner.";
+Future<void> _generateWinner(int giveawayId) async {
+  try {
+    await _giveawayProvider.pickWinner(giveawayId);
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
-  );
-  }}
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Winner generated successfully!"),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } catch (e) {
+    final isNoParticipants = e.toString().contains("There are no participants");
+    final errorMessage = isNoParticipants
+        ? "There are no participants, not able to generate winner."
+        : "Error generating winner.";
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+    );
+  } finally {
+  
+    await _loadAllCounts();
+    await _loadGiveaways();
+  }
+}
 
   void _confirmDeleteGiveaway(BuildContext context, int giveawayId) async {
     final confirm = await showDialog<bool>(
@@ -199,29 +206,31 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
                     ? const Center(child: Text("No giveaways found."))
                     : ListView.builder(
                         itemCount: _giveaways.length,
-                        itemBuilder: (context, index) {
-                          final giveaway = _giveaways[index];
-                          final now = DateTime.now();                     
-                          final canGenerateWinner = giveaway.endDate.isBefore(now) &&
-                            (giveaway.winnerName == null);
-                          final canDelete = (giveaway.endDate.isBefore(now) && giveaway.winnerName != null)
-               || (giveaway.endDate.isAfter(now) && giveaway.winnerName == null);
-                          return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          child: ExpansionTile(
-                            leading: const Icon(Icons.card_giftcard, color: Colors.deepPurple),
-                            title: Text(giveaway.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("End date: ${DateFormat('yyyy-MM-dd').format(giveaway.endDate)}"),
-                                Text("Winner: ${giveaway.winnerName ?? 'No winner yet'}"),
-                                Text("Color: ${giveaway.color}"),
-                                Text("Heel Height: ${giveaway.heelHeight.toStringAsFixed(1)} cm"),
-                              ],
-                            ),
+                      itemBuilder: (context, index) {
+                      final giveaway = _giveaways[index];
+                      final id = giveaway.giveawayId!;
+
+                      final canGenerateWinner = giveaway.canGenerateWinner == true;
+                      final canDelete        = giveaway.canDelete == true;
+                      final noWinnerYet = (giveaway.winnerName == null || giveaway.winnerName!.isEmpty);
+                      final isEndedNoParticipants = canDelete && !canGenerateWinner && noWinnerYet;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: ExpansionTile(
+                          leading: const Icon(Icons.card_giftcard, color: Colors.deepPurple),
+                          title: Text(giveaway.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (giveaway.giveawayProductImage.isNotEmpty)
+                              Text("End date: ${DateFormat('yyyy-MM-dd').format(giveaway.endDate)}"),
+                              Text("Winner: ${giveaway.winnerName ?? 'No winner yet'}"),
+                              Text("Color: ${giveaway.color}"),
+                              Text("Heel Height: ${giveaway.heelHeight.toStringAsFixed(1)} cm"),
+                            ],
+                          ),
+                          children: [
+                            if (giveaway.giveawayProductImage.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: imageFromBase64StringFormat(
@@ -232,55 +241,70 @@ class _GiveawaysManageScreenState extends State<GiveawaysManageScreen> {
                                 ),
                               ),
 
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              child: Text(
+                                giveaway.description,
+                                style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                              ),
+                            ),
+                            if (canGenerateWinner)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                child: Text(
-                                  giveaway.description,
-                                  style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _generateWinner(id),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF2E7D32),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    elevation: 2,
+                                  ),
+                                  icon: const Icon(Icons.emoji_events, size: 20),
+                                  label: const Text("Generate Winner",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 ),
                               ),
-                              if (canGenerateWinner)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  child:ElevatedButton.icon(
-                                    onPressed: () => _generateWinner(giveaway.giveawayId!),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF2E7D32), // tamnozelena
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      elevation: 2,
+                              
+                            if (isEndedNoParticipants)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                child: Row(
+                                  children: const [
+                                    Icon(Icons.info_outline, size: 18, color: Colors.red),
+                                    SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        "This giveaway has no participants!",
+                                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                                      ),
                                     ),
-                                    icon: const Icon(Icons.emoji_events, size: 20),
-                                    label: const Text(
-                                      "Generate Winner",
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                    ),
-                                  ),
-
+                                  ],
                                 ),
-                              if (canDelete)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => _confirmDeleteGiveaway(context, giveaway.giveawayId!),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.red,
-                                      side: const BorderSide(color: Colors.red, width: 1.5),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                    ),
-                                    icon: const Icon(Icons.delete, size: 20),
-                                    label: const Text("Delete Giveaway",
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              ),
+                            if (canDelete)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _confirmDeleteGiveaway(context, id),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: Colors.red, width: 1.5),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                   ),
+                                  icon: const Icon(Icons.delete, size: 20),
+                                  label: const Text("Delete",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        );
+                              ),
 
-                        },
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      );
+                    },
+
                       ),
           ),
         ],

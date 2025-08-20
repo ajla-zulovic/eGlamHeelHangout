@@ -113,7 +113,7 @@ namespace eGlamHeelHangout.Controllers
         {
             try
             {
-                var result = await _giveawayService.DeleteGiveawayIfFinishedAndHasWinner(id);
+                var result = await _giveawayService.DeleteIfAllowed(id);
                 return Ok(new { message = "Giveaway deleted successfully." });
             }
             catch (Exception ex)

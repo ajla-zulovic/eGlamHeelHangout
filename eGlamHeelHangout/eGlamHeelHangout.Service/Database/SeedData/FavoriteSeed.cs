@@ -8,32 +8,45 @@ namespace eGlamHeelHangout.Service.Database.SeedData
     {
         public static void Seed(_200199Context context)
         {
-            if (context.Favorites.Any())
-                return;
+            var existing = context.Favorites
+            .Where(f => f.UserId == 2 && (f.ProductId == 1 || f.ProductId == 2))
+            .Select(f => f.ProductId)
+            .ToHashSet();
 
-            Console.WriteLine(">> Seeding favorites...");
+            var toInsert = new List<Favorite>();
 
-            using var transaction = context.Database.BeginTransaction();
-
-            context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Favorites ON");
-
-            context.Favorites.Add(
-                new Favorite
+            if (!existing.Contains(1))
+            {
+                toInsert.Add(new Favorite
                 {
-                    FavoriteId = 1,
                     UserId = 2,
                     ProductId = 1,
                     DateAdded = new DateTime(2025, 7, 3)
-                }
-            );
+                });
+            }
 
+            if (!existing.Contains(2))
+            {
+                toInsert.Add(new Favorite
+                {
+                    UserId = 2,
+                    ProductId = 2,
+                    DateAdded = DateTime.UtcNow
+                });
+            }
+
+            if (toInsert.Count == 0)
+            {
+                Console.WriteLine(">> Nothing to seed for Favorites.");
+                return;
+            }
+
+            using var tx = context.Database.BeginTransaction();
+            context.Favorites.AddRange(toInsert);
             context.SaveChanges();
+            tx.Commit();
 
-            context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Favorites OFF");
-
-            transaction.Commit();
-
-            Console.WriteLine(">> Favorite seed completed.");
+            Console.WriteLine($">> Inserted {toInsert.Count} favorite(s).");
         }
     }
 }

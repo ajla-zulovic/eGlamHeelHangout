@@ -16,6 +16,9 @@ Giveaway _$GiveawayFromJson(Map<String, dynamic> json) => Giveaway(
   giveawayProductImage: json['giveawayProductImage'] as String,
   winnerName: json['winnerName'] as String?,
   isClosed: json['isClosed'] as bool,
+  participantsCount: (json['participantsCount'] as num?)?.toInt(),
+  canGenerateWinner: json['canGenerateWinner'] as bool?,
+  canDelete: json['canDelete'] as bool?,
 );
 
 Map<String, dynamic> _$GiveawayToJson(Giveaway instance) => <String, dynamic>{
@@ -28,4 +31,7 @@ Map<String, dynamic> _$GiveawayToJson(Giveaway instance) => <String, dynamic>{
   'giveawayProductImage': instance.giveawayProductImage,
   'winnerName': instance.winnerName,
   'isClosed': instance.isClosed,
+  'participantsCount': instance.participantsCount,
+  'canGenerateWinner': instance.canGenerateWinner,
+  'canDelete': instance.canDelete,
 };

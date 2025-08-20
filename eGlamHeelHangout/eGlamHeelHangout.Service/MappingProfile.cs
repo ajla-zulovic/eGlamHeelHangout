@@ -124,8 +124,13 @@ namespace eGlamHeelHangout.Service
             // GIVEAWAYS
             CreateMap<Giveaway, Giveaways>().ForMember(dest => dest.WinnerName, opt => opt.Ignore())
                 .ForMember(dest => dest.GiveawayProductImage, opt =>
-                 opt.MapFrom(src => Convert.ToBase64String(src.GiveawayProductImage))); ; 
+                 opt.MapFrom(src => Convert.ToBase64String(src.GiveawayProductImage)))
+                 .ForMember(d => d.ParticipantsCount, opt => opt.Ignore())
+                 .ForMember(d => d.CanGenerateWinner, opt => opt.Ignore())
+                 .ForMember(d => d.CanDelete, opt => opt.Ignore());
+
             CreateMap<GiveawayParticipant, GiveawayParticipants>();
+           
             CreateMap<GiveawayInsertRequest, Giveaway>()
                 .ForMember(dest => dest.GiveawayId, opt => opt.Ignore())
                 .ForMember(dest => dest.IsClosed, opt => opt.Ignore())

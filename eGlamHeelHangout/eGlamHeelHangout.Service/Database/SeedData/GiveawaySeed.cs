@@ -55,7 +55,7 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                     Color = "Brown",
                     HeelHeight = 10,
                     GiveawayProductImage = imageBytes,
-                    EndDate = new DateTime(2025, 7, 25),
+                    EndDate = new DateTime(2025, 10, 25),
                     IsClosed = false
                 },
                 new Giveaway
@@ -68,7 +68,18 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                     GiveawayProductImage = imageBytes,
                     EndDate = new DateTime(2025, 6, 25),
                     IsClosed = true
-                }
+                },
+                  new Giveaway
+                {
+                    GiveawayId = 3,
+                    Title = "Beige Princess H!",
+                    Description = "Another gorgeous pair!",
+                    Color = "Beige",
+                    HeelHeight = 6,
+                    GiveawayProductImage = imageBytes,
+                    EndDate = new DateTime(2025, 7, 28),
+                    IsClosed = true
+                },
             };
 
             using var transaction = context.Database.BeginTransaction();

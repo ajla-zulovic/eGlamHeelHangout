@@ -20,7 +20,9 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-  final _formKey = GlobalKey<FormBuilderState>();
+//  final _formKey = GlobalKey<FormBuilderState>();
+  var _formKey = GlobalKey<FormBuilderState>();
+
   late ProductProvider _productProvider;
   late CategoryProvider _categoryProvider;
   SearchResult<Category>? _categoryResult;
@@ -369,10 +371,11 @@ void dispose() {
               children: [
                 TextButton(
                   onPressed: () {
-                    _formKey.currentState?.reset();
+                    //_formKey.currentState?.reset();
+                    _formKey = GlobalKey<FormBuilderState>();
                     _selectedImage = null;
                     _base64Image = null;
-                    _formKey.currentState?.fields['categoryID']?.didChange(null);
+                    //_formKey.currentState?.fields['categoryID']?.didChange(null);
                     for (var controller in _stockControllers.values) {
                       controller.text = '';
                     }
@@ -482,11 +485,17 @@ Future<void> _submitForm() async {
       for (var controller in _stockControllers.values) {
         controller.text = '';
       }
+    // setState(() {
+    //   _base64Image = null;
+    //   _selectedImage = null;
+    // });
+
     setState(() {
+      _formKey = GlobalKey<FormBuilderState>(); 
       _base64Image = null;
       _selectedImage = null;
+      for (final c in _stockControllers.values) { c.clear(); }
     });
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Product added successfully!'),

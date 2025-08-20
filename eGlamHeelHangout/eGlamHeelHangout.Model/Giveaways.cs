@@ -19,6 +19,9 @@ namespace eGlamHeelHangout.Model
 
         public string GiveawayProductImage { get; set; }
         public string? WinnerName { get; set; }
+        public int ParticipantsCount { get; set; }
+        public bool CanGenerateWinner { get; set; }
+        public bool CanDelete { get; set; }
     }
 
 }

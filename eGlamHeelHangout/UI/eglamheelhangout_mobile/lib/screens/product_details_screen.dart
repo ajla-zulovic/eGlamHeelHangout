@@ -267,7 +267,7 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
                 Stack(
                   children: [
                     Container(
-                      height: 180,
+                      height: 160,
                       width: double.infinity,
                       alignment: Alignment.center,
                       child: imageFromBase64String(product.image!),
@@ -296,7 +296,7 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedSize == null ? Colors.grey : Colors.black,
                       foregroundColor: Colors.white,
-                      fixedSize: const Size(180, 50),
+                      fixedSize: const Size(160, 50),
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),

@@ -18,7 +18,9 @@ class AddGiveawayScreen extends StatefulWidget {
 }
 
 class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
-  final _formKey = GlobalKey<FormBuilderState>();
+ // final _formKey = GlobalKey<FormBuilderState>();
+  var _formKey = GlobalKey<FormBuilderState>();
+
   bool _isSubmitting = false;
   PlatformFile? _selectedImage;
   String? _base64Image;
@@ -149,8 +151,9 @@ Widget _buildImagePreview() {
 
     if (!mounted) return;
 
-    _formKey.currentState?.reset();
+    //_formKey.currentState?.reset();
     setState(() {
+      _formKey = GlobalKey<FormBuilderState>();
       _base64Image = null;
       _selectedImage = null;
     });
@@ -305,8 +308,9 @@ Widget _buildImagePreview() {
   children: [
     TextButton(
       onPressed: () {
-        _formKey.currentState?.reset();
+       // _formKey.currentState?.reset();
         setState(() {
+          _formKey = GlobalKey<FormBuilderState>();
           _base64Image = null;
           _selectedImage = null;
         });

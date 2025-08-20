@@ -922,8 +922,14 @@ Widget build(BuildContext context) {
                                   ),
                                   onPressed: () async {
                                     try {
-                                      final liked = await context.read<FavoriteProvider>().toggle(product.productID!);
-                                      setState(() => product.isFavorite = liked);
+                                      final liked = await context.read<FavoriteProvider>().toggle(product.productID!);                            
+                                       setState(() => product.isFavorite = liked);
+                                        if (liked == true) {
+                                          setState(() {
+                                            _recommendedProducts?.removeWhere((p) => p.productID == product.productID);
+                                          });
+                                        }
+                                      // await _fetchData();
                                     } catch (e) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -1096,7 +1102,13 @@ Widget build(BuildContext context) {
                           onPressed: () async {
                             try {
                               final liked = await favoriteProvider.toggle(product.productID!);
-                              setState(() => product.isFavorite = liked);
+                                 setState(() => product.isFavorite = liked);
+                                if (liked == true) {
+                                  setState(() {
+                                    _recommendedProducts?.removeWhere((p) => p.productID == product.productID);
+                                  });
+                                }
+                             // await _fetchData();
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Error: ${e.toString()}')),
