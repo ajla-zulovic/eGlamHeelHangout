@@ -78,16 +78,25 @@ Ensure you have the following tools installed:
 https://github.com/ajla-zulovic/eGlamHeelHangout.git
 
 ###  Environment Variables
+After cloning the project, it is required to unzip the provided .env.zip file in the following locations:
 
-- Note on .env File Configuration
-After cloning the project, it is required to manually create a .env file in the root (eGlamHeelHangout\eGlamHeelHangout) of the project (where docker-compose.yml file is located).
+In the root backend project folder:
 
-In this .env file, you must define the following environment variables exactly as shown:
+eGlamHeelHangout\eGlamHeelHangout
+(where docker-compose.yml is located)
 
-### Stripe__SecretKey=your_stripe_secret_key_here
-### Stripe__PublishableKey=your_stripe_publishable_key_here
 
-This step is necessary because the .env file is intentionally excluded from version control via the .gitignore file in order to protect sensitive data such as secret keys.
+In the UI project folder:
+
+eGlamHeelHangout_mobile
+
+
+Unzipping will generate the required .env file in each of these locations. Both parts of the application rely on environment variables for proper configuration.
+
+Inside the .env file, you must define the following environment variables:
+
+Stripe__SecretKey=your_stripe_secret_key_here
+Stripe__PublishableKey=your_stripe_publishable_key_here
 
 Running the Backend API
 To start the API and other necessary services, navigate to the project's root folder (eGlamHeelHangout\eGlamHeelHangout) and run the following command:
