@@ -473,7 +473,7 @@ Future<void> _fetchData() async {
               ),
               itemBuilder: (context, index) {
                 final product = result!.result[index];
-                print('${product.name}: ${product.discountedPrice}, ${product.discountPercentage}');
+        
 
                 return InkWell(
                   onTap: () async {

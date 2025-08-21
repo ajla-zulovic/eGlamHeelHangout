@@ -405,25 +405,51 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       formData['heelHeight'] = double.tryParse(_formKey.currentState!.fields['heelHeight']?.value ?? '0');
       formData['categoryID'] = _formKey.currentState!.fields['categoryID']?.value;
 
+      // formData['sizes'] = _stockControllers.entries.map((entry) {
+      //   final size = entry.key;
+      //   final qty = int.tryParse(entry.value.text) ?? 0;
+
+      //   final existingSize = _sizes.firstWhere(
+      //     (s) => s.size == size,
+      //     orElse: () => ProductSize(size: size, stockQuantity: qty, productSizeId: null),
+      //   );
+
+      //   if (existingSize.stockQuantity != qty) {
+      //     return {
+      //       "size": size,
+      //       "stockQuantity": qty,
+      //       "productSizeId": existingSize.productSizeId ?? 0,
+      //     };
+      //   } else {
+      //     return null;
+      //   }
+      // }).where((element) => element != null).toList();
       formData['sizes'] = _stockControllers.entries.map((entry) {
-        final size = entry.key;
-        final qty = int.tryParse(entry.value.text) ?? 0;
+  final size = entry.key;
+  final qty = int.tryParse(entry.value.text) ?? 0;
 
-        final existingSize = _sizes.firstWhere(
-          (s) => s.size == size,
-          orElse: () => ProductSize(size: size, stockQuantity: qty, productSizeId: null),
-        );
+  final existing = _sizes.firstWhere(
+    (s) => s.size == size,
+    orElse: () => ProductSize(size: size, stockQuantity: 0, productSizeId: null),
+  );
 
-        if (existingSize.stockQuantity != qty) {
-          return {
-            "size": size,
-            "stockQuantity": qty,
-            "productSizeId": existingSize.productSizeId ?? 0,
-          };
-        } else {
-          return null;
-        }
-      }).where((element) => element != null).toList();
+  // šalji samo ako je promjena
+  if (existing.stockQuantity != qty) {
+    final map = <String, dynamic>{
+      "size": size,
+      "stockQuantity": qty,
+    };
+
+    // VAŽNO: productSizeId samo ako postoji u bazi
+    if (existing.productSizeId != null) {
+      map["productSizeId"] = existing.productSizeId;
+    }
+
+    return map;
+  }
+  return null;
+}).where((m) => m != null).cast<Map<String, dynamic>>().toList();
+
 
       await _productProvider.update(widget.product!.productID!, formData);
 

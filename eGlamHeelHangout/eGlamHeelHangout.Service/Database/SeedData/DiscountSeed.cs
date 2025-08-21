@@ -21,7 +21,7 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                         ProductId = 1,
                         DiscountPercentage = 20,
                         StartDate = new DateTime(2025, 7, 3),
-                        EndDate = new DateTime(2025, 8, 19)
+                        EndDate = new DateTime(2025, 10, 19)
                     }
                 );
             }
