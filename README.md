@@ -18,7 +18,7 @@ User Features
 - Removing items from the cart
 - Adjusting product quantity — the "+" button becomes disabled if the selected size has reached its stock limit
 - Auto-filled checkout form with user's full name, email, and phone (editable if the user wants to override these values for the order)
-- Leaving product reviews via star rating and viewing the average rating per product
+- Leaving product reviews via star rating and viewing the average rating per product (you can change your rating later if you change your mind)
 - Viewing a list of notifications about new products and active giveaways
 - Receiving real-time popup notifications for new products, active giveaways, winners, and discounts
 - Viewing active giveaways, opening participation forms, and confirming participation
@@ -31,16 +31,22 @@ User Features
 Admin Features
 - Adding new products to the catalog
 - Editing existing product details
-- Applying discounts: after clicking "Set Discount", the admin sets the discount and saves changes — then returns to the product detail screen and clicks "Save" again to make changes visible on the home page
+- Applying discounts to products
 - Removing an active discount from a product
 - Adding new giveaways with custom start and end dates
 - Filtering giveaways by All, Active, and Inactive statuses
 - Selecting a giveaway winner (only if the giveaway has ended)
 - Disabled winner selection if there are no participants, with a clear message shown
-- Deleting a giveaway (e.g., if created by mistake or if completed and the winner has already been selected)
+- An admin can delete a giveaway if they published it and made an error, if it has ended with no participants, or if it has ended and a winner has already been selected; however, they cannot delete a giveaway that has ended, has participants, but has no winner generated yet
 - Viewing and managing all orders with filters (by customer or by order status)
 - Changing order status to Canceled or Delivered
 - Deleting an order if needed
+- An admin can change user roles, promoting them to admins or reverting them to regular users
+- An admin can view detailed information about every user
+- An admin can delete users
+- An admin can add a new category by clicking the "+" button in the top right corner of the screen.
+- An admin can edit an existing category.
+- An admin can deactivate a category, making it no longer visible for filtering.
 
 
 
