@@ -11,6 +11,7 @@ namespace eGlamHeelHangout.Model.SearchObjects
     public string ? Name { get; set; }
     public string? FTS { get; set; } // kada pretrazujemo i ako unesemo npr "a" izbacit ce nam rezultate gdje god naiđe na a - zato sluzi ovaj atribut
     public int? CategoryId { get; set; }
+     public bool OnlyActiveCategories { get; set; } = true;
     }
 }
 

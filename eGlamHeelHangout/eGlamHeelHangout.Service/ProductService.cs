@@ -70,24 +70,47 @@ namespace eGlamHeelHangout.Service
             var state = _baseState.CreateState(entity?.StateMachine ?? "initial");
             return await state.AllowedActions();
         }
-        public override IQueryable<Database.Product> AddFilter(IQueryable<Database.Product> query, ProductsSearchObjects? search = null)
+        //public override IQueryable<Database.Product> AddFilter(IQueryable<Database.Product> query, ProductsSearchObjects? search = null)
+        //{
+        //    var filteredQuery = base.AddFilter(query, search);
+
+        //    if (!string.IsNullOrWhiteSpace(search?.FTS))
+        //    {
+        //        filteredQuery = filteredQuery.Where(x => x.Name.Contains(search.FTS));
+        //    }
+        //    if (search?.CategoryId.HasValue == true)
+        //    {
+        //        filteredQuery = filteredQuery.Where(x => x.CategoryId == search.CategoryId);
+        //    }
+
+
+        //    filteredQuery = filteredQuery.Where(x => !x.IsDeleted);
+
+        //    return filteredQuery;
+        //}
+        // ProductService.cs
+        public override IQueryable<Database.Product> AddFilter(
+            IQueryable<Database.Product> query,
+            ProductsSearchObjects? search = null)
         {
             var filteredQuery = base.AddFilter(query, search);
 
             if (!string.IsNullOrWhiteSpace(search?.FTS))
-            {
                 filteredQuery = filteredQuery.Where(x => x.Name.Contains(search.FTS));
-            }
-            if (search?.CategoryId.HasValue == true)
-            {
-                filteredQuery = filteredQuery.Where(x => x.CategoryId == search.CategoryId);
-            }
 
-    
+            if (search?.CategoryId.HasValue == true)
+                filteredQuery = filteredQuery.Where(x => x.CategoryId == search.CategoryId);
+
+           
+            if (search?.OnlyActiveCategories ?? true)
+                filteredQuery = filteredQuery.Where(x => x.Category.IsActive);
+
+        
             filteredQuery = filteredQuery.Where(x => !x.IsDeleted);
 
             return filteredQuery;
         }
+
 
 
         public async Task<List<Model.ProductSizes>> GetSizesForProductAsync(int productId)
@@ -106,7 +129,7 @@ namespace eGlamHeelHangout.Service
 
         public override async Task<PagedResult<Model.Products>> Get(ProductsSearchObjects? search = null)
         {
-            var query = AddFilter(_context.Products.Include(p => p.ProductSizes).AsQueryable(), search);
+            var query = AddFilter(_context.Products.Include(p=>p.Category).Include(p => p.ProductSizes).AsQueryable(), search);
 
             var toList = await query.ToListAsync();
 
@@ -158,6 +181,9 @@ namespace eGlamHeelHangout.Service
             if (product == null)
                 throw new Exception("Product not found.");
 
+            if (product.Category == null || !product.Category.IsActive)
+                throw new Exception("Product is not available.");
+
             var dto = _mapper.Map<Products>(product);
 
          
@@ -186,7 +212,7 @@ namespace eGlamHeelHangout.Service
                     mlContext = new MLContext();
 
                     var data = _context.Favorites
-                        .Where(f => !f.Product.IsDeleted)
+                        .Where(f => !f.Product.IsDeleted && f.Product.Category.IsActive)
                         .Select(f => new ProductEntry
                         {
                             UserId = (uint)f.UserId,
@@ -230,7 +256,7 @@ namespace eGlamHeelHangout.Service
                 return FallbackProducts();
 
             var allProducts = _context.Products
-                .Where(p => !p.IsDeleted)
+                .Where(p => !p.IsDeleted && p.Category.IsActive)
                 .ToList();
 
             var results = new List<Tuple<Product, float>>();
@@ -285,7 +311,7 @@ namespace eGlamHeelHangout.Service
             var now = DateTime.Now.Date;
 
             var topRated = _context.Products
-                .Where(p => !p.IsDeleted)
+                .Where(p => !p.IsDeleted && p.Category.IsActive)
                 .Select(p => new
                 {
                     Product = p,
