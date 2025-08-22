@@ -44,9 +44,9 @@ Admin Features
 - An admin can change user roles, promoting them to admins or reverting them to regular users
 - An admin can view detailed information about every user
 - An admin can delete users
-- An admin can add a new category by clicking the "+" button in the top right corner of the screen.
-- An admin can edit an existing category.
-- An admin can deactivate a category, making it no longer visible for filtering.
+- An admin can add a new category by clicking the "+" button in the top right corner of the screen
+- An admin can edit an existing category
+- An admin can deactivate a category, making it no longer visible for filtering
 
 
 
@@ -57,7 +57,7 @@ Admin Features
 | Layer        | Technology                      |
 |--------------|----------------------------------|
 | Backend      | ASP.NET Core Web API (.NET 6)    |
-| ORM          | Entity Framework Core (Code First) |
+| ORM          | Entity Framework Core (Database First) |
 | Frontend     | Flutter (mobile & desktop)       |
 | Database     | SQL Server                       |
 | Messaging    | RabbitMQ                         |
