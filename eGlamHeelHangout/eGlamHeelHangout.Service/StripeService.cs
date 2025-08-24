@@ -76,11 +76,11 @@ namespace eGlamHeelHangout.Services
                 {
                     if (confirmation.Status == "succeeded")
                     {
-                        await _orderService.UpdateOrderStatus(request.OrderId!.Value, "Shipped");
+                        await _orderService.UpdateOrderStatusAsync(request.OrderId!.Value, "Shipped");
                     }
                     else if (confirmation.Status == "failed")
                     {
-                        await _orderService.UpdateOrderStatus(request.OrderId!.Value, "Payment Failed");
+                        await _orderService.UpdateOrderStatusAsync(request.OrderId!.Value, "Payment Failed");
                     }
                 }
             }

@@ -29,22 +29,26 @@ Future<List<Order>> getAllOrders() async {
   }
 }
 
-Future<void> updateOrderStatus(int orderId, String newStatus) async {
-  var url = "$baseUrl$endpoint/update-status";
-  var uri = Uri.parse(url);
-  var headers = createHeaders();
 
-  var jsonRequest = jsonEncode({
-    "orderId": orderId,
-    "orderStatus": newStatus,
-  });
+Future<String> updateOrderStatus(int orderId, String newStatus) async {
+  final uri = Uri.parse('$baseUrl$endpoint/$orderId/status'); 
+  final resp = await http.put(
+    uri,
+    headers: {
+      ...createHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(newStatus), 
+  );
 
-  var response = await http.put(uri, headers: headers, body: jsonRequest);
-
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    print("Order status updated successfully");
+  if (resp.statusCode >= 200 && resp.statusCode < 300) {
+    var msg = resp.body;                
+    if (msg.startsWith('"') && msg.endsWith('"')) {
+      msg = msg.substring(1, msg.length - 1); 
+    }
+    return msg;
   } else {
-    throw Exception("Failed to update order status");
+    throw Exception('Failed (${resp.statusCode}) ${resp.body}');
   }
 }
 

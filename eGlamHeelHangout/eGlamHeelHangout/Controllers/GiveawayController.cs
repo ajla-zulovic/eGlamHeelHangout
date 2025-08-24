@@ -34,7 +34,7 @@ namespace eGlamHeelHangout.Controllers
 
 
         [HttpGet("active")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> GetActive()
         {
             var result = await _giveawayService.GetActive();
@@ -134,6 +134,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpGet("user/finished-with-winner")]
+        [Authorize]
         public async Task<IActionResult> GetFinishedWithWinner()
         {
             var list = await _giveawayService.GetFinishedWithWinner();

@@ -67,23 +67,6 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
         title: Text(_pages[selectedIndex]['title'],
         style: const TextStyle(color: Colors.white),),
         backgroundColor: Colors.grey[800],
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              try {
-                await _productProvider.get();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Products refreshed')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              }
-            },
-          ),
-        ],
       ),
       drawer: Drawer(
       child: ListView(

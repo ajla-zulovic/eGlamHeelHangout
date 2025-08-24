@@ -13,6 +13,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
+
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
   const ProductDetailScreen({super.key, this.product});

@@ -52,24 +52,37 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _exportPdf() async {
-    try {
-      final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-      Uint8List pdfBytes = await reportProvider.exportReportPdf(
-        includeMonthlyRevenue: _includeMonthlyRevenue,
-        includeAgeGroupStats: _includeAgeStats,
-      );
+  try {
+    final reportProvider = context.read<ReportProvider>();
+    final bytes = await reportProvider.exportReportPdf(
+      includeMonthlyRevenue: _includeMonthlyRevenue,
+      includeAgeGroupStats: _includeAgeStats,
+    );
 
-      final dir = await getTemporaryDirectory();
-      final file = File("${dir.path}/report.pdf");
-      await file.writeAsBytes(pdfBytes);
+    final dir = await getTemporaryDirectory();
 
-      OpenFile.open(file.path);
-    } catch (e) {
+    final fileName = 'report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final file = File('${dir.path}/$fileName');
+
+    await file.writeAsBytes(bytes, flush: true);
+    final result = await OpenFile.open(file.path);
+    if (result.type != ResultType.done) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Export failed: \$e"), backgroundColor: Colors.red),
+        SnackBar(content: Text('Could not open file: ${result.message}')),
       );
     }
+  } on FileSystemException catch (e) {
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Export failed: ${e.osError?.message ?? e.message}')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Export failed: $e')), 
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

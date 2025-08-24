@@ -75,16 +75,16 @@ class _GiveawayParticipationScreenState
         );
         Navigator.of(context).pop(true);
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() => _isSubmitting = false);
-    }
+   } catch (e) {
+        if (!mounted) return;
+        final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
+        );
+      } finally {
+        setState(() => _isSubmitting = false);
+      }
+
   }
 
   @override

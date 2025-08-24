@@ -40,7 +40,7 @@ namespace eGlamHeelHangout.Controllers
         }
         //overridam metodu jer mi treba pristup svima : 
         [HttpPost("register")]
-        [AllowAnonymous]
+        [Authorize]
         public override async Task<eGlamHeelHangout.Model.Users> Insert([FromBody] Model.Requests.UsersInsertRequest insert)
         {
             return await _userService.Insert(insert);
@@ -76,6 +76,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPut("{id}/demote")]
+        [Authorize]
         public async Task<IActionResult> DemoteFromAdmin(int id)
         {
             var currentUserId = _userService.GetCurrentUserId(User.Identity.Name);
@@ -93,6 +94,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public override async Task<IActionResult> Delete(int id)
         {
             var currentUserId = _userService.GetCurrentUserId(User.Identity.Name);

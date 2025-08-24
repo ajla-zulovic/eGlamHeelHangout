@@ -19,6 +19,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpGet("monthly-revenue")]
+
         public async Task<ActionResult<List<MonthlyRevenueReport>>> GetMonthlyRevenue()
         {
             var result = await _reportService.GetMonthlyRevenueReport();

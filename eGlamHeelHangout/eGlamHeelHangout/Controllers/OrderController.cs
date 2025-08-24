@@ -49,14 +49,21 @@ namespace eGlamHeelHangout.Controllers
             return Ok(result.Result);
         }
 
-        [HttpPut("update-status")]
+        [HttpPut("{orderId}/status")] 
         [Authorize(Roles = "User,Admin")]
-        public async Task<IActionResult> UpdateOrderStatus([FromBody] OrderUpdateRequest request)
+        public async Task<ActionResult<string>> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
         {
-            await _orderService.UpdateOrderStatus(request.OrderId, request.OrderStatus);
-            return Ok("Order status updated successfully");
+            try
+            {
+                var resultMessage = await _orderService.UpdateOrderStatusAsync(orderId, newStatus);
+                return Ok(resultMessage); 
+            }
+            catch (Exception ex)
+            {
+            
+                return BadRequest(ex.Message); 
+            }
         }
-
 
     }
 }

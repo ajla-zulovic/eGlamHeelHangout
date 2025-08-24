@@ -26,6 +26,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPost("create-intent")]
+  
         public async Task<ActionResult<IntentResponseDTO>> CreateIntent([FromBody] PaymentCreateDTO request)
         {
             var result = await _stripeService.CreatePaymentIntent(request);
@@ -33,6 +34,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPost("confirm")]
+
         public async Task<ActionResult<PaymentResponseDTO>> ConfirmPayment([FromBody] PaymentCreateDTO request)
         {
             var result = await _stripeService.ConfirmPayment(request);
@@ -40,13 +42,14 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPost("refund")]
+    
         public async Task<IActionResult> Refund([FromQuery] string paymentIntentId)
         {
             await _stripeService.CreateRefundAsync(paymentIntentId);
             return Ok(new { message = "Refund created successfully." });
         }
         [HttpGet("config")]
-        [AllowAnonymous]
+        
         public IActionResult GetStripeConfig()
         {
             return Ok(new { publishableKey = _stripeSettings.PublishableKey });

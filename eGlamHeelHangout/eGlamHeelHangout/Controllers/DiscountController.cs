@@ -31,6 +31,7 @@ public class DiscountController : ControllerBase
     }
 
     [HttpGet("by-product/{productId}")]
+    [Authorize]
     public async Task<IActionResult> GetByProduct(int productId)
     {
         var discount = await _discountService.GetByProductAsync(productId);

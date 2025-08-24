@@ -75,56 +75,112 @@ class _ProductsListScreenState extends State<ProductsListScreen>with RouteAware 
         title: Text(_pages[selectedIndex]['title'], style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[800],
        actions: [
-
-  IconButton(
-    icon: const Icon(Icons.card_giftcard, color: Colors.white),
-    tooltip: 'Giveaways',
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ActiveGiveawaysScreen()),
-      );
-    },
-  ),
-  
-  IconButton(
-    icon: const Icon(Icons.shopping_cart, color: Colors.white),
-    tooltip: 'Cart',
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => CartScreen()),
-      );
-    },
-  ),Consumer<NotificationProvider>(
-  builder: (context, notifProvider, _) {
-    final unreadCount = notifProvider.unreadCount;
-
-    return badges.Badge(
-      showBadge: unreadCount > 0,
-      badgeContent: Text(
-        unreadCount.toString(),
-        style: const TextStyle(color: Colors.white, fontSize: 10),
-      ),
-      position: badges.BadgePosition.topEnd(top: 0, end: 4),
-      badgeStyle: const badges.BadgeStyle(
-        badgeColor: Colors.red,
-        elevation: 0,
-      ),
-      child: IconButton(
-        icon: const Icon(Icons.notifications, color: Colors.white),
-        tooltip: 'Notifications',
-        onPressed: () async {
-          await Navigator.push(
+  Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.card_giftcard, color: Colors.white),
+        tooltip: 'Giveaways',
+        iconSize: 22,
+        padding: EdgeInsets.zero,
+        visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        onPressed: () {
+          Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const NotificationListScreen()),
+            MaterialPageRoute(builder: (_) => const ActiveGiveawaysScreen()),
           );
-          await context.read<NotificationProvider>().refreshUnreadCount(); 
         },
       ),
-    );
-  },
-),
+
+      const SizedBox(width: 6), 
+
+      // CART
+      Selector<CartProvider, int>(
+        selector: (_, cart) => cart.itemCount,
+        builder: (context, count, _) {
+          final capped = count > 99 ? '99+' : '$count';
+          final digits = capped.length;
+          final fontSize = digits >= 3 ? 8.0 : 10.0;
+          final padH = digits == 1 ? 4.0 : (digits == 2 ? 5.0 : 6.0);
+
+          return badges.Badge(
+            showBadge: count > 0,
+            position: badges.BadgePosition.topEnd(top: -2, end: -2),
+            badgeAnimation: badges.BadgeAnimation.scale(),
+            badgeStyle: badges.BadgeStyle(
+              badgeColor: Colors.red,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(horizontal: padH, vertical: 1),
+            ),
+            badgeContent: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 12),
+              child: Text(
+                capped,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600),
+              ),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.shopping_cart, color: Colors.white),
+              tooltip: 'Cart',
+              iconSize: 22,
+              padding: EdgeInsets.zero,
+              visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+              },
+            ),
+          );
+        },
+      ),
+
+      const SizedBox(width: 6), 
+      Selector<NotificationProvider, int>(
+        selector: (_, p) => p.unreadCount,
+        builder: (context, unreadCount, _) {
+          final capped = unreadCount > 99 ? '99+' : '$unreadCount';
+          final digits = capped.length;
+          final fontSize = digits >= 3 ? 8.0 : 10.0;
+          final padH = digits == 1 ? 4.0 : (digits == 2 ? 5.0 : 6.0);
+
+          return badges.Badge(
+            showBadge: unreadCount > 0,
+            position: badges.BadgePosition.topEnd(top: -2, end: -2),
+            badgeAnimation: badges.BadgeAnimation.scale(),
+            badgeStyle: badges.BadgeStyle(
+              badgeColor: Colors.red,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(horizontal: padH, vertical: 1),
+            ),
+            badgeContent: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 12),
+              child: Text(
+                capped,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600),
+              ),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications, color: Colors.white),
+              tooltip: 'Notifications',
+              iconSize: 22,
+              padding: EdgeInsets.zero,
+              visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationListScreen()));
+                await context.read<NotificationProvider>().refreshUnreadCount();
+              },
+            ),
+          );
+        },
+      ),
+    ],
+  ),
+  
+      const SizedBox(width: 10), 
 ],
       ),
       drawer: Drawer(

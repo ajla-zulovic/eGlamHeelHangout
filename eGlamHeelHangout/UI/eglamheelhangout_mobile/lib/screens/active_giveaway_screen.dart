@@ -35,12 +35,13 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
         _giveaways = result;
         _isLoading = false;
       });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-      );
-    }
+    }  catch (e) {
+  setState(() => _isLoading = false);
+  final msg = e.toString().replaceFirst('Exception: ', ''); 
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(msg), backgroundColor: Colors.red),
+  );
+}
   }
 
   void _handleParticipation(Giveaway giveaway) async {

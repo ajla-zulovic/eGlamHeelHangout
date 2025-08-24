@@ -100,24 +100,41 @@ namespace eGlamHeelHangout.Service
                     .ThenInclude(oi => oi.ProductSize)
                 .Include(o => o.User);
         }
-        
-        public async Task UpdateOrderStatus(int orderId, string newStatus)
+        public async Task<string> UpdateOrderStatusAsync(int orderId, string newStatus)
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId);
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
 
             if (order == null)
                 throw new Exception("Order not found");
 
+            if (!string.Equals(order.OrderStatus, "Pending", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Only pending orders can be updated.");
+
             order.OrderStatus = newStatus;
 
-            try
+            string message;
+            if (string.Equals(newStatus, "Canceled", StringComparison.OrdinalIgnoreCase))
             {
-                await _context.SaveChangesAsync();
+                foreach (var it in order.OrderItems)
+                {
+                    var ps = await _context.ProductSizes.FindAsync(it.ProductSizeId);
+                    if (ps != null) ps.StockQuantity += it.Quantity;
+                }
+                message = "Order canceled due to pricing error or unforeseen supply constraints  and stock restored.";
             }
-            catch (Exception ex)
+            else if (string.Equals(newStatus, "Delivered", StringComparison.OrdinalIgnoreCase))
             {
-                throw new Exception($"Error saving order status: {ex.Message}", ex);
+                message = "Order marked as delivered.";
             }
+            else
+            {
+                throw new Exception("Unsupported status.");
+            }
+
+            await _context.SaveChangesAsync();
+            return message;
         }
 
 

@@ -14,6 +14,7 @@ import 'package:eglamheelhangout_mobile/screens/cart_screen.dart';
 import 'package:eglamheelhangout_mobile/models/discount.dart';
 import 'package:eglamheelhangout_mobile/providers/discount_providers.dart';
 import 'package:eglamheelhangout_mobile/providers/favorite_providers.dart';
+import 'package:badges/badges.dart' as badges;
 
 import 'package:http/http.dart' as http;
 
@@ -241,20 +242,39 @@ print("DETAIL SCREEN: ${cartProvider.items.length} items");
         title: Text(product?.name ?? 'Product Details'),
         backgroundColor: Colors.grey[800],
         foregroundColor: Colors.white,
-        actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 18),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 18),
+          child: Selector<CartProvider, int>(
+            selector: (_, cart) => cart.itemCount,
+            builder: (context, count, _) {
+              return badges.Badge(
+                showBadge: count > 0,
+                badgeContent: Text(
+                  count.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+                position: badges.BadgePosition.topEnd(top: -2, end: 4),
+                badgeStyle: badges.BadgeStyle( 
+                  badgeColor: Colors.red,
+                  elevation: 0,
+                ),
                 child: IconButton(
                   icon: const Icon(Icons.shopping_cart),
+                  iconSize: 22,
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CartScreen()),
+                      MaterialPageRoute(builder: (_) => const CartScreen()),
                     );
                   },
                 ),
-              ),
-            ],
+              );
+            },
+          ),
+        ),
+      ],
+
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

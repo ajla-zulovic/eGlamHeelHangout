@@ -40,7 +40,7 @@ namespace eGlamHeelHangout.Controllers
             return Ok(reviews);
         }
         [HttpGet("average/{productId}")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> GetAverageRating(int productId)
         {
             var average = await _reviewService.GetAverageRatingAsync(productId);

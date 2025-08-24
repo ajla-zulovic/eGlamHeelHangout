@@ -23,6 +23,7 @@ namespace eGlamHeelHangout.Controllers
 
 
         [HttpGet("unread")]
+        [Authorize]
         public async Task<IActionResult> GetUnread([FromQuery] string? type = null)
         {
             var username = User?.Identity?.Name;
@@ -47,6 +48,7 @@ namespace eGlamHeelHangout.Controllers
 
 
         [HttpPut("mark-read/{id}")]
+        [Authorize]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             var username = User?.Identity?.Name;

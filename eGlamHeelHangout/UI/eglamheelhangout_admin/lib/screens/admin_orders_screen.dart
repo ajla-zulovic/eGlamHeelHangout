@@ -52,30 +52,37 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     _selectedStatus = null;
     _loadOrders();
   }
-
-
-
   Future<void> _changeOrderStatus(int orderId, String newStatus) async {
-    try {
-      var provider = context.read<OrderProvider>();
-      await provider.updateOrderStatus(orderId, newStatus);
-      await _loadOrders();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Order status updated to "$newStatus"!'),
-          backgroundColor: Colors.green,
+  try {
+    var provider = context.read<OrderProvider>();
+    if (newStatus == "Canceled") {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Cancel order"),
+          content: const Text("Are you sure? Stock will be restored."),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
+            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
+          ],
         ),
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update order status: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (ok != true) return;
     }
+
+    final message = await provider.updateOrderStatus(orderId, newStatus);
+    await _loadOrders();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to update order status: $e'), backgroundColor: Colors.red),
+    );
   }
+}
+
 
   Future<void> _confirmAndDelete(int orderId) async {
     final confirmed = await showDialog<bool>(
@@ -180,8 +187,6 @@ Widget build(BuildContext context) {
 ),
 
     const SizedBox(width: 12),
-
-    // BUTTON
     SizedBox(
       height: 32,
       child: ElevatedButton.icon(
@@ -196,7 +201,7 @@ Widget build(BuildContext context) {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
-          minimumSize: const Size(0, 10), // Visina 36px
+          minimumSize: const Size(0, 10), 
           padding: const EdgeInsets.symmetric(horizontal: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
@@ -204,7 +209,6 @@ Widget build(BuildContext context) {
     ),
   ],
 ),
-
       const SizedBox(height: 10),
       Align(
         alignment: Alignment.centerRight,

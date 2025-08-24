@@ -22,24 +22,28 @@ namespace eGlamHeelHangout.Controllers
         }
 
       [HttpPut("{id}/activate")]
-      public virtual async Task<Model.Products> Activate(int id)
+        [Authorize]
+        public virtual async Task<Model.Products> Activate(int id)
     {
       return await (_service as IProductService).Activate(id);
     }
 
     [HttpPut("{id}/hide")]
-    public virtual async Task<Model.Products> Hide(int id)
+        [Authorize]
+        public virtual async Task<Model.Products> Hide(int id)
     {
       return await (_service as IProductService).Hide(id);
     }
 
     [HttpGet("{id}/AllowedActions")]
-   public virtual async Task<List<string>> AllowedActions(int id)
+        [Authorize]
+        public virtual async Task<List<string>> AllowedActions(int id)
     {
       return await (_service as IProductService).AllowedActions(id);
     }
        
         [HttpGet("{productId}/sizes")]
+        [Authorize]
         public async Task<IActionResult> GetSizes(int productId)
         {
             var sizes = await (_service as IProductService).GetSizesForProductAsync(productId);
@@ -47,6 +51,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpGet("{productId}/average-rating")]
+        [Authorize]
         public async Task<IActionResult> GetAverageRating(int productId)
         {
             var average = await _reviewService.GetAverageRatingAsync(productId);
@@ -55,6 +60,7 @@ namespace eGlamHeelHangout.Controllers
 
 
         [HttpGet("{userId}/recommend")]
+        [Authorize]
         public ActionResult<List<eGlamHeelHangout.Model.Products>> Recommend(int userId)
         {
             var result = _productService.Recommend(userId);
@@ -62,6 +68,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpGet("discounts")]
+        [Authorize]
         public async Task<ActionResult<PagedResult<ProductDiscount>>> GetWithDiscounts([FromQuery] ProductsSearchObjects search = null)
         {
             var result = await _productService.GetWithDiscounts(search);

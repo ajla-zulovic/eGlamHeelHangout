@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using eGlamHeelHangout.Service.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using eGlamHeelHangout.Service.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace eGlamHeelHangout.Controllers
 {
@@ -20,6 +21,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPost("giveaway")]
+        [Authorize]
         public async Task<IActionResult> NotifyGiveaway([FromBody] GiveawayNotificationDTO dto)
         {
             await _hubContext.Clients.All.SendAsync("ReceiveGiveaway", dto);
@@ -29,6 +31,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPost("winner")]
+        [Authorize]
         public async Task<IActionResult> NotifyWinner([FromBody] WinnerNotification dto)
         {
             await _hubContext.Clients.All.SendAsync("ReceiveWinner", dto);
@@ -36,6 +39,7 @@ namespace eGlamHeelHangout.Controllers
         }
 
         [HttpPost("product")]
+        [Authorize]
         public async Task<IActionResult> NotifyProduct([FromBody] ProductNotificationDTO dto)
         {
             await _hubContext.Clients.All.SendAsync("ReceiveProduct", dto);
@@ -44,6 +48,7 @@ namespace eGlamHeelHangout.Controllers
             return Ok();
         }
         [HttpPost("discount")]
+        [Authorize]
         public async Task<IActionResult> NotifyDiscount([FromBody] DiscountNotification dto)
         {
             Console.WriteLine($"Notifikacija stigla u DiscountNotificationController: {dto.ProductName} - {dto.DiscountPercentage}%");
