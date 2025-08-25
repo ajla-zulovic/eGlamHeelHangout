@@ -212,9 +212,13 @@ Future<void> _generateWinner(int giveawayId) async {
 
                       final canGenerateWinner = giveaway.canGenerateWinner == true;
                       final canDelete        = giveaway.canDelete == true;
-                      final noWinnerYet = (giveaway.winnerName == null || giveaway.winnerName!.isEmpty);
-                      final isEndedNoParticipants = canDelete && !canGenerateWinner && noWinnerYet;
-
+                     // final noWinnerYet = (giveaway.winnerName == null || giveaway.winnerName!.isEmpty);
+                      //final isEndedNoParticipants = canDelete && !canGenerateWinner && noWinnerYet;
+                        final now = DateTime.now();
+                        final participantsCount = giveaway.participantsCount ?? 0; 
+                        final isExpired = giveaway.endDate.isBefore(now);
+                        final noWinnerYet = (giveaway.winnerName == null || giveaway.winnerName!.isEmpty);
+                        final showNoParticipants = isExpired && participantsCount == 0 && noWinnerYet;
                       return Card(
                         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         child: ExpansionTile(
@@ -265,23 +269,23 @@ Future<void> _generateWinner(int giveawayId) async {
                                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 ),
                               ),
-                              
-                            if (isEndedNoParticipants)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                child: Row(
-                                  children: const [
-                                    Icon(Icons.info_outline, size: 18, color: Colors.red),
-                                    SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        "This giveaway has no participants!",
-                                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                  ],
+                          if (showNoParticipants)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.info_outline, size: 18, color: Colors.red),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    "This giveaway has no participants!",
+                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                                  ),
                                 ),
-                              ),
+                              ],
+                            ),
+                          ),
+
                             if (canDelete)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

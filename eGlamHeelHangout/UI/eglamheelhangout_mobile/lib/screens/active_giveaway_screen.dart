@@ -62,7 +62,7 @@ class _ActiveGiveawaysScreenState extends State<ActiveGiveawaysScreen> {
     );
 
     if (result == true) {
-      _loadGiveaways(); // Reload in case user just participated
+      _loadGiveaways(); 
     }
   }
 

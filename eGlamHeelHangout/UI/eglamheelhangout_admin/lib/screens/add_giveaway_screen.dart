@@ -18,7 +18,6 @@ class AddGiveawayScreen extends StatefulWidget {
 }
 
 class _AddGiveawayScreenState extends State<AddGiveawayScreen> {
- // final _formKey = GlobalKey<FormBuilderState>();
   var _formKey = GlobalKey<FormBuilderState>();
 
   bool _isSubmitting = false;
@@ -148,10 +147,7 @@ Widget _buildImagePreview() {
 
     final provider = context.read<GiveawayProvider>();
     await provider.insert(formData);
-
     if (!mounted) return;
-
-    //_formKey.currentState?.reset();
     setState(() {
       _formKey = GlobalKey<FormBuilderState>();
       _base64Image = null;
@@ -212,26 +208,25 @@ Widget _buildImagePreview() {
                         (value == null || value.isEmpty) ? 'Color is required' : null,
                   ),
                   const SizedBox(height: 16),
-                 FormBuilderTextField(
-                    name: 'heelHeight',
-                    decoration: const InputDecoration(
-                      labelText: 'Heel Height (e.g. 7.5)',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    ),
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Heel height is required';
-                      }
-                      final height = double.tryParse(value);
-                      if (height == null || height <= 0) {
-                        return 'Enter a valid number (e.g. 7.5)';
-                      }
-                      return null;
-                    },
-                    valueTransformer: (value) => value != null ? double.tryParse(value) : null,
-                  ),
+                FormBuilderTextField(
+                name: 'heelHeight',
+                decoration: const InputDecoration(
+                  labelText: 'Heel Height (cm)',
+                  helperText: 'Allowed: 1–25 cm',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return 'Heel height is required';
+                  final n = double.tryParse(value.replaceAll(',', '.'));
+                  if (n == null) return 'Enter a valid number (e.g. 7.5)';
+                  if (n < 1 || n > 25) return 'Heel height must be between 1 and 25 cm';
+                  return null;
+                },
+                valueTransformer: (v) => v != null ? double.tryParse(v.replaceAll(',', '.')) : null,
+              ),
+
 
                   const SizedBox(height: 16),
                   FormBuilderDateTimePicker(
@@ -308,7 +303,6 @@ Widget _buildImagePreview() {
   children: [
     TextButton(
       onPressed: () {
-       // _formKey.currentState?.reset();
         setState(() {
           _formKey = GlobalKey<FormBuilderState>();
           _base64Image = null;
@@ -348,9 +342,9 @@ Widget _buildImagePreview() {
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
             )
           : const Text('Save', style: TextStyle(color: Colors.white)),
-    ),
-  ],
-)
+        ),
+         ],
+         )
 
           ],
         ),

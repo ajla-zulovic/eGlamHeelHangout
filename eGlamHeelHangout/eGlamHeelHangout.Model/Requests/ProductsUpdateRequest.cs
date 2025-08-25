@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace eGlamHeelHangout.Model.Requests
 {
@@ -10,12 +11,14 @@ namespace eGlamHeelHangout.Model.Requests
   {
     public string? Name{ get; set; }
     public string? Description { get; set; }
+    [Range(1, 10000)]
     public decimal? Price { get; set; }
     public byte[]? Image { get; set; }
     public int? CategoryID { get; set; }   
     public string? Material { get; set; }  
-    public string? Color { get; set; }     
-    public double? HeelHeight { get; set; } 
+    public string? Color { get; set; }
+    [Range(1, 20)]
+   public double? HeelHeight { get; set; } 
 
         public List<ProductSizeUpdateModel>? Sizes { get; set; }
 

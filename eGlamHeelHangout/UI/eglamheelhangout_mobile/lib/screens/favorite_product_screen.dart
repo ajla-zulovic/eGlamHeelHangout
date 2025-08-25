@@ -173,7 +173,7 @@ class _MyFavoritesScreenState extends State<MyFavoritesScreen> {
       ),
         itemBuilder: (context, index) {
           if (index >= _favorites.length) {
-            return const SizedBox(); // sigurnosna mjera
+            return const SizedBox(); 
           }
 
           final product = _favorites[index];

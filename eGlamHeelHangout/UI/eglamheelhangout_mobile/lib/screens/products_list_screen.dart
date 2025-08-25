@@ -92,10 +92,7 @@ class _ProductsListScreenState extends State<ProductsListScreen>with RouteAware 
           );
         },
       ),
-
       const SizedBox(width: 6), 
-
-      // CART
       Selector<CartProvider, int>(
         selector: (_, cart) => cart.itemCount,
         builder: (context, count, _) {
@@ -746,12 +743,12 @@ Widget build(BuildContext context) {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     ),
                     child: Text(
                       'All',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: (_selectedCategoryId == null && !_showDiscountsOnly)
                             ? Colors.white
@@ -985,7 +982,6 @@ Widget build(BuildContext context) {
                                             _recommendedProducts?.removeWhere((p) => p.productID == product.productID);
                                           });
                                         }
-                                      // await _fetchData();
                                     } catch (e) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -1164,7 +1160,6 @@ Widget build(BuildContext context) {
                                     _recommendedProducts?.removeWhere((p) => p.productID == product.productID);
                                   });
                                 }
-                             // await _fetchData();
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Error: ${e.toString()}')),

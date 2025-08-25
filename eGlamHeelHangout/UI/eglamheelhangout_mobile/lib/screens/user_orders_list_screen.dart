@@ -115,10 +115,7 @@ Widget build(BuildContext context) {
                             trailing: Text("\$${(item.pricePerUnit * item.quantity).toStringAsFixed(2)}"),
                           );
                         }).toList(),
-
                         const SizedBox(height: 8),
-
-                        // prikazi info samo ako je status canceled
                         if ((order.orderStatus ?? '').toLowerCase() == 'canceled')
                           Container(
                             width: double.infinity,

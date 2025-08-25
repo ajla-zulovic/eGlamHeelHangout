@@ -99,44 +99,34 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                         const SizedBox(width: 10),
                         if (notif.giveawayId != null && notif.notificationType == "NewGiveaway")
                           ElevatedButton(
-                          onPressed: () async {
-  try {
-    // 1) prvo dohvati pune detalje giveawaya
-    final g = await context.read<GiveawayProvider>().getById(notif.giveawayId!);
+                             onPressed: () async {
+                              try {
+                                final g = await context.read<GiveawayProvider>().getById(notif.giveawayId!);
+                                final dto = GiveawayNotification(
+                                  giveawayId: g.giveawayId,
+                                  title: g.title,
+                                  description: g.description ?? '',
+                                  heelHeight: (g.heelHeight ?? 0).toDouble(),
+                                  color: g.color ?? '',
+                                  giveawayProductImage: g.giveawayProductImage,
+                                );
 
-    // 2) pripremi DTO sa slikom i ostalim poljima
-    final dto = GiveawayNotification(
-      giveawayId: g.giveawayId,
-      title: g.title,
-      description: g.description ?? '',
-      heelHeight: (g.heelHeight ?? 0).toDouble(),
-      color: g.color ?? '',
-      giveawayProductImage: g.giveawayProductImage,
-    );
+                                if (!mounted) return;
+                                final participated = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => GiveawayParticipationScreen(giveaway: dto)),
+                                );
+                                await _markAsRead(notif.notificationId!);
 
-    if (!mounted) return;
-
-    // 3) navigiraj na ekran za učešće
-    final participated = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => GiveawayParticipationScreen(giveaway: dto)),
-    );
-
-    // 4) tek nakon povratka markiraj kao pročitano i osvježi listu
-    await _markAsRead(notif.notificationId!);
-
-    if (participated == true) {
-      // po želji: uradi nešto dodatno (toast, refresh aktivnih giveaways, sl.)
-    }
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to open giveaway: $e')),
-    );
-  }
-},
-
-
+                                if (participated == true) {
+                                }
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Failed to open giveaway: $e')),
+                                );
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,

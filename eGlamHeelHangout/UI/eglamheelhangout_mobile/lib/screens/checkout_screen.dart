@@ -127,7 +127,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 final payment = PaymentCreate(
                                   orderId: createdOrder.orderId!,
                                   totalAmount: (createdOrder.totalPrice * 100).toInt(),
-                                  paymentMethodId: "", // Not needed with PaymentSheet
+                                  paymentMethodId: "",
                                   username: CurrentUser.username ?? '',
                                 );
 

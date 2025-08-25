@@ -35,6 +35,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   SearchResult<Category>? categoryResult;
   Map<int, TextEditingController> _stockControllers = {};
   List<ProductSize> _sizes = [];
+  final Map<int, String?> _sizeErrors = {};
+
 
   @override
   void initState() {
@@ -203,7 +205,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Column(
         children: [
           _buildEditableField("name", "Name"),
-          _buildEditableField("price", "Price", keyboardType: TextInputType.number),
+         FormBuilderTextField(
+  name: 'price',
+  decoration: const InputDecoration(
+    labelText: 'Price',
+  ),
+  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  validator: (v) {
+    if (v == null || v.trim().isEmpty) return 'Price is required';
+    final p = double.tryParse(v.replaceAll(',', '.'));
+    if (p == null) return 'Enter a valid number';
+    if (p < 1) return 'Price must be at least 1';
+    if (p > 10000) return 'Price must be ≤ 10,000';
+    return null;
+  },
+),
           if (widget.product?.discountedPrice != null &&
     widget.product?.discountPercentage != null)
   Padding(
@@ -234,12 +250,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ],
     ),
   ),
-
-
           _buildEditableField("description", "Description", maxLines: 3),
           _buildEditableField("material", "Material"),
           _buildEditableField("color", "Color"),
-          _buildEditableField("heelHeight", "Heel Height (cm)", keyboardType: TextInputType.number),
+         
+FormBuilderTextField(
+  name: 'heelHeight',
+  decoration: const InputDecoration(
+    labelText: 'Heel Height (cm)',
+  ),
+  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  validator: (v) {
+    if (v == null || v.trim().isEmpty) return 'Heel height is required';
+    final h = double.tryParse(v.replaceAll(',', '.'));
+    if (h == null) return 'Enter a valid number (e.g. 7.5)';
+    if (h < 1 || h > 25) return 'Heel height must be between 1 and 25 cm';
+    return null;
+  },
+),
           FormBuilderDropdown<int>(
             name: "categoryID",
             initialValue: widget.product?.categoryID,
@@ -348,23 +376,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Text("Size $shoeSize", style: const TextStyle(fontSize: 12)),
                   const SizedBox(height: 4),
                   TextField(
-                    controller: _stockControllers[shoeSize],
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(2),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: "Qty",
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    ),
-                    style: const TextStyle(fontSize: 13),
-                    onChanged: (_) {
+                  controller: _stockControllers[shoeSize],
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly, 
+                    LengthLimitingTextInputFormatter(2),     
+                  ],
+                  decoration: InputDecoration(
+                    labelText: 'Qty',
+                    helperText: '0–20',
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    errorText: _sizeErrors[shoeSize],
+                  ),
+                  style: const TextStyle(fontSize: 13),
+                  onChanged: (v) {
+                    final n = int.tryParse(v);
+                    String? msg;
+                    if (n == null) msg = '0-20';
+                    else if (n > 20) msg = 'Max 20';
+                    else msg = null;
+
+                    if (_sizeErrors[shoeSize] != msg) {
+                      setState(() => _sizeErrors[shoeSize] = msg);
+                    }
                     if (!_isChanged) setState(() => _isChanged = true);
                   },
-                  ),
+                )
+
                 ],
               ),
             );
@@ -396,6 +436,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _saveChanges() async {
     final isValid = _formKey.currentState?.saveAndValidate() ?? false;
     if (!isValid) return;
+    _sizeErrors.clear();
+bool bad = false;
+_stockControllers.forEach((size, ctrl) {
+  final t = ctrl.text.trim();
+  if (t.isEmpty) return;              
+  final n = int.tryParse(t);
+  if (n == null) {
+    _sizeErrors[size] = 'Only numbers';
+    bad = true;
+  } else if (n > 20) {
+    _sizeErrors[size] = 'Max 20';
+    bad = true;
+  }
+});
+
+if (bad) {
+  setState(() {});
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Each size quantity must be 0–20.')),
+  );
+  return;
+}
 
     try {
       final formData = Map<String, dynamic>.from(_formKey.currentState!.value);
@@ -405,26 +467,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       formData['color'] = _formKey.currentState!.fields['color']?.value;
       formData['heelHeight'] = double.tryParse(_formKey.currentState!.fields['heelHeight']?.value ?? '0');
       formData['categoryID'] = _formKey.currentState!.fields['categoryID']?.value;
-
-      // formData['sizes'] = _stockControllers.entries.map((entry) {
-      //   final size = entry.key;
-      //   final qty = int.tryParse(entry.value.text) ?? 0;
-
-      //   final existingSize = _sizes.firstWhere(
-      //     (s) => s.size == size,
-      //     orElse: () => ProductSize(size: size, stockQuantity: qty, productSizeId: null),
-      //   );
-
-      //   if (existingSize.stockQuantity != qty) {
-      //     return {
-      //       "size": size,
-      //       "stockQuantity": qty,
-      //       "productSizeId": existingSize.productSizeId ?? 0,
-      //     };
-      //   } else {
-      //     return null;
-      //   }
-      // }).where((element) => element != null).toList();
       formData['sizes'] = _stockControllers.entries.map((entry) {
   final size = entry.key;
   final qty = int.tryParse(entry.value.text) ?? 0;
@@ -433,15 +475,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     (s) => s.size == size,
     orElse: () => ProductSize(size: size, stockQuantity: 0, productSizeId: null),
   );
-
-  // šalji samo ako je promjena
   if (existing.stockQuantity != qty) {
     final map = <String, dynamic>{
       "size": size,
       "stockQuantity": qty,
     };
-
-    // VAŽNO: productSizeId samo ako postoji u bazi
     if (existing.productSizeId != null) {
       map["productSizeId"] = existing.productSizeId;
     }

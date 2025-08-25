@@ -366,7 +366,7 @@ Future<void> _fetchData() async {
                 setState(() {
                   _selectedCategoryId = null;
                   _ftsController.clear();
-                  _showDiscountsOnly = true; // SET
+                  _showDiscountsOnly = true; 
                 });
                 await _loadDiscountedProducts();
               },

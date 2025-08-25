@@ -11,6 +11,9 @@ import 'package:eglamheelhangout_admin/providers/product_providers.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:eglamheelhangout_admin/utils/utils.dart';
+import 'package:flutter/services.dart'
+    show TextInputFormatter, FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
+
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -20,8 +23,9 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-//  final _formKey = GlobalKey<FormBuilderState>();
   var _formKey = GlobalKey<FormBuilderState>();
+  final Map<int, String?> _sizeErrors = {}; 
+
 
   late ProductProvider _productProvider;
   late CategoryProvider _categoryProvider;
@@ -33,24 +37,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final Map<int, TextEditingController> _stockControllers = {};
   final List<int> _sizes = List.generate(11, (index) => 36 + index);
    bool _imageValidationFailed = false;
+final _priceFocusNode = FocusNode();
+final Map<int, FocusNode> _qtyFocusNodes = {};
 
-  @override
-  void initState() {
-    super.initState();
-      for (var size in _sizes) {
+
+@override
+void initState() {
+  super.initState();
+  for (final size in _sizes) {
     _stockControllers[size] = TextEditingController();
+    _qtyFocusNodes[size] = FocusNode();
   }
-    _productProvider = context.read<ProductProvider>();
-    _categoryProvider = context.read<CategoryProvider>();
-    _initForm();
-  }
-  @override
+  _productProvider = context.read<ProductProvider>();
+  _categoryProvider = context.read<CategoryProvider>();
+  _initForm();
+}
+
+@override
 void dispose() {
-  for (var controller in _stockControllers.values) {
-    controller.dispose();
-  }
+  _priceFocusNode.dispose();
+  for (final n in _qtyFocusNodes.values) { n.dispose(); }
+  for (final c in _stockControllers.values) { c.dispose(); }
   super.dispose();
 }
+
 
 
   Future<void> _initForm() async {
@@ -215,20 +225,25 @@ void dispose() {
                       const SizedBox(width: 16),
                       Expanded(
                         child: FormBuilderTextField(
-                          name: 'price',
-                          decoration: const InputDecoration(
-                            labelText: 'Price',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            prefixText: '\$ ',
-                          ),
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) return 'Price is required';
-                            if (double.tryParse(value) == null) return 'Enter a valid number';
-                            return null;
-                          },
+                        name: 'price',
+                        focusNode: _priceFocusNode,
+                        decoration: const InputDecoration(
+                          labelText: 'Price',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          prefixText: '\$ ',
                         ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Price is required';
+                          final p = double.tryParse(v.replaceAll(',', '.'));
+                          if (p == null) return 'Enter a valid number';
+                          if (p < 1) return 'Price must be at least 1';
+                          if (p > 10000) return 'Price must be ≤ 10,000';
+                          return null;
+                        },
+                      ),
+
                       ),
                     ],
                   ),
@@ -296,17 +311,26 @@ void dispose() {
                         (value == null || value.isEmpty) ? 'Material is required' : null,
                   ),
                   const SizedBox(height: 16),
-                  FormBuilderTextField(
+                 FormBuilderTextField(
                     name: 'heelHeight',
                     decoration: const InputDecoration(
                       labelText: 'Heel Height (cm)',
+                      helperText: 'Allowed: 1–25 cm',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Heel height is required' : null,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Heel height is required';
+                      }
+                      final n = double.tryParse(value.replaceAll(',', '.'));
+                      if (n == null) return 'Enter a valid number (e.g. 7.5)';
+                      if (n < 1 || n > 25) return 'Heel height must be between 1 and 25 cm';
+                      return null;
+                    },
                   ),
+
                 ],
               ),
             ),
@@ -325,17 +349,43 @@ void dispose() {
                       children: [
                         Text("Size $size", style: const TextStyle(fontSize: 12)),
                         const SizedBox(height: 4),
-                        TextField(
-                          controller: _stockControllers[size],
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: "Qty",
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          ),
-                          style: const TextStyle(fontSize: 13),
-                        ),
+                        StatefulBuilder(
+                          builder: (context, setLocal) {
+                            return TextField(
+                              key: ValueKey('qty_$size'),
+                              focusNode: _qtyFocusNodes[size],
+                              controller: _stockControllers[size],
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(2),
+                              ],
+                              decoration: InputDecoration(
+                                labelText: 'Qty',
+                                isDense: true,
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                errorText: _sizeErrors[size],
+                              ),
+                              onChanged: (v) {
+                                final n = int.tryParse(v);
+                                String? msg;
+                                if (n == null) msg = 'Only numbers';
+                                else if (n < 1) msg = 'Min 1';
+                                else if (n > 20) msg = 'Max 20';
+
+                                if (_sizeErrors[size] != msg) {
+                                  if (msg == null) _sizeErrors.remove(size);
+                                  else _sizeErrors[size] = msg;
+                                  setLocal(() {}); 
+                                }
+                              },
+                            );
+                          },
+                        )
+
+                                              
+
                       ],
                     ),
                   );
@@ -426,6 +476,27 @@ void dispose() {
   }
 Future<void> _submitForm() async {
   if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
+  _sizeErrors.clear();
+bool bad = false;
+for (final size in _sizes) {
+  final txt = _stockControllers[size]?.text.trim() ?? '';
+  if (txt.isEmpty) continue;                // prazno = preskoči tu veličinu
+  final n = int.tryParse(txt);
+  if (n == null || n < 1) {                 // ne smije biti negativno/0
+    _sizeErrors[size] = 'Min 1';
+    bad = true;
+  } else if (n > 20) {                      // max 20
+    _sizeErrors[size] = 'Max 20';
+    bad = true;
+  }
+}
+if (bad) {
+  setState(() {});
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Količina po veličini mora biti između 1 i 20.')),
+  );
+  return; // ne šalji na backend dok ne ispravi
+}
 
   setState(() => _isSubmitting = true);
 
@@ -502,11 +573,19 @@ Future<void> _submitForm() async {
         backgroundColor: Colors.green,
       ),
     );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+  }  catch (e) {
+  if (!mounted) return;
+
+  final msg = e.toString();
+  if (msg.toLowerCase().contains('heel') || msg.toLowerCase().contains('height')) {
+    _formKey.currentState?.fields['heelHeight']?.invalidate(
+      msg.replaceFirst('Exception: ', ''),
     );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $msg'), backgroundColor: Colors.red),
+    );
+  }
   } finally {
     if (mounted) setState(() => _isSubmitting = false);
   }
