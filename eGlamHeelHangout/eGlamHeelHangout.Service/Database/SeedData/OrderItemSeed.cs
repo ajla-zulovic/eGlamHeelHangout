@@ -44,7 +44,16 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                       Quantity = 1,
                       PricePerUnit = 105.00m,
                       ProductSizeId = 15
-                  }
+                  },
+                    new OrderItem
+                    {
+                        OrderItemId = 4,
+                        OrderId = 4,
+                        ProductId = 3,
+                        Quantity = 1,
+                        PricePerUnit = 120.00m,
+                        ProductSizeId = 12
+                    }
              );
 
             context.SaveChanges();

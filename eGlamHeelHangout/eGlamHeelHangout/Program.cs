@@ -30,8 +30,8 @@ Console.WriteLine(" Loaded SecretKey: " + Environment.GetEnvironmentVariable("St
 
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddEnvironmentVariables() //da moze citati pub_key iz .env fajla
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+     .AddEnvironmentVariables() //da moze citati pub_key iz .env fajla
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
 QuestPDF.Settings.License = LicenseType.Community;

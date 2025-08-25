@@ -64,6 +64,21 @@ namespace eGlamHeelHangout.Service.Database.SeedData
                     City = "Sarajevo",
                     PostalCode = "71000",
                     PhoneNumber = "+38761234567"
+                },
+                new Order
+                {
+                    OrderId = 4,
+                    UserId = 2,
+                    OrderStatus = "Pending",
+                    TotalPrice = 120.00m,
+                    PaymentMethod = "Card",
+                    OrderDate = new DateTime(2025, 8, 23),
+                    FullName = "UserF UserL",
+                    Email = "user@example.com",
+                    Address = "Main Street 12",
+                    City = "Sarajevo",
+                    PostalCode = "71000",
+                    PhoneNumber = "+38761234567"
                 }
             };
 
